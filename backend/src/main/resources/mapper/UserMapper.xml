@@ -18,6 +18,9 @@
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="deletedAt" column="deleted_at"/>
+        <result property="notiAssignment" column="noti_assignment"/>
+        <result property="notiAnnouncement" column="noti_announcement"/>
+        <result property="notiInquiryReply" column="noti_inquiry_reply"/>
     </resultMap>
 
     <select id="findByEmail" resultMap="UserResultMap">
@@ -101,6 +104,15 @@
 
     <update id="updatePassword">
         UPDATE users SET password_hash = #{passwordHash}, updated_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateNotificationSettings" parameterType="com.edu.platform.domain.User">
+        UPDATE users
+        SET noti_assignment    = #{notiAssignment},
+            noti_announcement  = #{notiAnnouncement},
+            noti_inquiry_reply = #{notiInquiryReply},
+            updated_at         = NOW()
         WHERE user_id = #{userId}
     </update>
 

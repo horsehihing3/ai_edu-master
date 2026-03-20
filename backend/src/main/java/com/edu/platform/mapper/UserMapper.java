@@ -20,6 +20,7 @@ public interface UserMapper {
     void updateActive(@Param("userId") Long userId, @Param("isActive") boolean isActive);
     void softDelete(@Param("userId") Long userId);
     void updatePassword(@Param("userId") Long userId, @Param("passwordHash") String passwordHash);
+    void updateNotificationSettings(User user);
     long countByRole(@Param("role") String role);
     long countByIsActive(@Param("isActive") boolean isActive);
     long count();

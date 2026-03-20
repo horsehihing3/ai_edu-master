@@ -24,6 +24,9 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+    private Boolean notiAssignment;
+    private Boolean notiAnnouncement;
+    private Boolean notiInquiryReply;
 
     public UserRole getRoleAsEnum() {
         return role != null ? UserRole.valueOf(role) : null;

@@ -75,12 +75,17 @@ public class SettingsController {
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.PASSWORD_CHANGED));
     }
 
+    // [2026-03-20] 알림 설정 저장 구현
     @PutMapping("/notifications")
-    public ResponseEntity<ApiResponse<Void>> updateNotificationSettings(
+    public ResponseEntity<ApiResponse<String>> updateNotificationSettings(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody Map<String, Object> request) {
-        // TODO: 알림 설정 저장 로직 구현
-        return ResponseEntity.ok(ApiResponse.success(ResponseMessage.NOTIFICATION_SETTINGS_SAVED));
+            @RequestBody User request) {
+        User user = getUser(userDetails);
+        user.setNotiAssignment(request.getNotiAssignment());
+        user.setNotiAnnouncement(request.getNotiAnnouncement());
+        user.setNotiInquiryReply(request.getNotiInquiryReply());
+        userMapper.updateNotificationSettings(user);
+        return ResponseEntity.ok(ApiResponse.success("알림 설정이 저장되었습니다."));
     }
 
     @DeleteMapping("/account")

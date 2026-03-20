@@ -34,6 +34,9 @@ npm run preview            # 빌드 결과물 미리보기
 ```bash
 mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/schema.sql
 mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/seed.sql
+# 증분 적용 (스키마 변경 시)
+mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/wrong_notes.sql
+mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/notification_settings.sql
 ```
 
 ## Architecture
@@ -121,6 +124,7 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - API 호출은 `composables/` 또는 axios 직접 사용 (`/api` 프록시)
 - 상태 관리는 Pinia store 사용
 - 신규 페이지 추가 시 `router/index.js`에 역할별 가드 반드시 설정
+- 코드 변경 시 날짜 주석 형식: `// [YYYY-MM-DD] 변경 이유 또는 내용` (예: `// [2026-03-20] 북마크 버튼 제거 — 오답노트 자동저장으로 대체됨`)
 
 ## Key Configuration
 

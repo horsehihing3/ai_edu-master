@@ -47,6 +47,9 @@
             @click="toggleResolve(item)"
           >{{ item.isResolved ? '해결됨' : '미해결' }}</button>
           <button class="btn btn-secondary btn-sm" @click="deleteItem(item.id)">삭제</button>
+          <button class="video-link-btn" @click="goToVideo(item.problemId)">
+            🎬 관련 영상 보기
+          </button>
         </div>
       </div>
     </div>
@@ -63,12 +66,14 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import AppBadge from '@/components/common/AppBadge.vue'
 import AppEmpty from '@/components/common/AppEmpty.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
 import { useToast } from '@/composables/useToast'
 import api from '@/utils/api'
 
+const router = useRouter()
 const { success, error } = useToast()
 
 const items = ref([])
@@ -152,6 +157,11 @@ async function deleteAll() {
   } catch {
     error('전체 삭제에 실패했습니다.')
   }
+}
+
+// [2026-03-20] 오답노트 관련 영상 바로보기 추가
+function goToVideo(problemId) {
+  router.push({ path: '/student/videos', query: { problemId } })
 }
 
 function formatDate(d) {
@@ -286,5 +296,23 @@ onMounted(fetchWrongNotes)
 .unit-info {
   font-size: $font-size-xs;
   color: $text-muted;
+}
+
+.video-link-btn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-fast;
+  border: 1.5px solid $border;
+  background: $bg-white;
+  color: $text-secondary;
+  white-space: nowrap;
+
+  &:hover { border-color: $primary-light; color: $primary-light; }
 }
 </style>

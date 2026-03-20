@@ -111,11 +111,8 @@
           </div>
 
           <!-- 액션 버튼 -->
+          <!-- [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨 -->
           <div class="answer-actions">
-            <button :class="['bookmark-btn', { bookmarked: bookmarked }]" @click="toggleBookmark">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-              {{ bookmarked ? '북마크 해제' : '오답 북마크' }}
-            </button>
             <button class="video-btn" @click="requestVideo">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
               동영상 풀이
@@ -176,14 +173,14 @@ import api from '@/utils/api'
 
 const router = useRouter()
 const route = useRoute()
-const { success, info } = useToast()
+const { success, error } = useToast()
 
 const currentIdx = ref(0)
 const selected = ref(null)        // 객관식 선택 인덱스
 const userAnswer = ref('')        // 단답형 입력값
 const submitted = ref(false)
 const showExplanation = ref(false)
-const bookmarked = ref(false)
+// [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
 const results = ref([])
 const elapsed = ref(0)
 let timer = null
@@ -215,6 +212,13 @@ const isCorrect = computed(() => {
 async function submit() {
   submitted.value = true
   results.value[currentIdx.value] = isCorrect.value
+  // [2026-03-20] 정답/오답 즉시 피드백 토스트 추가
+  if (isCorrect.value) {
+    success('✅ 정답입니다!')
+  } else {
+    error('❌ 오답입니다. 해설을 확인해보세요.')
+    showExplanation.value = true
+  }
   try {
     const sessionId = route.params.sessionId || route.params.id
     // 단답형: 입력 텍스트 그대로 전송 / 객관식: 선택 번호(1-based) 전송
@@ -234,7 +238,7 @@ function nextProblem() {
   userAnswer.value = ''
   submitted.value = false
   showExplanation.value = false
-  bookmarked.value = false
+  // [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
 }
 
 function jumpTo(i) {
@@ -243,19 +247,7 @@ function jumpTo(i) {
   submitted.value = results.value[i] !== undefined
 }
 
-async function toggleBookmark() {
-  const p = problems.value[currentIdx.value]
-  bookmarked.value = !bookmarked.value
-  try {
-    if (bookmarked.value) {
-      await api.post('/student/bookmarks', { problemId: p.id })
-      info('오답 노트에 추가했습니다.')
-    } else {
-      await api.delete(`/student/bookmarks/problem/${p.id}`)
-      info('북마크를 해제했습니다.')
-    }
-  } catch { bookmarked.value = !bookmarked.value }
-}
+// [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
 
 function requestVideo() {
   router.push(`/student/videos`)
@@ -485,7 +477,7 @@ onUnmounted(() => clearInterval(timer))
   margin-bottom: $spacing-5;
 }
 
-.bookmark-btn,
+// [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
 .video-btn {
   display: flex;
   align-items: center;
@@ -501,12 +493,6 @@ onUnmounted(() => clearInterval(timer))
   color: $text-secondary;
 
   &:hover { border-color: $primary-light; color: $primary-light; }
-
-  &.bookmarked {
-    background: #FEF3C7;
-    border-color: $warning;
-    color: #92400E;
-  }
 }
 
 .solve-footer {
