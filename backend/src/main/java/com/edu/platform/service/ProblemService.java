@@ -1,0 +1,216 @@
+package com.edu.platform.service;
+
+import com.edu.platform.domain.Problem;
+import com.edu.platform.domain.ProblemOption;
+import com.edu.platform.dto.common.PageResponse;
+import com.edu.platform.exception.BusinessException;
+import com.edu.platform.exception.ErrorCode;
+import com.edu.platform.mapper.ProblemMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ProblemService {
+
+    private final ProblemMapper problemMapper;
+
+    @Transactional(readOnly = true)
+    public PageResponse<Map<String, Object>> searchProblems(Map<String, Object> searchParams, int page, int size) {
+        int offset = page * size;
+        int limit = size;
+
+        String level = searchParams != null ? (String) searchParams.get("level") : null;
+        String grade = searchParams != null ? (String) searchParams.get("grade") : null;
+        String unitName = searchParams != null ? (String) searchParams.get("unitName") : null;
+        String keyword = searchParams != null ? (String) searchParams.get("keyword") : null;
+        Long schoolId = searchParams != null && searchParams.get("schoolId") != null
+                ? Long.valueOf(searchParams.get("schoolId").toString()) : null;
+
+        List<Problem> problems = problemMapper.search(level, grade, unitName, schoolId, keyword, offset, limit);
+        long totalElements = problemMapper.countSearch(level, grade, unitName, schoolId, keyword);
+        int totalPages = (int) Math.ceil((double) totalElements / limit);
+
+        List<Map<String, Object>> content = problems.stream()
+                .map(this::mapToSummaryDto)
+                .collect(Collectors.toList());
+
+        return PageResponse.of(content, totalElements, totalPages, page, limit);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getProblemDetail(Long problemId) {
+        Problem problem = problemMapper.findById(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
+
+        return mapToDetailDto(problem);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getProblemsForDiagnosis(String level, int count) {
+        List<Problem> problems = problemMapper.findForDiagnosis(level, count);
+        return problems.stream().map(this::mapToSummaryDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getProblemsForAssignment(Long assignmentId) {
+        List<Problem> problems = problemMapper.findByAssignmentId(assignmentId);
+        return problems.stream().map(this::mapToSummaryDto).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Long createProblem(Map<String, Object> request, Long createdBy) {
+        Problem problem = buildProblemFromRequest(request);
+        problem.setCreatedBy(createdBy);
+        problemMapper.insert(problem);
+
+        List<?> options = (List<?>) request.get("options");
+        if (options != null) {
+            saveOptions(problem.getProblemId(), options);
+        }
+        return problem.getProblemId();
+    }
+
+    @Transactional
+    public void updateProblem(Long problemId, Map<String, Object> request) {
+        problemMapper.findById(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
+
+        Problem problem = buildProblemFromRequest(request);
+        problem.setProblemId(problemId);
+        problemMapper.update(problem);
+    }
+
+    @Transactional
+    public void deleteProblem(Long problemId) {
+        problemMapper.findById(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
+        problemMapper.deleteById(problemId);
+    }
+
+    @Transactional
+    public Map<String, Object> uploadBatch(List<Map<String, Object>> problems, Long createdBy) {
+        int success = 0;
+        List<String> errors = new ArrayList<>();
+
+        for (int i = 0; i < problems.size(); i++) {
+            try {
+                createProblem(problems.get(i), createdBy);
+                success++;
+            } catch (Exception e) {
+                errors.add("row " + (i + 1) + ": " + e.getMessage());
+                log.warn("배치 업로드 실패 - row {}: {}", i + 1, e.getMessage());
+            }
+        }
+
+        return Map.of(
+                "total", problems.size(),
+                "success", success,
+                "failed", problems.size() - success,
+                "errors", errors
+        );
+    }
+
+    private Problem buildProblemFromRequest(Map<String, Object> req) {
+        String source = toString(req.get("source"));
+        String problemType = toString(req.get("problemType"));
+        String answer = toString(req.get("answer"));
+        Integer difficulty = toInt(req.get("difficulty"));
+
+        return Problem.builder()
+                .schoolId(toLong(req.get("schoolId")))
+                .subjectCodeId(toLong(req.get("subjectCodeId")))
+                .unitCodeId(toLong(req.get("unitCodeId")))
+                .level(toString(req.get("level")))
+                .grade(toString(req.get("grade")))
+                .source(source != null ? source : "CUSTOM")
+                .sourceDetail(toString(req.get("sourceDetail")))
+                .problemType(problemType != null ? problemType : "MULTIPLE_CHOICE")
+                .questionText(toString(req.get("questionText")))
+                .questionImgUrl(toString(req.get("questionImgUrl")))
+                .answer(answer != null ? answer : "")
+                .explanation(toString(req.get("explanation")))
+                .hint(toString(req.get("hint")))
+                .difficulty(difficulty != null ? difficulty : 3)
+                .estimatedTime(toInt(req.get("estimatedTime")))
+                .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void saveOptions(Long problemId, List<?> rawOptions) {
+        for (int i = 0; i < rawOptions.size(); i++) {
+            Map<String, Object> opt = (Map<String, Object>) rawOptions.get(i);
+            ProblemOption option = ProblemOption.builder()
+                    .problemId(problemId)
+                    .optionNo(i + 1)
+                    .optionText(toString(opt.get("optionText")))
+                    .optionImgUrl(toString(opt.get("optionImgUrl")))
+                    .build();
+            problemMapper.insertOption(option);
+        }
+    }
+
+    private Long toLong(Object val) {
+        if (val == null) return null;
+        if (val instanceof Number) return ((Number) val).longValue();
+        try { return Long.parseLong(val.toString()); } catch (NumberFormatException e) { return null; }
+    }
+
+    private Integer toInt(Object val) {
+        if (val == null) return null;
+        if (val instanceof Number) return ((Number) val).intValue();
+        try { return Integer.parseInt(val.toString()); } catch (NumberFormatException e) { return null; }
+    }
+
+    private String toString(Object val) {
+        return val != null ? val.toString() : null;
+    }
+
+    private Map<String, Object> mapToSummaryDto(Problem p) {
+        Map<String, Object> map = new java.util.LinkedHashMap<>();
+        map.put("problemId", p.getProblemId());
+        map.put("subject", p.getSubject() != null ? p.getSubject() : "");
+        map.put("questionText", p.getQuestionText() != null ? p.getQuestionText() : "");
+        map.put("questionImgUrl", p.getQuestionImgUrl() != null ? p.getQuestionImgUrl() : "");
+        map.put("level", p.getLevel() != null ? p.getLevel() : "");
+        map.put("grade", p.getGrade() != null ? p.getGrade() : "");
+        map.put("unitName", p.getUnitName() != null ? p.getUnitName() : "");
+        map.put("problemType", p.getProblemType() != null ? p.getProblemType() : "");
+        map.put("difficulty", p.getDifficulty() != null ? p.getDifficulty() : 0);
+        map.put("createdAt", p.getCreatedAt() != null ? p.getCreatedAt().toString() : "");
+        return map;
+    }
+
+    private Map<String, Object> mapToDetailDto(Problem p) {
+        List<ProblemOption> rawOptions = problemMapper.findOptionsByProblemId(p.getProblemId());
+        List<Map<String, Object>> options = rawOptions.stream()
+                .map(opt -> Map.<String, Object>of(
+                        "optionId", opt.getOptionId(),
+                        "optionNo", opt.getOptionNo(),
+                        "optionText", opt.getOptionText() != null ? opt.getOptionText() : "",
+                        "optionImgUrl", opt.getOptionImgUrl() != null ? opt.getOptionImgUrl() : ""
+                ))
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "problemId", p.getProblemId(),
+                "questionText", p.getQuestionText() != null ? p.getQuestionText() : "",
+                "questionImgUrl", p.getQuestionImgUrl() != null ? p.getQuestionImgUrl() : "",
+                "level", p.getLevel() != null ? p.getLevel() : "",
+                "grade", p.getGrade() != null ? p.getGrade() : "",
+                "unitName", p.getUnitName() != null ? p.getUnitName() : "",
+                "problemType", p.getProblemType() != null ? p.getProblemType() : "",
+                "hint", p.getHint() != null ? p.getHint() : "",
+                "estimatedTime", p.getEstimatedTime() != null ? p.getEstimatedTime() : 0,
+                "options", options
+        );
+    }
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.BookmarkMapper">
+
+    <resultMap id="BookmarkResultMap" type="com.edu.platform.domain.Bookmark">
+        <id property="bookmarkId" column="bookmark_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="problemId" column="problem_id"/>
+        <result property="memo" column="memo"/>
+        <result property="isResolved" column="is_resolved"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findByStudentAndProblem" resultMap="BookmarkResultMap">
+        SELECT * FROM bookmarks
+        WHERE student_id = #{studentId} AND problem_id = #{problemId}
+        LIMIT 1
+    </select>
+
+    <select id="findByStudentId" resultMap="BookmarkResultMap">
+        SELECT * FROM bookmarks WHERE student_id = #{studentId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByStudentId" resultType="long">
+        SELECT COUNT(*) FROM bookmarks WHERE student_id = #{studentId}
+    </select>
+
+    <select id="existsByStudentAndProblem" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM bookmarks
+        WHERE student_id = #{studentId} AND problem_id = #{problemId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="bookmarkId">
+        INSERT INTO bookmarks (student_id, problem_id, memo, is_resolved, created_at, updated_at)
+        VALUES (#{studentId}, #{problemId}, #{memo}, 0, NOW(), NOW())
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM bookmarks WHERE student_id = #{studentId} AND problem_id = #{problemId}
+    </delete>
+
+    <update id="updateResolved">
+        UPDATE bookmarks SET is_resolved = #{isResolved}, updated_at = NOW()
+        WHERE bookmark_id = #{bookmarkId}
+    </update>
+
+</mapper>

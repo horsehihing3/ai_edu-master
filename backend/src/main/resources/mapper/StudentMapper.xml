@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.StudentMapper">
+
+    <resultMap id="StudentResultMap" type="com.edu.platform.domain.Student">
+        <id property="studentId" column="student_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="schoolId" column="school_id"/>
+        <result property="grade" column="grade"/>
+        <result property="studentLevel" column="student_level"/>
+        <result property="joinCode" column="join_code"/>
+        <result property="parentPhone1" column="parent_phone1"/>
+        <result property="parentPhone2" column="parent_phone2"/>
+        <result property="diagnosisAt" column="diagnosis_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="StudentResultMap">
+        SELECT * FROM students WHERE student_id = #{studentId}
+    </select>
+
+    <select id="findByUserId" resultMap="StudentResultMap">
+        SELECT * FROM students WHERE user_id = #{userId}
+    </select>
+
+    <select id="findBySchoolId" resultMap="StudentResultMap">
+        SELECT * FROM students WHERE school_id = #{schoolId}
+        ORDER BY student_id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findBySchoolIdAll" resultMap="StudentResultMap">
+        SELECT * FROM students WHERE school_id = #{schoolId}
+        ORDER BY student_id DESC
+    </select>
+
+    <select id="countBySchoolId" resultType="long">
+        SELECT COUNT(*) FROM students WHERE school_id = #{schoolId}
+    </select>
+
+    <select id="findBySchoolIdAndLevel" resultMap="StudentResultMap">
+        SELECT * FROM students WHERE school_id = #{schoolId} AND student_level = #{level}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="studentId">
+        INSERT INTO students (user_id, school_id, grade, student_level, join_code, parent_phone1, parent_phone2, created_at, updated_at)
+        VALUES (#{userId}, #{schoolId}, #{grade}, #{studentLevel}, #{joinCode}, #{parentPhone1}, #{parentPhone2}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE students SET
+            grade = #{grade},
+            parent_phone1 = #{parentPhone1},
+            parent_phone2 = #{parentPhone2},
+            updated_at = NOW()
+        WHERE student_id = #{studentId}
+    </update>
+
+    <update id="updateLevel">
+        UPDATE students SET student_level = #{level}, updated_at = NOW()
+        WHERE student_id = #{studentId}
+    </update>
+
+    <update id="updateDiagnosisAt">
+        UPDATE students SET diagnosis_at = NOW(), updated_at = NOW()
+        WHERE student_id = #{studentId}
+    </update>
+
+    <select id="getListWithStats" resultType="map">
+        SELECT s.student_id                                                               AS studentId,
+               u.name,
+               u.email,
+               s.grade,
+               s.student_level                                                            AS studentLevel,
+               COUNT(DISTINCT at2.assignment_id)                                          AS totalAssignments,
+               COUNT(DISTINCT CASE WHEN ls.status = 'COMPLETED' THEN ls.assignment_id END) AS completedAssignments,
+               CASE
+                   WHEN COUNT(DISTINCT at2.assignment_id) > 0
+                       THEN ROUND(COUNT(DISTINCT CASE WHEN ls.status = 'COMPLETED' THEN ls.assignment_id END) * 100.0
+                           / COUNT(DISTINCT at2.assignment_id))
+                   ELSE 0
+               END                                                                        AS completionRate,
+               CASE
+                   WHEN SUM(ls.solved_count) > 0
+                       THEN ROUND(SUM(ls.correct_count) * 100.0 / SUM(ls.solved_count))
+                   ELSE 0
+               END                                                                        AS accuracy,
+               DATE_FORMAT(MAX(COALESCE(ls.completed_at, ls.last_saved_at, ls.started_at)), '%Y-%m-%d') AS lastStudy
+        FROM students s
+                 JOIN users u ON s.user_id = u.user_id
+                 LEFT JOIN assignment_targets at2 ON at2.student_id = s.student_id
+                 LEFT JOIN learning_sessions ls ON ls.student_id = s.student_id
+        WHERE s.school_id = #{schoolId}
+        GROUP BY s.student_id
+        ORDER BY u.name
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countBySchoolIdForStats" resultType="long">
+        SELECT COUNT(*) FROM students WHERE school_id = #{schoolId}
+    </select>
+
+    <select id="getLevelDistribution" resultType="map">
+        SELECT student_level AS level, COUNT(*) AS `count`
+        FROM students
+        GROUP BY student_level
+        ORDER BY student_level
+    </select>
+
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.TeacherMapper">
+
+    <resultMap id="TeacherResultMap" type="com.edu.platform.domain.Teacher">
+        <id property="teacherId" column="teacher_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="schoolId" column="school_id"/>
+        <result property="subject" column="subject"/>
+        <result property="bio" column="bio"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="TeacherResultMap">
+        SELECT * FROM teachers WHERE teacher_id = #{teacherId}
+    </select>
+
+    <select id="findByUserId" resultMap="TeacherResultMap">
+        SELECT * FROM teachers WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="teacherId">
+        INSERT INTO teachers (user_id, school_id, subject, bio, created_at, updated_at)
+        VALUES (#{userId}, #{schoolId}, #{subject}, #{bio}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE teachers SET
+            subject = #{subject},
+            bio = #{bio},
+            updated_at = NOW()
+        WHERE teacher_id = #{teacherId}
+    </update>
+
+    <select id="getSubjectStats" resultType="map">
+        SELECT COALESCE(sc.code_name, '기타') AS subject,
+               ROUND(
+                   SUM(CASE WHEN pa.is_correct = TRUE THEN 1 ELSE 0 END) * 100.0
+                   / NULLIF(COUNT(*), 0)
+               ) AS rate
+        FROM problem_attempts pa
+        JOIN problems p ON pa.problem_id = p.problem_id
+        LEFT JOIN system_codes sc ON p.subject_code_id = sc.code_id
+        JOIN students s ON pa.student_id = s.student_id
+        WHERE s.school_id = #{schoolId}
+        GROUP BY p.subject_code_id, sc.code_name
+        ORDER BY rate DESC
+    </select>
+
+    <select id="getWeeklyParticipation" resultType="map">
+        SELECT DATE_FORMAT(MIN(ls.started_at), '%m/%d') AS week,
+               ROUND(
+                   COUNT(DISTINCT ls.student_id) * 100.0
+                   / NULLIF((SELECT COUNT(*) FROM students WHERE school_id = #{schoolId}), 0)
+               ) AS rate
+        FROM learning_sessions ls
+        JOIN students s ON ls.student_id = s.student_id
+        WHERE s.school_id = #{schoolId}
+          AND ls.started_at >= DATE_SUB(CURDATE(), INTERVAL 6 WEEK)
+        GROUP BY YEARWEEK(ls.started_at)
+        ORDER BY MIN(ls.started_at) ASC
+    </select>
+
+    <select id="getStudentStats" resultType="map">
+        SELECT u.name AS name,
+               st.student_level AS level,
+               COALESCE(SUM(CASE WHEN YEARWEEK(ls.started_at, 1) = YEARWEEK(NOW(), 1)
+                                 THEN ls.solved_count ELSE 0 END), 0) AS weekStudy,
+               COALESCE(ROUND(
+                   COUNT(CASE WHEN ls.status = 'COMPLETED' THEN 1 END) * 100.0
+                   / NULLIF(COUNT(ls.session_id), 0)
+               ), 0) AS assignRate,
+               COALESCE(ROUND(
+                   SUM(ls.correct_count) * 100.0
+                   / NULLIF(SUM(ls.solved_count), 0)
+               ), 0) AS correctRate,
+               COALESCE(DATE_FORMAT(MAX(ls.started_at), '%m/%d'), '-') AS lastAccess
+        FROM students st
+        JOIN users u ON st.user_id = u.user_id
+        LEFT JOIN learning_sessions ls ON st.student_id = ls.student_id
+        WHERE st.school_id = #{schoolId}
+        GROUP BY st.student_id, u.name, st.student_level
+        ORDER BY u.name ASC
+    </select>
+
+</mapper>

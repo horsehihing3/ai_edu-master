@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.ProblemMapper">
+
+    <resultMap id="ProblemResultMap" type="com.edu.platform.domain.Problem">
+        <id  property="problemId"     column="problem_id"/>
+        <result property="schoolId"       column="school_id"/>
+        <result property="subjectCodeId"  column="subject_code_id"/>
+        <result property="unitCodeId"     column="unit_code_id"/>
+        <result property="level"          column="level"/>
+        <result property="grade"          column="grade"/>
+        <result property="source"         column="source"/>
+        <result property="sourceDetail"   column="source_detail"/>
+        <result property="problemType"    column="problem_type"/>
+        <result property="questionText"   column="question_text"/>
+        <result property="questionImgUrl" column="question_img_url"/>
+        <result property="answer"         column="answer"/>
+        <result property="explanation"    column="explanation"/>
+        <result property="hint"           column="hint"/>
+        <result property="aiHintText"     column="ai_hint_text"/>
+        <result property="aiConfidence"   column="ai_confidence"/>
+        <result property="difficulty"     column="difficulty"/>
+        <result property="estimatedTime"  column="estimated_time"/>
+        <result property="isActive"       column="is_active"/>
+        <result property="createdBy"      column="created_by"/>
+        <result property="createdAt"      column="created_at"/>
+        <result property="updatedAt"      column="updated_at"/>
+        <!-- JOIN 조회 컬럼 -->
+        <result property="subject"        column="subject_name"/>
+        <result property="unitName"       column="unit_code_name"/>
+        <result property="unitPath"       column="unit_path"/>
+    </resultMap>
+
+    <resultMap id="OptionResultMap" type="com.edu.platform.domain.ProblemOption">
+        <id  property="optionId"    column="option_id"/>
+        <result property="problemId"   column="problem_id"/>
+        <result property="optionNo"    column="option_no"/>
+        <result property="optionText"  column="option_text"/>
+        <result property="optionImgUrl" column="option_img_url"/>
+    </resultMap>
+
+    <!-- 코드 경로 계산 SQL 조각 (최대 3단계: 과목 > 대단원 > 소단원) -->
+    <sql id="unitPathSelect">
+        CASE
+            WHEN pu.parent_code_id IS NULL THEN pu.code_name
+            WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name)
+            ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name)
+        END AS unit_path
+    </sql>
+
+    <sql id="unitJoins">
+        LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id
+        LEFT JOIN system_codes pu      ON p.unit_code_id    = pu.code_id
+        LEFT JOIN system_codes pu2     ON pu.parent_code_id = pu2.code_id
+        LEFT JOIN system_codes pu3     ON pu2.parent_code_id = pu3.code_id
+    </sql>
+
+    <select id="findById" resultMap="ProblemResultMap">
+        SELECT p.*,
+               sc_subj.code_name AS subject_name,
+               pu.code_name      AS unit_code_name,
+               <include refid="unitPathSelect"/>
+        FROM problems p
+        <include refid="unitJoins"/>
+        WHERE p.problem_id = #{problemId} AND p.is_active = 1
+    </select>
+
+    <select id="search" resultMap="ProblemResultMap">
+        SELECT p.*,
+               sc_subj.code_name AS subject_name,
+               pu.code_name      AS unit_code_name,
+               <include refid="unitPathSelect"/>
+        FROM problems p
+        <include refid="unitJoins"/>
+        WHERE p.is_active = 1
+        <if test="level != null and level != ''">AND p.level = #{level}</if>
+        <if test="grade != null and grade != ''">AND p.grade = #{grade}</if>
+        <if test="unitName != null and unitName != ''">
+            AND (pu.code_name LIKE CONCAT('%', #{unitName}, '%')
+              OR pu2.code_name LIKE CONCAT('%', #{unitName}, '%')
+              OR pu3.code_name LIKE CONCAT('%', #{unitName}, '%'))
+        </if>
+        <if test="schoolId != null">AND (p.school_id = #{schoolId} OR p.school_id IS NULL)</if>
+        <if test="keyword != null and keyword != ''">AND p.question_text LIKE CONCAT('%', #{keyword}, '%')</if>
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countSearch" resultType="long">
+        SELECT COUNT(*) FROM problems p
+        LEFT JOIN system_codes pu  ON p.unit_code_id    = pu.code_id
+        LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id
+        LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id
+        WHERE p.is_active = 1
+        <if test="level != null and level != ''">AND p.level = #{level}</if>
+        <if test="grade != null and grade != ''">AND p.grade = #{grade}</if>
+        <if test="unitName != null and unitName != ''">
+            AND (pu.code_name LIKE CONCAT('%', #{unitName}, '%')
+              OR pu2.code_name LIKE CONCAT('%', #{unitName}, '%')
+              OR pu3.code_name LIKE CONCAT('%', #{unitName}, '%'))
+        </if>
+        <if test="schoolId != null">AND (p.school_id = #{schoolId} OR p.school_id IS NULL)</if>
+        <if test="keyword != null and keyword != ''">AND p.question_text LIKE CONCAT('%', #{keyword}, '%')</if>
+    </select>
+
+    <select id="findForDiagnosis" resultMap="ProblemResultMap">
+        SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name,
+               <include refid="unitPathSelect"/>
+        FROM problems p
+        <include refid="unitJoins"/>
+        WHERE p.level = #{level} AND p.is_active = 1
+        ORDER BY RAND()
+        LIMIT #{count}
+    </select>
+
+    <select id="findByAssignmentId" resultMap="ProblemResultMap">
+        SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name,
+               <include refid="unitPathSelect"/>
+        FROM problems p
+        INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id
+        <include refid="unitJoins"/>
+        WHERE ap.assignment_id = #{assignmentId}
+        ORDER BY ap.order_no
+    </select>
+
+    <select id="findOptionsByProblemId" resultMap="OptionResultMap">
+        SELECT * FROM problem_options WHERE problem_id = #{problemId} ORDER BY option_no
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM problems WHERE is_active = 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="problemId">
+        INSERT INTO problems
+            (school_id, subject_code_id, unit_code_id, level, grade,
+             source, source_detail, problem_type, question_text, question_img_url,
+             answer, explanation, hint, difficulty, estimated_time,
+             is_active, created_by, created_at, updated_at)
+        VALUES
+            (#{schoolId}, #{subjectCodeId}, #{unitCodeId}, #{level}, #{grade},
+             #{source}, #{sourceDetail}, #{problemType}, #{questionText}, #{questionImgUrl},
+             #{answer}, #{explanation}, #{hint}, #{difficulty}, #{estimatedTime},
+             1, #{createdBy}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE problems SET
+            subject_code_id = #{subjectCodeId},
+            unit_code_id    = #{unitCodeId},
+            level           = #{level},
+            grade           = #{grade},
+            source          = #{source},
+            source_detail   = #{sourceDetail},
+            problem_type    = #{problemType},
+            question_text   = #{questionText},
+            answer          = #{answer},
+            explanation     = #{explanation},
+            hint            = #{hint},
+            difficulty      = #{difficulty},
+            updated_at      = NOW()
+        WHERE problem_id = #{problemId}
+    </update>
+
+    <update id="deleteById">
+        UPDATE problems SET is_active = 0, updated_at = NOW() WHERE problem_id = #{problemId}
+    </update>
+
+    <insert id="insertOption" useGeneratedKeys="true" keyProperty="optionId">
+        INSERT INTO problem_options (problem_id, option_no, option_text, option_img_url)
+        VALUES (#{problemId}, #{optionNo}, #{optionText}, #{optionImgUrl})
+    </insert>
+
+    <select id="getWeakUnitStats" resultType="map">
+        SELECT
+            CASE
+                WHEN pu.parent_code_id IS NULL THEN pu.code_name
+                WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name)
+                ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name)
+            END AS unitName,
+            ROUND(AVG(CASE WHEN pa.is_correct = 1 THEN 100.0 ELSE 0.0 END), 1) AS accuracy,
+            COUNT(pa.attempt_id) AS attemptCount
+        FROM problems p
+        JOIN problem_attempts pa ON p.problem_id = pa.problem_id
+        LEFT JOIN system_codes pu  ON p.unit_code_id    = pu.code_id
+        LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id
+        LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id
+        GROUP BY p.unit_code_id, unitName
+        HAVING COUNT(pa.attempt_id) >= 1
+        ORDER BY accuracy ASC
+        LIMIT 10
+    </select>
+
+</mapper>

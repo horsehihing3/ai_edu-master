@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.LearningReportMapper">
+
+    <resultMap id="ReportResultMap" type="com.edu.platform.domain.LearningReport">
+        <id property="reportId" column="report_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="reportType" column="report_type"/>
+        <result property="reportDate" column="report_date"/>
+        <result property="totalProblems" column="total_problems"/>
+        <result property="correctCount" column="correct_count"/>
+        <result property="scoreRate" column="score_rate"/>
+        <result property="levelACount" column="level_a_count"/>
+        <result property="levelBCount" column="level_b_count"/>
+        <result property="levelCCount" column="level_c_count"/>
+        <result property="studyTimeSec" column="study_time_sec"/>
+        <result property="weakUnits" column="weak_units"/>
+        <result property="aiComment" column="ai_comment"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findLatestByStudentId" resultMap="ReportResultMap">
+        SELECT * FROM learning_reports WHERE student_id = #{studentId}
+        ORDER BY report_date DESC
+        LIMIT 1
+    </select>
+
+    <select id="findByStudentId" resultMap="ReportResultMap">
+        SELECT * FROM learning_reports
+        WHERE student_id = #{studentId}
+        <if test="type != null and type != ''">AND report_type = #{type}</if>
+        ORDER BY report_date DESC
+    </select>
+
+    <insert id="insertOrUpdate" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO learning_reports (student_id, report_type, report_date, total_problems, correct_count,
+            score_rate, level_a_count, level_b_count, level_c_count, study_time_sec, weak_units, ai_comment, created_at)
+        VALUES (#{studentId}, #{reportType}, #{reportDate}, #{totalProblems}, #{correctCount},
+            #{scoreRate}, #{levelACount}, #{levelBCount}, #{levelCCount}, #{studyTimeSec}, #{weakUnits}, #{aiComment}, NOW())
+        ON DUPLICATE KEY UPDATE
+            total_problems = VALUES(total_problems),
+            correct_count = VALUES(correct_count),
+            score_rate = VALUES(score_rate),
+            level_a_count = VALUES(level_a_count),
+            level_b_count = VALUES(level_b_count),
+            level_c_count = VALUES(level_c_count),
+            study_time_sec = VALUES(study_time_sec),
+            weak_units = VALUES(weak_units),
+            ai_comment = VALUES(ai_comment)
+    </insert>
+
+</mapper>

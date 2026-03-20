@@ -1,0 +1,523 @@
+<template>
+  <div class="problem-solve">
+    <div class="solve-header">
+      <button class="btn btn-ghost btn-sm" @click="$router.back()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        목록으로
+      </button>
+      <div class="solve-progress">
+        <span>{{ currentIdx + 1 }} / {{ problems.length }}</span>
+        <div class="progress-bar" style="width: 200px;">
+          <div class="progress-bar__fill" :style="{ width: ((currentIdx + 1) / problems.length * 100) + '%' }" />
+        </div>
+      </div>
+      <div class="solve-timer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {{ formatTime(elapsed) }}
+      </div>
+    </div>
+
+    <div v-if="!currentP" class="loading-wrap" style="padding: 80px; text-align:center; color: #9CA3AF;">
+      문제를 불러오는 중...
+    </div>
+
+    <div v-else class="solve-body">
+      <!-- 문제 본문 -->
+      <div class="question-card card">
+        <div class="question-card__meta">
+          <span class="subject-tag">{{ currentP.subject }}</span>
+          <AppBadge :type="currentP.level" />
+          <span class="unit-info">{{ currentP.unit }}</span>
+        </div>
+
+        <div class="question-text">
+          <p v-if="currentP.questionText">{{ currentP.questionText }}</p>
+          <div v-if="currentP.latex" class="latex-wrap" v-html="renderedLatex" />
+          <img v-if="currentP.imageUrl" :src="currentP.imageUrl" class="question-img" alt="문제 이미지" />
+        </div>
+
+        <!-- 선택지 -->
+        <div v-if="!submitted" class="choices">
+          <button
+            v-for="(choice, i) in currentP.choices"
+            :key="i"
+            :class="['choice-btn', { selected: selected === i }]"
+            @click="selected = i"
+          >
+            <span class="choice-num">{{ i + 1 }}</span>
+            <span v-html="choice" />
+          </button>
+        </div>
+
+        <!-- 정답/오답 결과 -->
+        <div v-if="submitted" class="answer-result">
+          <div class="choices">
+            <button
+              v-for="(choice, i) in currentP.choices"
+              :key="i"
+              :class="[
+                'choice-btn',
+                {
+                  correct: i === currentP.answer,
+                  wrong: selected === i && i !== currentP.answer,
+                  selected: selected === i
+                }
+              ]"
+              disabled
+            >
+              <span class="choice-num">{{ i + 1 }}</span>
+              <span v-html="choice" />
+              <svg v-if="i === currentP.answer" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" class="ml-auto"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg v-if="selected === i && i !== currentP.answer" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" class="ml-auto"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <!-- 정오 배너 -->
+          <div :class="['result-banner', isCorrect ? 'correct' : 'wrong']">
+            <span v-if="isCorrect">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              정답입니다!
+            </span>
+            <span v-else>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              오답입니다. 정답: {{ currentP.answer + 1 }}번
+            </span>
+          </div>
+
+          <!-- 해설 -->
+          <div v-if="showExplanation" class="explanation">
+            <h4>해설</h4>
+            <p>{{ currentP.explanation }}</p>
+          </div>
+
+          <!-- 액션 버튼 -->
+          <div class="answer-actions">
+            <button :class="['bookmark-btn', { bookmarked: bookmarked }]" @click="toggleBookmark">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              {{ bookmarked ? '북마크 해제' : '오답 북마크' }}
+            </button>
+            <button class="video-btn" @click="requestVideo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              동영상 풀이
+            </button>
+          </div>
+        </div>
+
+        <!-- 제출/다음 버튼 -->
+        <div class="solve-footer">
+          <AppButton v-if="!submitted" :disabled="selected === null" @click="submit">
+            정답 제출
+          </AppButton>
+          <div v-else class="next-actions">
+            <AppButton variant="secondary" @click="showExplanation = !showExplanation">
+              {{ showExplanation ? '해설 닫기' : '해설 보기' }}
+            </AppButton>
+            <AppButton v-if="currentIdx < problems.length - 1" @click="nextProblem">
+              다음 문제
+            </AppButton>
+            <AppButton v-else @click="finishSession">
+              학습 완료
+            </AppButton>
+          </div>
+        </div>
+      </div>
+
+      <!-- 사이드 패널 (문제 목록) -->
+      <div class="solve-sidebar">
+        <div class="card">
+          <h4 class="sidebar-title">문제 목록</h4>
+          <div class="problem-dots">
+            <button
+              v-for="(p, i) in problems"
+              :key="i"
+              :class="['dot', {
+                active: i === currentIdx,
+                correct: results[i] === true,
+                wrong: results[i] === false
+              }]"
+              @click="jumpTo(i)"
+            >{{ i + 1 }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import AppBadge from '@/components/common/AppBadge.vue'
+import AppButton from '@/components/common/AppButton.vue'
+import { useToast } from '@/composables/useToast'
+import api from '@/utils/api'
+
+const router = useRouter()
+const route = useRoute()
+const { success, info } = useToast()
+
+const currentIdx = ref(0)
+const selected = ref(null)
+const submitted = ref(false)
+const showExplanation = ref(false)
+const bookmarked = ref(false)
+const results = ref([])
+const elapsed = ref(0)
+let timer = null
+
+const problems = ref([])
+
+const currentP = computed(() => problems.value[currentIdx.value])
+
+const renderedLatex = computed(() => {
+  if (!currentP.value?.latex) return ''
+  try {
+    // KaTeX 없을 시 수식 그대로 표시
+    return `<div class="katex-display">\\(${currentP.value.latex}\\)</div>`
+  } catch {
+    return currentP.value.latex
+  }
+})
+
+const isCorrect = computed(() => selected.value === currentP.value?.answer)
+
+async function submit() {
+  submitted.value = true
+  results.value[currentIdx.value] = isCorrect.value
+  try {
+    const sessionId = route.params.sessionId || route.params.id
+    await api.post(`/student/sessions/${sessionId}/submit`, {
+      problemId: currentP.value.id,
+      submittedAnswer: String(selected.value + 1)
+    })
+  } catch {}
+}
+
+function nextProblem() {
+  currentIdx.value++
+  selected.value = null
+  submitted.value = false
+  showExplanation.value = false
+  bookmarked.value = false
+}
+
+function jumpTo(i) {
+  currentIdx.value = i
+  selected.value = null
+  submitted.value = results.value[i] !== undefined
+}
+
+async function toggleBookmark() {
+  const p = problems.value[currentIdx.value]
+  bookmarked.value = !bookmarked.value
+  try {
+    if (bookmarked.value) {
+      await api.post('/student/bookmarks', { problemId: p.id })
+      info('오답 노트에 추가했습니다.')
+    } else {
+      await api.delete(`/student/bookmarks/problem/${p.id}`)
+      info('북마크를 해제했습니다.')
+    }
+  } catch { bookmarked.value = !bookmarked.value }
+}
+
+function requestVideo() {
+  router.push(`/student/videos`)
+}
+
+async function finishSession() {
+  const correct = results.value.filter(r => r === true).length
+  try {
+    const sessionId = route.params.sessionId || route.params.id
+    await api.post(`/student/sessions/${sessionId}/complete`, {
+      results: results.value, elapsedSeconds: elapsed.value
+    })
+  } catch {}
+  success(`학습 완료! ${correct}/${problems.value.length} 정답`)
+  router.push('/student/learn')
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0')
+  const s = (sec % 60).toString().padStart(2, '0')
+  return `${m}:${s}`
+}
+
+onMounted(async () => {
+  timer = setInterval(() => elapsed.value++, 1000)
+  try {
+    const sessionId = route.params.sessionId || route.params.id
+    const res = await api.get(`/student/sessions/${sessionId}/problems`)
+    problems.value = (res.data || []).map(p => ({
+      id: p.problemId, subject: p.subject, level: p.level,
+      unit: p.unitName || p.unit, questionText: p.questionText,
+      latex: p.latex || null, imageUrl: p.imageUrl || null,
+      choices: p.options?.map(o => o.content) || [],
+      answer: p.options?.findIndex(o => o.isCorrect) ?? 0,
+      explanation: p.explanation || ''
+    }))
+  } catch {}
+})
+
+onUnmounted(() => clearInterval(timer))
+</script>
+
+<style scoped lang="scss">
+.problem-solve {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-5;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.solve-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: $bg-white;
+  padding: $spacing-4 $spacing-6;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+  box-shadow: $shadow-sm;
+}
+
+.solve-progress {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.solve-timer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-secondary;
+}
+
+.solve-body {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: $spacing-5;
+  align-items: start;
+
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.question-card {
+  .question-card__meta {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    margin-bottom: $spacing-5;
+
+    .unit-info {
+      font-size: $font-size-xs;
+      color: $text-muted;
+      margin-left: auto;
+    }
+  }
+
+  .question-text {
+    margin-bottom: $spacing-6;
+
+    p {
+      font-size: $font-size-lg;
+      color: $text-primary;
+      line-height: 1.7;
+      margin-bottom: $spacing-4;
+    }
+
+    .latex-wrap {
+      background: $bg-light;
+      border-radius: $radius-md;
+      padding: $spacing-5;
+      text-align: center;
+      font-size: $font-size-xl;
+      margin: $spacing-4 0;
+    }
+
+    .question-img {
+      max-width: 100%;
+      border-radius: $radius-md;
+      margin: $spacing-4 0;
+    }
+  }
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  margin-bottom: $spacing-5;
+}
+
+.choice-btn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  padding: $spacing-4 $spacing-5;
+  border: 2px solid $border;
+  border-radius: $radius-md;
+  background: $bg-white;
+  font-size: $font-size-base;
+  color: $text-primary;
+  text-align: left;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    border-color: $primary-light;
+    background: $primary-bg;
+  }
+
+  &.selected { border-color: $primary-light; background: $primary-bg; }
+  &.correct { border-color: $success; background: #ECFDF5 !important; }
+  &.wrong { border-color: $danger; background: #FEF2F2 !important; }
+  &:disabled { cursor: default; }
+
+  .choice-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid $border;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: $font-size-sm;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+}
+
+.result-banner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-5;
+  border-radius: $radius-md;
+  font-weight: 700;
+  font-size: $font-size-base;
+  margin-bottom: $spacing-4;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+
+  &.correct { background: #ECFDF5; color: #065F46; }
+  &.wrong { background: #FEF2F2; color: #991B1B; }
+}
+
+.explanation {
+  background: $bg-light;
+  border-radius: $radius-md;
+  padding: $spacing-5;
+  margin-bottom: $spacing-4;
+  border-left: 4px solid $primary-light;
+
+  h4 {
+    font-size: $font-size-sm;
+    font-weight: 700;
+    color: $primary;
+    margin-bottom: $spacing-2;
+  }
+
+  p {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    line-height: 1.7;
+  }
+}
+
+.answer-actions {
+  display: flex;
+  gap: $spacing-3;
+  margin-bottom: $spacing-5;
+}
+
+.bookmark-btn,
+.video-btn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-fast;
+  border: 1.5px solid $border;
+  background: $bg-white;
+  color: $text-secondary;
+
+  &:hover { border-color: $primary-light; color: $primary-light; }
+
+  &.bookmarked {
+    background: #FEF3C7;
+    border-color: $warning;
+    color: #92400E;
+  }
+}
+
+.solve-footer {
+  border-top: 1px solid $border;
+  padding-top: $spacing-5;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.next-actions {
+  display: flex;
+  gap: $spacing-3;
+}
+
+.sidebar-title {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: $text-secondary;
+  margin-bottom: $spacing-4;
+}
+
+.problem-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.dot {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-sm;
+  border: 1.5px solid $border;
+  background: $bg-light;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &.active { border-color: $primary-light; background: $primary-bg; color: $primary; }
+  &.correct { border-color: $success; background: #ECFDF5; color: #065F46; }
+  &.wrong { border-color: $danger; background: #FEF2F2; color: #991B1B; }
+}
+
+.subject-tag {
+  background: $primary-bg;
+  color: $primary;
+  padding: 2px $spacing-2;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: 600;
+}
+
+.ml-auto { margin-left: auto; }
+</style>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.InquiryMapper">
+
+    <resultMap id="InquiryResultMap" type="com.edu.platform.domain.Inquiry">
+        <id property="inquiryId" column="inquiry_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="category" column="category"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="attachmentUrl" column="attachment_url"/>
+        <result property="status" column="status"/>
+        <result property="isSecret" column="is_secret"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="ReplyResultMap" type="com.edu.platform.domain.InquiryReply">
+        <id property="replyId" column="reply_id"/>
+        <result property="inquiryId" column="inquiry_id"/>
+        <result property="replierId" column="replier_id"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="InquiryResultMap">
+        SELECT * FROM inquiries WHERE inquiry_id = #{inquiryId}
+    </select>
+
+    <select id="findByUserId" resultMap="InquiryResultMap">
+        SELECT * FROM inquiries WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findAll" resultMap="InquiryResultMap">
+        SELECT * FROM inquiries
+        <if test="status != null and status != ''">
+            WHERE status = #{status}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM inquiries
+        <if test="status != null and status != ''">
+            WHERE status = #{status}
+        </if>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="inquiryId">
+        INSERT INTO inquiries (user_id, category, title, content, attachment_url, status, is_secret, created_at, updated_at)
+        VALUES (#{userId}, #{category}, #{title}, #{content}, #{attachmentUrl}, 'PENDING', #{isSecret}, NOW(), NOW())
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE inquiries SET status = #{status}, updated_at = NOW()
+        WHERE inquiry_id = #{inquiryId}
+    </update>
+
+    <insert id="insertReply" useGeneratedKeys="true" keyProperty="replyId">
+        INSERT INTO inquiry_replies (inquiry_id, replier_id, content, created_at)
+        VALUES (#{inquiryId}, #{replierId}, #{content}, NOW())
+    </insert>
+
+    <select id="findRepliesByInquiryId" resultMap="ReplyResultMap">
+        SELECT * FROM inquiry_replies WHERE inquiry_id = #{inquiryId}
+        ORDER BY created_at ASC
+    </select>
+
+    <select id="findAllForAdmin" resultType="map">
+        SELECT i.inquiry_id AS inquiryId, i.title, i.category, i.status,
+               i.created_at AS createdAt, u.name AS userName, u.user_id AS userId
+        FROM inquiries i
+        LEFT JOIN users u ON i.user_id = u.user_id
+        <if test="status != null and status != ''">
+            WHERE i.status = #{status}
+        </if>
+        ORDER BY i.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+</mapper>

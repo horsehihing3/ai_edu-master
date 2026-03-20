@@ -1,0 +1,95 @@
+@use "variables" as *;
+
+// 모달 스타일
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-4;
+  backdrop-filter: blur(2px);
+}
+
+.modal-container {
+  background: $bg-white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &.modal-sm { max-width: 400px; }
+  &.modal-md { max-width: 560px; }
+  &.modal-lg { max-width: 800px; }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-6;
+  border-bottom: 1px solid $border;
+  flex-shrink: 0;
+
+  h3 {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $text-muted;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: $bg-light;
+      color: $text-primary;
+    }
+  }
+}
+
+.modal-body {
+  padding: $spacing-6;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: $spacing-4 $spacing-6;
+  border-top: 1px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-3;
+  flex-shrink: 0;
+}
+
+// 모달 트랜지션
+.modal-enter-active,
+.modal-leave-active {
+  transition: all $transition-base;
+
+  .modal-container {
+    transition: all $transition-base;
+  }
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+
+  .modal-container {
+    transform: translateY(-20px) scale(0.96);
+  }
+}

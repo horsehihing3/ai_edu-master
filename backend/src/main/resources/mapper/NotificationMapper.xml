@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.NotificationMapper">
+
+    <resultMap id="NotificationResultMap" type="com.edu.platform.domain.Notification">
+        <id property="notificationId" column="notification_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="senderId" column="sender_id"/>
+        <result property="notiType" column="noti_type"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="linkUrl" column="link_url"/>
+        <result property="isRead" column="is_read"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findByUserId" resultMap="NotificationResultMap">
+        SELECT * FROM notifications WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countUnreadByUserId" resultType="long">
+        SELECT COUNT(*) FROM notifications WHERE user_id = #{userId} AND is_read = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="notificationId">
+        INSERT INTO notifications (user_id, sender_id, noti_type, title, content, link_url, is_read, created_at)
+        VALUES (#{userId}, #{senderId}, #{notiType}, #{title}, #{content}, #{linkUrl}, 0, NOW())
+    </insert>
+
+    <update id="markAsRead">
+        UPDATE notifications SET is_read = 1 WHERE notification_id = #{notificationId}
+    </update>
+
+    <update id="markAllAsRead">
+        UPDATE notifications SET is_read = 1 WHERE user_id = #{userId}
+    </update>
+
+</mapper>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.AssignmentMapper">
+
+    <resultMap id="AssignmentResultMap" type="com.edu.platform.domain.Assignment">
+        <id property="assignmentId" column="assignment_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="schoolId" column="school_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="targetType" column="target_type"/>
+        <result property="targetLevel" column="target_level"/>
+        <result property="dueDate" column="due_date"/>
+        <result property="isAutoAssign" column="is_auto_assign"/>
+        <result property="notifyEmail" column="notify_email"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="AssignmentResultMap">
+        SELECT * FROM assignments WHERE assignment_id = #{assignmentId}
+    </select>
+
+    <select id="findByTeacherId" resultMap="AssignmentResultMap">
+        SELECT * FROM assignments WHERE teacher_id = #{teacherId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByTeacherId" resultType="long">
+        SELECT COUNT(*) FROM assignments WHERE teacher_id = #{teacherId}
+    </select>
+
+    <select id="findByStudentId" resultMap="AssignmentResultMap">
+        SELECT DISTINCT a.* FROM assignments a
+        INNER JOIN assignment_targets at ON a.assignment_id = at.assignment_id
+        WHERE at.student_id = #{studentId}
+        ORDER BY a.created_at DESC
+    </select>
+
+    <select id="findBySchoolId" resultMap="AssignmentResultMap">
+        SELECT * FROM assignments WHERE school_id = #{schoolId}
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="assignmentId">
+        INSERT INTO assignments (teacher_id, school_id, title, description, target_type, target_level,
+            due_date, is_auto_assign, notify_email, created_at, updated_at)
+        VALUES (#{teacherId}, #{schoolId}, #{title}, #{description}, #{targetType}, #{targetLevel},
+            #{dueDate}, #{isAutoAssign}, #{notifyEmail}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE assignments SET
+            title = #{title},
+            description = #{description},
+            target_type = #{targetType},
+            target_level = #{targetLevel},
+            due_date = #{dueDate},
+            is_auto_assign = #{isAutoAssign},
+            notify_email = #{notifyEmail},
+            updated_at = NOW()
+        WHERE assignment_id = #{assignmentId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM assignments WHERE assignment_id = #{assignmentId}
+    </delete>
+
+    <insert id="insertProblem">
+        INSERT INTO assignment_problems (assignment_id, problem_id, order_no)
+        VALUES (#{assignmentId}, #{problemId}, #{orderNo})
+    </insert>
+
+    <select id="getDetail" resultType="map">
+        SELECT a.assignment_id   AS assignmentId,
+               a.title,
+               a.description,
+               a.target_level   AS targetLevel,
+               a.due_date       AS dueDate,
+               a.created_at     AS createdAt,
+               (SELECT COUNT(*) FROM assignment_problems ap WHERE ap.assignment_id = a.assignment_id) AS problemCount,
+               (SELECT COUNT(*) FROM assignment_targets  at WHERE at.assignment_id = a.assignment_id) AS targetCount,
+               (SELECT COALESCE(sc.code_name,'')
+                FROM assignment_problems ap2
+                JOIN problems p ON ap2.problem_id = p.problem_id
+                LEFT JOIN system_codes sc ON p.subject_code_id = sc.code_id
+                WHERE ap2.assignment_id = a.assignment_id LIMIT 1)        AS subject
+        FROM assignments a
+        WHERE a.assignment_id = #{assignmentId}
+    </select>
+
+    <select id="getStudentProgress" resultType="map">
+        SELECT at.student_id                                                   AS studentId,
+               u.name                                                          AS studentName,
+               s.grade,
+               CASE WHEN ls.status = 'COMPLETED' THEN 1 ELSE 0 END            AS completed,
+               CASE WHEN ls.solved_count > 0
+                    THEN ROUND(ls.correct_count * 100.0 / ls.solved_count) END AS accuracy,
+               ls.completed_at                                                 AS completedAt
+        FROM assignment_targets at
+        JOIN students s  ON at.student_id = s.student_id
+        JOIN users u     ON s.user_id     = u.user_id
+        LEFT JOIN learning_sessions ls ON ls.assignment_id = at.assignment_id
+                                      AND ls.student_id   = at.student_id
+                                      AND ls.session_id = (
+                                          SELECT MAX(ls2.session_id) FROM learning_sessions ls2
+                                          WHERE ls2.assignment_id = at.assignment_id
+                                            AND ls2.student_id = at.student_id
+                                      )
+        WHERE at.assignment_id = #{assignmentId}
+        ORDER BY u.name
+    </select>
+
+    <select id="getListWithStats" resultType="map">
+        SELECT a.assignment_id                                                         AS assignmentId,
+               a.title,
+               a.due_date                                                              AS dueDate,
+               a.created_at                                                            AS createdAt,
+               (SELECT sc.code_name
+                FROM assignment_problems ap
+                         JOIN problems p ON ap.problem_id = p.problem_id
+                         LEFT JOIN system_codes sc ON p.subject_code_id = sc.code_id
+                WHERE ap.assignment_id = a.assignment_id
+                LIMIT 1)                                                               AS subject,
+               COUNT(DISTINCT at2.student_id)                                         AS targetCount,
+               COUNT(DISTINCT CASE WHEN ls.status = 'COMPLETED' THEN ls.student_id END) AS completedCount
+        FROM assignments a
+                 LEFT JOIN assignment_targets at2 ON at2.assignment_id = a.assignment_id
+                 LEFT JOIN learning_sessions ls
+                           ON ls.assignment_id = at2.assignment_id AND ls.student_id = at2.student_id
+        WHERE a.teacher_id = #{teacherId}
+        GROUP BY a.assignment_id
+        ORDER BY a.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <insert id="insertTarget">
+        INSERT INTO assignment_targets (assignment_id, class_id, student_id)
+        VALUES (#{assignmentId}, #{classId}, #{studentId})
+    </insert>
+
+</mapper>

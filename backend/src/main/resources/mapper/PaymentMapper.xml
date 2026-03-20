@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.PaymentMapper">
+
+    <resultMap id="PaymentResultMap" type="com.edu.platform.domain.Payment">
+        <id  property="paymentId"      column="payment_id"/>
+        <result property="userId"       column="user_id"/>
+        <result property="subscriptionId" column="subscription_id"/>
+        <result property="pgProvider"   column="pg_provider"/>
+        <result property="pgTid"        column="pg_tid"/>
+        <result property="merchantUid"  column="merchant_uid"/>
+        <result property="amount"       column="amount"/>
+        <result property="status"       column="status"/>
+        <result property="paidAt"       column="paid_at"/>
+        <result property="refundedAt"   column="refunded_at"/>
+        <result property="refundReason" column="refund_reason"/>
+        <result property="createdAt"    column="created_at"/>
+        <result property="userName"     column="user_name"/>
+        <result property="userEmail"    column="user_email"/>
+        <result property="planName"     column="plan_name"/>
+        <result property="planType"     column="plan_type"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="PaymentResultMap">
+        SELECT p.*,
+               u.name  AS user_name,
+               u.email AS user_email,
+               sp.plan_name,
+               sp.plan_type
+        FROM payments p
+        LEFT JOIN users u  ON p.user_id = u.user_id
+        LEFT JOIN subscriptions s  ON p.subscription_id = s.subscription_id
+        LEFT JOIN subscription_plans sp ON s.plan_id = sp.plan_id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (u.name LIKE CONCAT('%', #{keyword}, '%') OR u.email LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                AND p.status = #{status}
+            </if>
+        </where>
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM payments p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (u.name LIKE CONCAT('%', #{keyword}, '%') OR u.email LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                AND p.status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="getStats" resultType="map">
+        SELECT
+            COALESCE(SUM(CASE WHEN p.status = 'COMPLETED'
+                               AND DATE_FORMAT(p.paid_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+                          THEN p.amount ELSE 0 END), 0)    AS monthlyRevenue,
+            COALESCE(SUM(CASE WHEN p.status = 'COMPLETED' THEN p.amount ELSE 0 END), 0) AS totalRevenue,
+            (SELECT COUNT(*) FROM subscriptions WHERE status = 'ACTIVE')               AS activeSubscribers,
+            (SELECT COUNT(*) FROM payments WHERE status = 'REFUNDED')                  AS refundCount,
+            COALESCE(AVG(CASE WHEN p.status = 'COMPLETED' THEN p.amount END), 0)       AS avgAmount
+        FROM payments p
+    </select>
+
+</mapper>

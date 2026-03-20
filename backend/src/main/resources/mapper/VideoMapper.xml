@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.VideoMapper">
+
+    <resultMap id="VideoResultMap" type="com.edu.platform.domain.Video">
+        <id property="videoId" column="video_id"/>
+        <result property="problemId" column="problem_id"/>
+        <result property="title" column="title"/>
+        <result property="subject" column="subject"/>
+        <result property="videoType" column="video_type"/>
+        <result property="questionText" column="question_text"/>
+        <result property="explanation" column="explanation"/>
+        <result property="videoUrl" column="video_url"/>
+        <result property="cdnUrl" column="cdn_url"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="subtitleUrl" column="subtitle_url"/>
+        <result property="durationSec" column="duration_sec"/>
+        <result property="fileSizeMb" column="file_size_mb"/>
+        <result property="schoolId" column="school_id"/>
+        <result property="grade" column="grade"/>
+        <result property="level" column="level"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="isActive" column="is_active"/>
+        <result property="uploadedBy" column="uploaded_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="VideoResultMap">
+        SELECT v.*,
+               p.question_text,
+               p.explanation
+        FROM videos v
+        LEFT JOIN problems p ON v.problem_id = p.problem_id
+        WHERE v.video_id = #{videoId}
+    </select>
+
+    <select id="findByProblemId" resultMap="VideoResultMap">
+        SELECT * FROM videos WHERE problem_id = #{problemId} AND is_active = 1
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findAll" resultMap="VideoResultMap">
+        SELECT * FROM videos WHERE is_active = 1
+        <if test="subject != null and subject != ''">AND subject = #{subject}</if>
+        <if test="level != null and level != ''">AND level = #{level}</if>
+        <if test="grade != null and grade != ''">AND grade = #{grade}</if>
+        <if test="schoolId != null">AND (school_id = #{schoolId} OR school_id IS NULL)</if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM videos WHERE is_active = 1
+        <if test="subject != null and subject != ''">AND subject = #{subject}</if>
+        <if test="level != null and level != ''">AND level = #{level}</if>
+        <if test="grade != null and grade != ''">AND grade = #{grade}</if>
+        <if test="schoolId != null">AND (school_id = #{schoolId} OR school_id IS NULL)</if>
+    </select>
+
+    <select id="findAllForAdmin" resultMap="VideoResultMap">
+        SELECT * FROM videos
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (title LIKE CONCAT('%', #{keyword}, '%') OR unit_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="level != null and level != ''">AND level = #{level}</if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAllForAdmin" resultType="long">
+        SELECT COUNT(*) FROM videos
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (title LIKE CONCAT('%', #{keyword}, '%') OR unit_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="level != null and level != ''">AND level = #{level}</if>
+        </where>
+    </select>
+
+    <select id="findRelated" resultMap="VideoResultMap">
+        SELECT * FROM videos
+        WHERE is_active = 1 AND video_id != #{videoId}
+        <if test="level != null and level != ''">AND level = #{level}</if>
+        <if test="unitName != null and unitName != ''">AND unit_name = #{unitName}</if>
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="videoId">
+        INSERT INTO videos (problem_id, title, subject, video_type, video_url, cdn_url, thumbnail_url, subtitle_url,
+            duration_sec, file_size_mb, school_id, grade, level, unit_name, view_count, is_active,
+            uploaded_by, created_at, updated_at)
+        VALUES (#{problemId}, #{title}, #{subject}, #{videoType}, #{videoUrl}, #{cdnUrl}, #{thumbnailUrl}, #{subtitleUrl},
+            #{durationSec}, #{fileSizeMb}, #{schoolId}, #{grade}, #{level}, #{unitName}, 0,
+            COALESCE(#{isActive}, 1),
+            #{uploadedBy}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE videos SET
+            title = #{title},
+            subject = #{subject},
+            level = #{level},
+            unit_name = #{unitName},
+            video_url = #{videoUrl},
+            cdn_url = #{cdnUrl},
+            thumbnail_url = #{thumbnailUrl},
+            is_active = COALESCE(#{isActive}, is_active),
+            updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="delete">
+        UPDATE videos SET is_active = 0, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="incrementViewCount">
+        UPDATE videos SET view_count = view_count + 1
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="toggleActive">
+        UPDATE videos SET is_active = NOT is_active, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+</mapper>

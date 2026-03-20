@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.LearningSessionMapper">
+
+    <resultMap id="SessionResultMap" type="com.edu.platform.domain.LearningSession">
+        <id property="sessionId" column="session_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="assignmentId" column="assignment_id"/>
+        <result property="sessionType" column="session_type"/>
+        <result property="problemIds" column="problem_ids"/>
+        <result property="status" column="status"/>
+        <result property="totalProblems" column="total_problems"/>
+        <result property="solvedCount" column="solved_count"/>
+        <result property="correctCount" column="correct_count"/>
+        <result property="completionRate" column="completion_rate"/>
+        <result property="startedAt" column="started_at"/>
+        <result property="completedAt" column="completed_at"/>
+        <result property="lastSavedAt" column="last_saved_at"/>
+    </resultMap>
+
+    <resultMap id="AttemptResultMap" type="com.edu.platform.domain.ProblemAttempt">
+        <id property="attemptId" column="attempt_id"/>
+        <result property="sessionId" column="session_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="problemId" column="problem_id"/>
+        <result property="submittedAnswer" column="submitted_answer"/>
+        <result property="isCorrect" column="is_correct"/>
+        <result property="timeSpentSec" column="time_spent_sec"/>
+        <result property="isBookmarked" column="is_bookmarked"/>
+        <result property="requestedVideo" column="requested_video"/>
+        <result property="feedbackLike" column="feedback_like"/>
+        <result property="attemptedAt" column="attempted_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="SessionResultMap">
+        SELECT * FROM learning_sessions WHERE session_id = #{sessionId}
+    </select>
+
+    <select id="findByStudentId" resultMap="SessionResultMap">
+        SELECT * FROM learning_sessions WHERE student_id = #{studentId}
+        ORDER BY started_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findAllByStudentId" resultMap="SessionResultMap">
+        SELECT * FROM learning_sessions WHERE student_id = #{studentId}
+        ORDER BY started_at DESC
+    </select>
+
+    <select id="findLatestByStudentId" resultMap="SessionResultMap">
+        SELECT * FROM learning_sessions WHERE student_id = #{studentId}
+        ORDER BY started_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findInProgressByStudentId" resultMap="SessionResultMap">
+        SELECT * FROM learning_sessions
+        WHERE student_id = #{studentId} AND status = 'IN_PROGRESS'
+        ORDER BY started_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findLatestByStudentAndAssignment" resultMap="SessionResultMap">
+        SELECT * FROM learning_sessions
+        WHERE student_id = #{studentId} AND assignment_id = #{assignmentId}
+        ORDER BY started_at DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="sessionId">
+        INSERT INTO learning_sessions (student_id, assignment_id, session_type, problem_ids, status,
+            total_problems, solved_count, correct_count, started_at)
+        VALUES (#{studentId}, #{assignmentId}, #{sessionType}, #{problemIds}, #{status},
+            #{totalProblems}, #{solvedCount}, #{correctCount}, #{startedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE learning_sessions SET
+            status = #{status},
+            total_problems = #{totalProblems},
+            solved_count = #{solvedCount},
+            correct_count = #{correctCount},
+            completion_rate = #{completionRate},
+            completed_at = #{completedAt},
+            last_saved_at = #{lastSavedAt}
+        WHERE session_id = #{sessionId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE learning_sessions SET status = #{status}
+        WHERE session_id = #{sessionId}
+    </update>
+
+    <insert id="insertAttempt" useGeneratedKeys="true" keyProperty="attemptId">
+        INSERT INTO problem_attempts (session_id, student_id, problem_id, submitted_answer,
+            is_correct, time_spent_sec, is_bookmarked, requested_video, feedback_like, attempted_at)
+        VALUES (#{sessionId}, #{studentId}, #{problemId}, #{submittedAnswer},
+            #{isCorrect}, #{timeSpentSec}, #{isBookmarked}, #{requestedVideo}, #{feedbackLike}, #{attemptedAt})
+    </insert>
+
+    <select id="findAttempt" resultMap="AttemptResultMap">
+        SELECT * FROM problem_attempts
+        WHERE session_id = #{sessionId} AND problem_id = #{problemId}
+        ORDER BY attempted_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findAttemptsBySession" resultMap="AttemptResultMap">
+        SELECT * FROM problem_attempts WHERE session_id = #{sessionId}
+        ORDER BY attempted_at ASC
+    </select>
+
+    <select id="countCorrectAttemptsByStudentId" resultType="long">
+        SELECT COUNT(*) FROM problem_attempts
+        WHERE student_id = #{studentId} AND is_correct = #{isCorrect}
+    </select>
+
+    <select id="getDailySessionCounts" resultType="map">
+        SELECT DATE_FORMAT(MIN(started_at), '%m/%d') AS date,
+               COUNT(DISTINCT student_id) AS `count`
+        FROM learning_sessions
+        WHERE started_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        GROUP BY DATE(started_at)
+        ORDER BY DATE(started_at) ASC
+    </select>
+
+</mapper>

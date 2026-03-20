@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.SystemCodeMapper">
+
+    <resultMap id="SystemCodeResultMap" type="com.edu.platform.domain.SystemCode">
+        <id  property="codeId"       column="code_id"/>
+        <result property="codeGroup"     column="code_group"/>
+        <result property="codeValue"     column="code_value"/>
+        <result property="codeName"      column="code_name"/>
+        <result property="parentCodeId"  column="parent_code_id"/>
+        <result property="sortOrder"     column="sort_order"/>
+        <result property="isActive"      column="is_active"/>
+        <result property="description"   column="description"/>
+        <result property="createdAt"     column="created_at"/>
+        <result property="updatedAt"     column="updated_at"/>
+        <result property="parentCodeName" column="parent_code_name"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="SystemCodeResultMap">
+        SELECT sc.*,
+               p.code_name AS parent_code_name
+        FROM system_codes sc
+        LEFT JOIN system_codes p ON sc.parent_code_id = p.code_id
+        <where>
+            <if test="codeGroup != null and codeGroup != ''">
+                sc.code_group = #{codeGroup}
+            </if>
+            <if test="parentCodeId != null">
+                AND sc.parent_code_id = #{parentCodeId}
+            </if>
+            <if test="onlyActive">
+                AND sc.is_active = 1
+            </if>
+        </where>
+        ORDER BY sc.code_group, sc.sort_order, sc.code_id
+    </select>
+
+    <select id="findRoots" resultMap="SystemCodeResultMap">
+        SELECT sc.*
+        FROM system_codes sc
+        <where>
+            sc.parent_code_id IS NULL
+            <if test="codeGroup != null and codeGroup != ''">
+                AND sc.code_group = #{codeGroup}
+            </if>
+            <if test="onlyActive">
+                AND sc.is_active = 1
+            </if>
+        </where>
+        ORDER BY sc.sort_order, sc.code_id
+    </select>
+
+    <select id="findChildren" resultMap="SystemCodeResultMap">
+        SELECT sc.*,
+               p.code_name AS parent_code_name
+        FROM system_codes sc
+        LEFT JOIN system_codes p ON sc.parent_code_id = p.code_id
+        WHERE sc.parent_code_id = #{parentCodeId}
+        <if test="onlyActive">
+            AND sc.is_active = 1
+        </if>
+        ORDER BY sc.sort_order, sc.code_id
+    </select>
+
+    <select id="findById" resultMap="SystemCodeResultMap">
+        SELECT sc.*,
+               p.code_name AS parent_code_name
+        FROM system_codes sc
+        LEFT JOIN system_codes p ON sc.parent_code_id = p.code_id
+        WHERE sc.code_id = #{codeId}
+    </select>
+
+    <select id="findByGroupAndValue" resultMap="SystemCodeResultMap">
+        SELECT * FROM system_codes
+        WHERE code_group = #{codeGroup} AND code_value = #{codeValue}
+        LIMIT 1
+    </select>
+
+    <select id="findDistinctGroups" resultType="string">
+        SELECT DISTINCT code_group FROM system_codes ORDER BY code_group
+    </select>
+
+    <select id="countByGroupAndValue" resultType="long">
+        SELECT COUNT(*) FROM system_codes
+        WHERE code_group = #{codeGroup} AND code_value = #{codeValue}
+        <if test="excludeId != null">
+            AND code_id != #{excludeId}
+        </if>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="codeId">
+        INSERT INTO system_codes
+            (code_group, code_value, code_name, parent_code_id, sort_order, is_active, description, created_at, updated_at)
+        VALUES
+            (#{codeGroup}, #{codeValue}, #{codeName}, #{parentCodeId}, #{sortOrder}, #{isActive}, #{description}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE system_codes SET
+            code_name      = #{codeName},
+            parent_code_id = #{parentCodeId},
+            sort_order     = #{sortOrder},
+            description    = #{description},
+            updated_at     = NOW()
+        WHERE code_id = #{codeId}
+    </update>
+
+    <update id="updateActive">
+        UPDATE system_codes SET is_active = #{isActive}, updated_at = NOW()
+        WHERE code_id = #{codeId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM system_codes WHERE code_id = #{codeId}
+    </delete>
+
+</mapper>

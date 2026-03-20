@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.FeedbackMapper">
+
+    <resultMap id="AssignmentFeedbackMap" type="com.edu.platform.domain.AssignmentFeedback">
+        <id property="feedbackId" column="feedback_id"/>
+        <result property="assignmentId" column="assignment_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="comment" column="comment"/>
+        <result property="drawingUrl" column="drawing_url"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="AttemptFeedbackMap" type="com.edu.platform.domain.AttemptFeedback">
+        <id property="feedbackId" column="feedback_id"/>
+        <result property="attemptId" column="attempt_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="comment" column="comment"/>
+        <result property="drawingUrl" column="drawing_url"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 과제 전체 피드백 -->
+    <insert id="insertAssignmentFeedback" useGeneratedKeys="true" keyProperty="feedbackId">
+        INSERT INTO assignment_feedbacks (assignment_id, student_id, teacher_id, comment, drawing_url)
+        VALUES (#{assignmentId}, #{studentId}, #{teacherId}, #{comment}, #{drawingUrl})
+    </insert>
+
+    <update id="updateAssignmentFeedback">
+        UPDATE assignment_feedbacks SET
+            comment = #{comment},
+            drawing_url = #{drawingUrl},
+            updated_at = NOW()
+        WHERE feedback_id = #{feedbackId}
+    </update>
+
+    <select id="findAssignmentFeedback" resultMap="AssignmentFeedbackMap">
+        SELECT * FROM assignment_feedbacks
+        WHERE assignment_id = #{assignmentId} AND student_id = #{studentId}
+    </select>
+
+    <!-- 문제별 피드백 -->
+    <insert id="insertAttemptFeedback" useGeneratedKeys="true" keyProperty="feedbackId">
+        INSERT INTO attempt_feedbacks (attempt_id, teacher_id, comment, drawing_url)
+        VALUES (#{attemptId}, #{teacherId}, #{comment}, #{drawingUrl})
+    </insert>
+
+    <update id="updateAttemptFeedback">
+        UPDATE attempt_feedbacks SET
+            comment = #{comment},
+            drawing_url = #{drawingUrl},
+            updated_at = NOW()
+        WHERE feedback_id = #{feedbackId}
+    </update>
+
+    <select id="findAttemptFeedback" resultMap="AttemptFeedbackMap">
+        SELECT * FROM attempt_feedbacks WHERE attempt_id = #{attemptId}
+    </select>
+
+    <select id="findAttemptFeedbacksByAssignment" resultMap="AttemptFeedbackMap">
+        SELECT af.* FROM attempt_feedbacks af
+        INNER JOIN problem_attempts pa ON af.attempt_id = pa.attempt_id
+        INNER JOIN learning_sessions ls ON pa.session_id = ls.session_id
+        WHERE ls.assignment_id = #{assignmentId} AND pa.student_id = #{studentId}
+    </select>
+
+    <!-- 학생별 문제 풀이 상세 -->
+    <select id="getStudentAttemptDetails" resultType="map">
+        SELECT pa.attempt_id      AS attemptId,
+               pa.problem_id      AS problemId,
+               p.question_text    AS questionText,
+               sc.code_name       AS subject,
+               p.level,
+               pa.submitted_answer AS submittedAnswer,
+               p.answer           AS correctAnswer,
+               pa.is_correct      AS isCorrect,
+               pa.time_spent_sec  AS timeSpentSec,
+               p.explanation,
+               af.feedback_id     AS feedbackId,
+               af.comment         AS feedbackComment,
+               af.drawing_url     AS feedbackDrawingUrl
+        FROM problem_attempts pa
+        INNER JOIN learning_sessions ls ON pa.session_id = ls.session_id
+        INNER JOIN problems p ON pa.problem_id = p.problem_id
+        LEFT JOIN system_codes sc ON p.subject_code_id = sc.code_id
+        LEFT JOIN attempt_feedbacks af ON pa.attempt_id = af.attempt_id
+        WHERE ls.assignment_id = #{assignmentId}
+          AND pa.student_id = #{studentId}
+        ORDER BY pa.attempted_at
+    </select>
+
+</mapper>
