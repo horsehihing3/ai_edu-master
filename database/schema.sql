@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS learning_reports;
 DROP TABLE IF EXISTS video_views;
 DROP TABLE IF EXISTS video_requests;
+DROP TABLE IF EXISTS wrong_notes;
 DROP TABLE IF EXISTS bookmarks;
 DROP TABLE IF EXISTS attempt_feedbacks;
 DROP TABLE IF EXISTS assignment_feedbacks;
@@ -510,7 +511,27 @@ CREATE TABLE bookmarks (
 ) ENGINE=InnoDB COMMENT='즐겨찾기/오답노트';
 
 -- ============================================================
--- 13. 동영상 풀이 요청
+-- 13. 오답노트
+-- ============================================================
+
+CREATE TABLE wrong_notes (
+    wrong_note_id   BIGINT      NOT NULL AUTO_INCREMENT,
+    student_id      BIGINT      NOT NULL,
+    problem_id      BIGINT      NOT NULL,
+    attempt_id      BIGINT      NULL COMMENT '연결된 문제 시도 ID',
+    memo            TEXT        NULL COMMENT '학생 메모',
+    is_resolved     TINYINT(1)  NOT NULL DEFAULT 0 COMMENT '해결 여부',
+    created_at      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (wrong_note_id),
+    UNIQUE KEY uk_wrong_note (student_id, problem_id),
+    INDEX idx_wrong_notes_student (student_id),
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (problem_id) REFERENCES problems(problem_id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='오답노트';
+
+-- ============================================================
+-- 14. 동영상 풀이 요청
 -- ============================================================
 
 CREATE TABLE video_requests (

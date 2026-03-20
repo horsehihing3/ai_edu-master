@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.WrongNoteMapper">
+
+    <resultMap id="WrongNoteResultMap" type="com.edu.platform.domain.WrongNote">
+        <id property="wrongNoteId" column="wrong_note_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="problemId" column="problem_id"/>
+        <result property="attemptId" column="attempt_id"/>
+        <result property="memo" column="memo"/>
+        <result property="isResolved" column="is_resolved"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findByStudentId" resultMap="WrongNoteResultMap">
+        SELECT * FROM wrong_notes WHERE student_id = #{studentId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByStudentId" resultType="long">
+        SELECT COUNT(*) FROM wrong_notes WHERE student_id = #{studentId}
+    </select>
+
+    <select id="existsByStudentAndProblem" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM wrong_notes
+        WHERE student_id = #{studentId} AND problem_id = #{problemId}
+    </select>
+
+    <select id="findById" resultMap="WrongNoteResultMap">
+        SELECT * FROM wrong_notes
+        WHERE wrong_note_id = #{wrongNoteId} AND student_id = #{studentId}
+        LIMIT 1
+    </select>
+
+    <insert id="insertOrUpdate" useGeneratedKeys="true" keyProperty="wrongNoteId">
+        INSERT INTO wrong_notes (student_id, problem_id, attempt_id, memo, is_resolved, created_at, updated_at)
+        VALUES (#{studentId}, #{problemId}, #{attemptId}, #{memo}, 0, NOW(), NOW())
+        ON DUPLICATE KEY UPDATE updated_at = NOW()
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM wrong_notes WHERE wrong_note_id = #{wrongNoteId} AND student_id = #{studentId}
+    </delete>
+
+    <delete id="deleteAllByStudentId">
+        DELETE FROM wrong_notes WHERE student_id = #{studentId}
+    </delete>
+
+    <update id="updateResolved">
+        UPDATE wrong_notes SET is_resolved = #{isResolved}, updated_at = NOW()
+        WHERE wrong_note_id = #{wrongNoteId} AND student_id = #{studentId}
+    </update>
+
+</mapper>

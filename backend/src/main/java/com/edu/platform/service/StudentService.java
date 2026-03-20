@@ -32,6 +32,7 @@ public class StudentService {
     private final ProblemMapper problemMapper;
     private final LearningReportMapper learningReportMapper;
     private final SchoolMapper schoolMapper;
+    private final WrongNoteService wrongNoteService;
 
     @Transactional(readOnly = true)
     public StudentHomeDto getStudentHome(Long userId) {
@@ -176,6 +177,8 @@ public class StudentService {
         session.setSolvedCount(session.getSolvedCount() != null ? session.getSolvedCount() + 1 : 1);
         if (isCorrect) {
             session.setCorrectCount(session.getCorrectCount() != null ? session.getCorrectCount() + 1 : 1);
+        } else {
+            wrongNoteService.autoSave(session.getStudentId(), request.getProblemId(), attempt.getAttemptId());
         }
         learningSessionMapper.update(session);
 
@@ -358,6 +361,10 @@ public class StudentService {
             entry.put("unitName", p.getUnitName() != null ? p.getUnitName() : "");
             entry.put("questionText", p.getQuestionText());
             entry.put("explanation", p.getExplanation() != null ? p.getExplanation() : "");
+            // 문제 유형: MULTIPLE_CHOICE | SHORT_ANSWER
+            entry.put("problemType", p.getProblemType() != null ? p.getProblemType() : "MULTIPLE_CHOICE");
+            // 단답형 정답 문자열 (SHORT_ANSWER 전용 — 객관식은 options[i].isCorrect로 판별)
+            entry.put("correctAnswer", p.getAnswer() != null ? p.getAnswer() : "");
             entry.put("options", options.stream().map(o -> {
                 Map<String, Object> opt = new HashMap<>();
                 opt.put("optionId", o.getOptionId());

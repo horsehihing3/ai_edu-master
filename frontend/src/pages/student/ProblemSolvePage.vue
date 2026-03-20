@@ -36,8 +36,8 @@
           <img v-if="currentP.imageUrl" :src="currentP.imageUrl" class="question-img" alt="문제 이미지" />
         </div>
 
-        <!-- 선택지 -->
-        <div v-if="!submitted" class="choices">
+        <!-- 선택지 (객관식) -->
+        <div v-if="!submitted && currentP.problemType !== 'SHORT_ANSWER'" class="choices">
           <button
             v-for="(choice, i) in currentP.choices"
             :key="i"
@@ -49,9 +49,21 @@
           </button>
         </div>
 
+        <!-- 입력창 (단답형) -->
+        <div v-if="!submitted && currentP.problemType === 'SHORT_ANSWER'" class="short-answer-wrap">
+          <input
+            v-model="userAnswer"
+            type="text"
+            class="short-answer-input"
+            placeholder="답을 입력하세요"
+            @keyup.enter="userAnswer.trim() && !submitted ? submit() : null"
+          />
+        </div>
+
         <!-- 정답/오답 결과 -->
         <div v-if="submitted" class="answer-result">
-          <div class="choices">
+          <!-- 제출 후: 객관식 선택지 결과 -->
+          <div v-if="currentP.problemType !== 'SHORT_ANSWER'" class="choices">
             <button
               v-for="(choice, i) in currentP.choices"
               :key="i"
@@ -72,6 +84,12 @@
             </button>
           </div>
 
+          <!-- 제출 후: 단답형 결과 -->
+          <div v-if="currentP.problemType === 'SHORT_ANSWER'" class="short-answer-result">
+            <p>내 답: <strong>{{ userAnswer }}</strong></p>
+            <p>정답: <strong>{{ currentP.answer }}</strong></p>
+          </div>
+
           <!-- 정오 배너 -->
           <div :class="['result-banner', isCorrect ? 'correct' : 'wrong']">
             <span v-if="isCorrect">
@@ -80,7 +98,9 @@
             </span>
             <span v-else>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              오답입니다. 정답: {{ currentP.answer + 1 }}번
+              <!-- 객관식: "X번" / 단답형: 정답 문자열 그대로 -->
+              오답입니다. 정답:
+              {{ currentP.problemType === 'SHORT_ANSWER' ? currentP.answer : (currentP.answer + 1) + '번' }}
             </span>
           </div>
 
@@ -105,7 +125,9 @@
 
         <!-- 제출/다음 버튼 -->
         <div class="solve-footer">
-          <AppButton v-if="!submitted" :disabled="selected === null" @click="submit">
+          <AppButton v-if="!submitted"
+            :disabled="currentP.problemType === 'SHORT_ANSWER' ? !userAnswer.trim() : selected === null"
+            @click="submit">
             정답 제출
           </AppButton>
           <div v-else class="next-actions">
@@ -157,7 +179,8 @@ const route = useRoute()
 const { success, info } = useToast()
 
 const currentIdx = ref(0)
-const selected = ref(null)
+const selected = ref(null)        // 객관식 선택 인덱스
+const userAnswer = ref('')        // 단답형 입력값
 const submitted = ref(false)
 const showExplanation = ref(false)
 const bookmarked = ref(false)
@@ -179,16 +202,28 @@ const renderedLatex = computed(() => {
   }
 })
 
-const isCorrect = computed(() => selected.value === currentP.value?.answer)
+const isCorrect = computed(() => {
+  if (!currentP.value) return false
+  if (currentP.value.problemType === 'SHORT_ANSWER') {
+    // 단답형: 입력 문자열과 정답 문자열 비교 (answer는 텍스트)
+    return userAnswer.value.trim() === String(currentP.value.answer).trim()
+  }
+  // 객관식: 선택 인덱스와 정답 인덱스 비교
+  return selected.value === currentP.value.answer
+})
 
 async function submit() {
   submitted.value = true
   results.value[currentIdx.value] = isCorrect.value
   try {
     const sessionId = route.params.sessionId || route.params.id
+    // 단답형: 입력 텍스트 그대로 전송 / 객관식: 선택 번호(1-based) 전송
+    const submittedAnswer = currentP.value.problemType === 'SHORT_ANSWER'
+      ? userAnswer.value.trim()
+      : String(selected.value + 1)
     await api.post(`/student/sessions/${sessionId}/submit`, {
       problemId: currentP.value.id,
-      submittedAnswer: String(selected.value + 1)
+      submittedAnswer
     })
   } catch {}
 }
@@ -196,6 +231,7 @@ async function submit() {
 function nextProblem() {
   currentIdx.value++
   selected.value = null
+  userAnswer.value = ''
   submitted.value = false
   showExplanation.value = false
   bookmarked.value = false
@@ -252,8 +288,13 @@ onMounted(async () => {
       id: p.problemId, subject: p.subject, level: p.level,
       unit: p.unitName || p.unit, questionText: p.questionText,
       latex: p.latex || null, imageUrl: p.imageUrl || null,
+      problemType: p.problemType || 'MULTIPLE_CHOICE',
       choices: p.options?.map(o => o.content) || [],
-      answer: p.options?.findIndex(o => o.isCorrect) ?? 0,
+      // 객관식: 정답 선택지 인덱스(0-based) / 단답형: 정답 문자열
+      // 같은 필드명 `answer`를 사용하나 타입이 다름 — problemType으로 구분
+      answer: p.problemType === 'SHORT_ANSWER'
+        ? (p.correctAnswer || '')
+        : (p.options?.findIndex(o => o.isCorrect) ?? 0),
       explanation: p.explanation || ''
     }))
   } catch {}
@@ -508,6 +549,34 @@ onUnmounted(() => clearInterval(timer))
   &.active { border-color: $primary-light; background: $primary-bg; color: $primary; }
   &.correct { border-color: $success; background: #ECFDF5; color: #065F46; }
   &.wrong { border-color: $danger; background: #FEF2F2; color: #991B1B; }
+}
+
+.short-answer-wrap {
+  margin-bottom: $spacing-5;
+}
+
+.short-answer-input {
+  width: 100%;
+  padding: $spacing-4 $spacing-5;
+  border: 2px solid $border;
+  border-radius: $radius-md;
+  font-size: $font-size-base;
+  color: $text-primary;
+  box-sizing: border-box;
+
+  &:focus { outline: none; border-color: $primary-light; }
+}
+
+.short-answer-result {
+  margin-bottom: $spacing-4;
+
+  p {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-bottom: $spacing-2;
+  }
+
+  strong { color: $text-primary; font-weight: 700; }
 }
 
 .subject-tag {

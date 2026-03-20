@@ -44,6 +44,11 @@ public final class ResponseMessage {
     public static final String BOOKMARK_ADDED            = "북마크가 추가되었습니다.";
     public static final String BOOKMARK_DELETED          = "북마크가 삭제되었습니다.";
 
+    // ── WrongNote ──────────────────────────────────────────
+    public static final String WRONG_NOTE_DELETED         = "오답노트가 삭제되었습니다.";
+    public static final String WRONG_NOTE_ALL_DELETED     = "오답노트가 전체 삭제되었습니다.";
+    public static final String WRONG_NOTE_RESOLVED_TOGGLED = "해결 여부가 변경되었습니다.";
+
     // ── Announcement ─────────────────────────────────────
     public static final String ANNOUNCEMENT_CREATED      = "공지사항이 등록되었습니다.";
     public static final String ANNOUNCEMENT_UPDATED      = "공지사항이 수정되었습니다.";

@@ -19,6 +19,7 @@ const ProblemSolvePage = () => import('@/pages/student/ProblemSolvePage.vue')
 const VideoListPage = () => import('@/pages/student/VideoListPage.vue')
 const VideoDetailPage = () => import('@/pages/student/VideoDetailPage.vue')
 const BookmarkPage = () => import('@/pages/student/BookmarkPage.vue')
+const WrongNotesPage = () => import('@/pages/student/WrongNotesPage.vue')
 const ReportPage = () => import('@/pages/student/ReportPage.vue')
 const AssignmentFeedbackPage = () => import('@/pages/student/AssignmentFeedbackPage.vue')
 
@@ -85,6 +86,7 @@ const routes = [
       { path: 'videos', component: VideoListPage, meta: { title: '동영상 풀이' } },
       { path: 'videos/:id', component: VideoDetailPage, meta: { title: '동영상 풀이' } },
       { path: 'bookmarks', component: BookmarkPage, meta: { title: '즐겨찾기' } },
+      { path: 'wrong-notes', component: WrongNotesPage, meta: { title: '오답노트' } },
       { path: 'report', component: ReportPage, meta: { title: '학습 리포트' } },
       { path: 'assignments/:id/feedback', component: AssignmentFeedbackPage, meta: { title: '과제 피드백' } }
     ]

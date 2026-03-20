@@ -71,6 +71,8 @@ npm run preview            # 빌드 결과물 미리보기
 ```bash
 mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/schema.sql
 mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/seed.sql
+# 증분 적용 (wrong_notes 테이블만)
+mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/wrong_notes.sql
 ```
 
 ---
@@ -175,6 +177,9 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - [x] 문항별 답 제출 및 결과 처리
 - [x] 북마크 추가/삭제/목록 조회 ⚠️ v6에서 오답노트로 개념 전환됨 — 확장 필요
 - [x] 북마크 문제로 학습 세션 시작
+- [x] 오답노트 백엔드 구현 (자동저장·목록·삭제·해결토글) — 2026-03-20
+- [x] 오답노트 프론트엔드 구현 (WrongNotesPage.vue, 라우터, 사이드바) — 2026-03-20
+- [x] 단답형 문제 입력창 미표시 버그 수정 (problemType API 미전달 → 입력 불가) — 2026-03-20
 - [x] 학습 리포트 조회 (기본)
 - [x] 과제 피드백 조회
 - [x] 동영상 목록 및 상세 조회 (조회수 카운트)
@@ -238,22 +243,37 @@ Controller → Service → Mapper (MyBatis XML) → DB
 ---
 
 ### 학생 — 오답노트 (v6 신규: 기존 북마크에서 개념 전환)
-> 기존 북마크 CRUD는 구현됨. v6 요건은 아래 기능까지 포함하는 오답노트로 확장 필요.
+> 백엔드 + 프론트엔드 구현 완료 (2026-03-20).
+
+**구현 완료된 API 및 UI**
+- `GET /student/wrong-notes` — 페이지네이션 목록 (문제 정보 JOIN 포함)
+- `DELETE /student/wrong-notes/{id}` — 단건 삭제 (본인 것만)
+- `DELETE /student/wrong-notes` — 전체 삭제
+- `PATCH /student/wrong-notes/{id}/resolve` — 해결 여부 토글
+- `submitAnswer()` 오답 시 `wrong_notes` 자동저장 (UNIQUE KEY로 중복 방지)
+- `/student/wrong-notes` 페이지: 과목/단원/레벨 클라이언트 필터 + 페이지네이션 + 해결 토글 + 삭제
+
+**신규 파일 목록**
+- `domain/WrongNote.java`, `dto/student/WrongNoteDto.java`
+- `mapper/WrongNoteMapper.java`, `resources/mapper/WrongNoteMapper.xml`
+- `service/WrongNoteService.java`, `controller/WrongNoteController.java`
+- `frontend/src/pages/student/WrongNotesPage.vue`
+- `database/wrong_notes.sql` (증분 적용용)
+
+**남은 TODO**
 
 | 기능 | 비고 |
 |------|------|
-| 오답 시 자동 저장 (오답노트) | 문제 제출 후 오답이면 자동으로 오답노트에 저장 |
-| 오답 문제 재도전 | 오답노트에서 해당 문제 단독 풀이, '해결됨' 뱃지 처리 |
+| 오답노트 재도전 버튼 | 카드에서 해당 문제 단독 풀이 화면으로 이동, 풀고 나면 '해결됨' 자동 처리 |
 | 관련 풀이 영상 바로보기 | 오답노트 카드에서 연결된 영상으로 바로 이동 |
-| 수동 관리 (개별/전체 삭제) | 수동 추가 버튼, 전체 삭제 확인 모달 |
-| 과목/단원/등급 필터 | 오답노트 목록 드롭다운 필터 |
-| UI 경로 변경 | `/student/bookmarks` → `/student/wrong-notes` (또는 동일 경로 재활용 협의) |
 
 ---
 
 ### 학생 — 문제풀이 고도화
 | 기능 | 비고 |
 |------|------|
+| [오답 북마크] 버튼 제거 | `ProblemSolvePage.vue` 내 북마크 버튼 → 오답노트 자동저장으로 대체됨. UI 정리 필요 |
+| 문제 데이터 품질 개선 | 그림·조건 포함 문제 누락 — 현재 시드 데이터 한계, 실제 기출 데이터 입력 시 해결 |
 | LaTeX 수식 렌더링 | KaTeX 또는 MathJax 적용 (분수·루트·지수·도형) |
 | 정답/오답 즉시 피드백 토스트 | 정답: 초록 체크 / 오답: 빨간 X + '해설 보기' 버튼 자동 노출 |
 | 오답 시 관련 풀이 영상 연동 | 해설 하단 [영상으로 보기] 버튼, 영상 목록 섹션 |
@@ -380,7 +400,8 @@ Controller → Service → Mapper (MyBatis XML) → DB
 | 학생 | `/student/diagnosis` | 완료 |
 | 학생 | `/student/learn`, `/student/learn/:sessionId` | 완료 (고도화 필요) |
 | 학생 | `/student/videos`, `/student/videos/:id` | 완료 |
-| 학생 | `/student/bookmarks` | 완료 → 오답노트로 전환 필요 |
+| 학생 | `/student/bookmarks` | 완료 (사이드바에서 제거됨, 경로는 유지) |
+| 학생 | `/student/wrong-notes` | 완료 (2026-03-20) |
 | 학생 | `/student/report` | 완료 (차트 고도화 필요) |
 | 학생 | `/student/assignments/:id/feedback` | 완료 |
 | 교사 | `/teacher/home` | 완료 (고도화 필요) |

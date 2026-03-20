@@ -52,7 +52,7 @@ const studentMenu = [
   { label: '진단 테스트', to: '/student/diagnosis', icon: icons.activity },
   { label: '문제 풀기', to: '/student/learn', icon: icons.book },
   { label: '동영상 풀이', to: '/student/videos', icon: icons.video },
-  { label: '즐겨찾기', to: '/student/bookmarks', icon: icons.bookmark },
+  { label: '오답노트', to: '/student/wrong-notes', icon: icons.bookmark },
   { label: '학습 리포트', to: '/student/report', icon: icons.chart }
 ]
 
