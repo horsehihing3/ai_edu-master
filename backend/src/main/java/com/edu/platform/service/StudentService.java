@@ -145,6 +145,37 @@ public class StudentService {
     }
 
     @Transactional
+    public SessionProgressDto startSingleSession(Long studentId, Long problemId) {
+        studentMapper.findById(studentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STUDENT_NOT_FOUND));
+        problemMapper.findById(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
+
+        LearningSession session = LearningSession.builder()
+                .studentId(studentId)
+                .sessionType(LearningSession.SessionType.SINGLE.name())
+                .problemIds(String.valueOf(problemId))
+                .status(LearningSession.SessionStatus.IN_PROGRESS.name())
+                .totalProblems(1)
+                .solvedCount(0)
+                .correctCount(0)
+                .startedAt(LocalDateTime.now())
+                .build();
+
+        learningSessionMapper.insert(session);
+
+        return SessionProgressDto.builder()
+                .sessionId(session.getSessionId())
+                .solvedCount(0)
+                .totalProblems(1)
+                .correctCount(0)
+                .completionRate(0.0)
+                .accuracy(0.0)
+                .status(session.getStatus())
+                .build();
+    }
+
+    @Transactional
     public Map<String, Object> submitAnswer(Long sessionId, ProblemSubmitRequest request) {
         LearningSession session = learningSessionMapper.findById(sessionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
@@ -177,6 +208,10 @@ public class StudentService {
         session.setSolvedCount(session.getSolvedCount() != null ? session.getSolvedCount() + 1 : 1);
         if (isCorrect) {
             session.setCorrectCount(session.getCorrectCount() != null ? session.getCorrectCount() + 1 : 1);
+            // [2026-03-21] SINGLE 세션 정답 시 오답노트 is_resolved = true 자동 업데이트
+            if (LearningSession.SessionType.SINGLE.name().equals(session.getSessionType())) {
+                wrongNoteService.resolveByStudentAndProblem(session.getStudentId(), request.getProblemId());
+            }
         } else {
             wrongNoteService.autoSave(session.getStudentId(), request.getProblemId(), attempt.getAttemptId());
         }
@@ -343,7 +378,8 @@ public class StudentService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
 
         List<Problem> problems = new ArrayList<>();
-        if ("BOOKMARK".equals(session.getSessionType()) && session.getProblemIds() != null) {
+        if (("BOOKMARK".equals(session.getSessionType()) || "SINGLE".equals(session.getSessionType()))
+                && session.getProblemIds() != null) {
             for (String idStr : session.getProblemIds().split(",")) {
                 Long pid = Long.parseLong(idStr.trim());
                 problemMapper.findById(pid).ifPresent(problems::add);

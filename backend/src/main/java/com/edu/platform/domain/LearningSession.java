@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class LearningSession {
 
     public enum SessionType {
-        ASSIGNMENT, SELF, BOOKMARK
+        ASSIGNMENT, SELF, BOOKMARK, SINGLE
     }
 
     public enum SessionStatus {

@@ -66,10 +66,154 @@
       </div>
     </div>
 
+    <!-- ───────────── 차트 섹션 ───────────── -->
+    <!-- [2026-03-21] 학습 이력 기반 3개 차트 추가 -->
+    <div class="charts-row">
+
+      <!-- Chart 1: 최근 정답률 추이 (꺾은선) -->
+      <div class="card chart-card">
+        <h3>최근 정답률 추이</h3>
+        <p class="chart-sub">최근 {{ chartAccuracyData.length }}회 세션</p>
+        <div v-if="chartAccuracyData.length < 2" class="chart-empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <p>2회 이상 학습 후 확인할 수 있습니다</p>
+        </div>
+        <svg v-else :viewBox="`0 0 ${SVG_W} ${SVG_H}`" class="chart-svg">
+          <!-- Y 그리드 -->
+          <line v-for="pct in [0, 50, 100]" :key="'yg'+pct"
+            :x1="PAD_L" :x2="SVG_W - PAD_R"
+            :y1="yVal(pct)" :y2="yVal(pct)"
+            stroke="#F3F4F6" stroke-width="1" />
+          <text v-for="pct in [0, 50, 100]" :key="'yt'+pct"
+            :x="PAD_L - 6" :y="yVal(pct) + 4"
+            text-anchor="end" font-size="11" fill="#9CA3AF">{{ pct }}%</text>
+
+          <!-- 그라디언트 채우기 영역 -->
+          <defs>
+            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon v-if="lineFillPath" :points="lineFillPath" fill="url(#lineGrad)" />
+
+          <!-- 꺾은선 -->
+          <polyline :points="linePolyline"
+            fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+
+          <!-- 데이터 점 + 날짜 레이블 -->
+          <g v-for="(dot, i) in lineDots" :key="'dot'+i">
+            <circle :cx="dot.cx" :cy="dot.cy" r="4.5" fill="white" stroke="#3B82F6" stroke-width="2" />
+            <text :x="dot.cx" :y="SVG_H - PAD_B + 16"
+              text-anchor="middle" font-size="10" fill="#9CA3AF">{{ dot.label }}</text>
+            <text v-if="i === lineDots.length - 1 || i === 0"
+              :x="dot.cx" :y="dot.cy - 10"
+              text-anchor="middle" font-size="11" font-weight="700" fill="#3B82F6">{{ dot.acc }}%</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Chart 2: 일별 풀이량 (막대) -->
+      <div class="card chart-card">
+        <h3>일별 풀이량</h3>
+        <p class="chart-sub">최근 {{ chartSolvedData.length }}회 세션</p>
+        <div v-if="!chartSolvedData.length" class="chart-empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5"><rect x="2" y="3" width="4" height="18" rx="1"/><rect x="9" y="8" width="4" height="13" rx="1"/><rect x="16" y="5" width="4" height="16" rx="1"/></svg>
+          <p>학습 데이터가 없습니다</p>
+        </div>
+        <svg v-else :viewBox="`0 0 ${SVG_W} ${SVG_H}`" class="chart-svg">
+          <!-- 베이스라인 -->
+          <line :x1="PAD_L" :x2="SVG_W - PAD_R"
+            :y1="PAD_T + IH" :y2="PAD_T + IH"
+            stroke="#E5E7EB" stroke-width="1" />
+
+          <!-- 막대 -->
+          <g v-for="(bar, i) in barRects" :key="'bar'+i">
+            <rect :x="bar.x" :y="bar.y" :width="bar.w" :height="Math.max(bar.h, 2)"
+              :fill="bar.h > IH * 0.5 ? '#3B82F6' : '#93C5FD'" rx="3" />
+            <text :x="bar.cx" :y="SVG_H - PAD_B + 16"
+              text-anchor="middle" font-size="10" fill="#9CA3AF">{{ bar.label }}</text>
+            <text v-if="bar.count > 0" :x="bar.cx" :y="bar.y - 5"
+              text-anchor="middle" font-size="11" font-weight="600" fill="#374151">{{ bar.count }}</text>
+          </g>
+
+          <!-- Y 레이블 (최대값) -->
+          <text :x="PAD_L - 6" :y="PAD_T + 4"
+            text-anchor="end" font-size="11" fill="#9CA3AF">{{ barMaxSolved }}</text>
+          <text :x="PAD_L - 6" :y="PAD_T + IH + 4"
+            text-anchor="end" font-size="11" fill="#9CA3AF">0</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Chart 3: 이번달 vs 지난달 비교 -->
+    <div class="card chart-card" style="margin-top: 20px;">
+      <h3>이번달 vs 지난달 비교</h3>
+      <p class="chart-sub">정답률 및 풀이량 월별 비교</p>
+      <div v-if="monthComparison.thisMonth.sessions === 0 && monthComparison.lastMonth.sessions === 0" class="chart-empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        <p>비교할 학습 이력이 없습니다</p>
+      </div>
+      <div v-else class="month-compare">
+        <div class="month-compare__chart">
+          <svg viewBox="0 0 320 160" class="chart-svg-sm">
+            <!-- 배경 그리드 -->
+            <line v-for="pct in [0, 50, 100]" :key="'mg'+pct"
+              x1="60" x2="300"
+              :y1="16 + (1 - pct / 100) * 108" :y2="16 + (1 - pct / 100) * 108"
+              stroke="#F3F4F6" stroke-width="1" />
+            <text v-for="pct in [0, 50, 100]" :key="'mt'+pct"
+              x="54" :y="16 + (1 - pct / 100) * 108 + 4"
+              text-anchor="end" font-size="11" fill="#9CA3AF">{{ pct }}%</text>
+
+            <!-- 지난달 막대 -->
+            <rect x="90" :y="16 + (1 - monthComparison.lastMonth.accuracy / 100) * 108"
+              width="60" :height="monthComparison.lastMonth.accuracy / 100 * 108"
+              fill="#D1D5DB" rx="4" />
+            <text x="120" y="140" text-anchor="middle" font-size="11" fill="#9CA3AF">지난달</text>
+            <text x="120"
+              :y="16 + (1 - monthComparison.lastMonth.accuracy / 100) * 108 - 6"
+              text-anchor="middle" font-size="12" font-weight="700" fill="#6B7280">
+              {{ monthComparison.lastMonth.accuracy }}%
+            </text>
+
+            <!-- 이번달 막대 -->
+            <rect x="170" :y="16 + (1 - monthComparison.thisMonth.accuracy / 100) * 108"
+              width="60" :height="monthComparison.thisMonth.accuracy / 100 * 108"
+              fill="#3B82F6" rx="4" />
+            <text x="200" y="140" text-anchor="middle" font-size="11" fill="#9CA3AF">이번달</text>
+            <text x="200"
+              :y="16 + (1 - monthComparison.thisMonth.accuracy / 100) * 108 - 6"
+              text-anchor="middle" font-size="12" font-weight="700" fill="#3B82F6">
+              {{ monthComparison.thisMonth.accuracy }}%
+            </text>
+          </svg>
+        </div>
+        <div class="month-compare__stats">
+          <div class="mc-stat">
+            <span class="mc-label">이번달 풀이</span>
+            <strong class="mc-value">{{ monthComparison.thisMonth.solved }}문제</strong>
+          </div>
+          <div class="mc-stat">
+            <span class="mc-label">지난달 풀이</span>
+            <strong class="mc-value secondary">{{ monthComparison.lastMonth.solved }}문제</strong>
+          </div>
+          <div class="mc-stat mc-stat--diff">
+            <span class="mc-label">정답률 변화</span>
+            <strong :class="['mc-value', accuracyDiff >= 0 ? 'up' : 'down']">
+              {{ accuracyDiff >= 0 ? '▲' : '▼' }} {{ Math.abs(accuracyDiff) }}%
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ──────────────────────────────────── -->
+
     <!-- 취약 단원 TOP 5 -->
     <div class="card" style="margin-top: 24px;">
       <h3 style="margin-bottom: 20px;">취약 단원 TOP 5</h3>
-      <div class="weak-list">
+      <AppEmpty v-if="!weakUnits.length" message="데이터가 없습니다." description="문제를 풀면 취약 단원이 분석됩니다." />
+      <div v-else class="weak-list">
         <div v-for="(w, i) in weakUnits" :key="w.unit" class="weak-item">
           <span class="rank">{{ i + 1 }}</span>
           <div class="weak-info">
@@ -120,6 +264,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppBadge from '@/components/common/AppBadge.vue'
+import AppEmpty from '@/components/common/AppEmpty.vue'
 import api from '@/utils/api'
 
 const stats = ref({ accuracy: 0, totalSolved: 0, totalCorrect: 0, studyDays: 0 })
@@ -127,14 +272,17 @@ const levelData = ref([])
 const weakUnits = ref([])
 const aiComment = ref('')
 const aiTags = ref([])
+// [2026-03-21] 학습 이력 차트용 데이터
+const historyData = ref([])
 
 const LEVEL_COLORS = { A: '#3B82F6', B: '#10B981', C: '#F59E0B' }
 
 onMounted(async () => {
   try {
-    const [reportRes, aiRes] = await Promise.all([
+    const [reportRes, aiRes, historyRes] = await Promise.all([
       api.get('/student/report'),
-      api.get('/student/ai-comment')
+      api.get('/student/ai-comment'),
+      api.get('/student/history', { params: { size: 30 } })
     ])
     const d = reportRes.data || {}
     stats.value = {
@@ -152,10 +300,103 @@ onMounted(async () => {
     const ai = aiRes.data || {}
     aiComment.value = ai.comment || ''
     aiTags.value = ai.tags || []
+
+    historyData.value = Array.isArray(historyRes.data) ? historyRes.data : (historyRes.data?.content || [])
   } catch {}
 })
 
-// 캘린더
+// ── SVG 차트 공통 상수 ──────────────────────────────
+const SVG_W = 560, SVG_H = 180
+const PAD_L = 44, PAD_R = 16, PAD_T = 16, PAD_B = 36
+const IW = SVG_W - PAD_L - PAD_R
+const IH = SVG_H - PAD_T - PAD_B
+
+// y값 → SVG y좌표 (pct: 0~100)
+function yVal(pct) {
+  return PAD_T + IH - Math.max(0, Math.min(pct, 100)) / 100 * IH
+}
+// x 인덱스 → SVG x좌표
+function xLine(i, total) {
+  return PAD_L + (total <= 1 ? IW / 2 : (i / (total - 1)) * IW)
+}
+
+// ── Chart 1: 정답률 추이 (꺾은선) ──────────────────
+const chartAccuracyData = computed(() => historyData.value.slice(0, 10).reverse())
+
+const linePolyline = computed(() => {
+  const data = chartAccuracyData.value
+  if (data.length < 2) return ''
+  return data.map((d, i) =>
+    `${xLine(i, data.length).toFixed(1)},${yVal(d.accuracy).toFixed(1)}`
+  ).join(' ')
+})
+
+const lineFillPath = computed(() => {
+  const data = chartAccuracyData.value
+  if (data.length < 2) return ''
+  const pts = data.map((d, i) => `${xLine(i, data.length).toFixed(1)},${yVal(d.accuracy).toFixed(1)}`)
+  const last = `${xLine(data.length - 1, data.length).toFixed(1)},${(PAD_T + IH).toFixed(1)}`
+  const first = `${xLine(0, data.length).toFixed(1)},${(PAD_T + IH).toFixed(1)}`
+  return [...pts, last, first].join(' ')
+})
+
+const lineDots = computed(() =>
+  chartAccuracyData.value.map((d, i) => ({
+    cx: xLine(i, chartAccuracyData.value.length),
+    cy: yVal(d.accuracy),
+    acc: d.accuracy,
+    label: (d.date || '').slice(5) // "MM-DD"
+  }))
+)
+
+// ── Chart 2: 일별 풀이량 (막대) ────────────────────
+const chartSolvedData = computed(() => historyData.value.slice(0, 7).reverse())
+const barMaxSolved = computed(() => Math.max(...chartSolvedData.value.map(d => d.problemCount || 0), 1))
+
+const barRects = computed(() => {
+  const data = chartSolvedData.value
+  if (!data.length) return []
+  const barW = IW / data.length * 0.55
+  return data.map((d, i) => {
+    const cx = PAD_L + (i + 0.5) / data.length * IW
+    const h = ((d.problemCount || 0) / barMaxSolved.value) * IH
+    return {
+      x: cx - barW / 2, y: PAD_T + IH - h,
+      w: barW, h, cx,
+      label: (d.date || '').slice(5),
+      count: d.problemCount || 0
+    }
+  })
+})
+
+// ── Chart 3: 이번달 vs 지난달 비교 ─────────────────
+const now = new Date()
+const thisYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+const lastYM = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+
+function monthStats(list) {
+  if (!list.length) return { accuracy: 0, solved: 0, sessions: 0 }
+  const totalAcc = list.reduce((s, d) => s + (d.accuracy || 0), 0)
+  const totalSolved = list.reduce((s, d) => s + (d.problemCount || 0), 0)
+  return {
+    accuracy: Math.round(totalAcc / list.length),
+    solved: totalSolved,
+    sessions: list.length
+  }
+}
+
+const monthComparison = computed(() => {
+  const thisM = historyData.value.filter(d => (d.date || '').startsWith(thisYM))
+  const lastM = historyData.value.filter(d => (d.date || '').startsWith(lastYM))
+  return { thisMonth: monthStats(thisM), lastMonth: monthStats(lastM) }
+})
+
+const accuracyDiff = computed(() =>
+  monthComparison.value.thisMonth.accuracy - monthComparison.value.lastMonth.accuracy
+)
+
+// ── 캘린더 ──────────────────────────────────────────
 const today = new Date()
 const calYear = ref(today.getFullYear())
 const calMonth = ref(today.getMonth() + 1)
@@ -297,6 +538,101 @@ function nextMonth() {
   font-weight: 600;
 }
 
+// ── 차트 섹션 ──────────────────────────────────────
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-5;
+  margin-top: $spacing-6;
+
+  @media (max-width: $bp-tablet) { grid-template-columns: 1fr; }
+}
+
+.chart-card {
+  h3 { margin-bottom: $spacing-1; }
+}
+
+.chart-sub {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-bottom: $spacing-4;
+}
+
+.chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-3;
+  padding: $spacing-8 $spacing-4;
+  color: $text-muted;
+
+  p {
+    font-size: $font-size-sm;
+    color: $text-muted;
+    text-align: center;
+  }
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.chart-svg-sm {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+// Chart 3: 이번달 vs 지난달
+.month-compare {
+  display: flex;
+  align-items: center;
+  gap: $spacing-8;
+
+  @media (max-width: $bp-mobile) { flex-direction: column; gap: $spacing-4; }
+
+  &__chart { flex: 0 0 auto; }
+  &__stats {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-4;
+    flex: 1;
+  }
+}
+
+.mc-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-3 $spacing-4;
+  background: $bg-light;
+  border-radius: $radius-md;
+
+  &--diff { background: transparent; border-top: 1px solid $border; padding-top: $spacing-4; }
+}
+
+.mc-label {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.mc-value {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $primary;
+
+  &.secondary { color: $text-muted; }
+  &.up { color: #10B981; }
+  &.down { color: #EF4444; }
+}
+
+// ── 취약 단원 ──────────────────────────────────────
 .weak-list {
   display: flex;
   flex-direction: column;
@@ -357,6 +693,7 @@ function nextMonth() {
 
 .progress-danger { background: $danger !important; }
 
+// ── 캘린더 ────────────────────────────────────────
 .calendar-nav {
   display: flex;
   align-items: center;

@@ -33,7 +33,8 @@
             <AppBadge :type="item.level" />
             <span class="unit-info">{{ item.unitName }}</span>
           </div>
-          <p class="question-preview">{{ item.questionText }}</p>
+          <!-- [2026-03-21] KaTeX 수식 렌더링 적용 -->
+          <p class="question-preview"><MathText :text="item.questionText" /></p>
           <div class="wn-footer">
             <span class="created-date">오답일: {{ formatDate(item.createdAt) }}</span>
             <span :class="['resolved-badge', item.isResolved ? 'resolved-badge--done' : 'resolved-badge--pending']">
@@ -42,8 +43,12 @@
           </div>
         </div>
         <div class="wn-right">
+          <!-- [2026-03-21] 재도전 버튼 — SINGLE 세션 시작 후 문제풀이 화면으로 이동 -->
+          <button class="btn btn-primary btn-sm" @click="retryProblem(item)">
+            🔁 재도전
+          </button>
           <button
-            :class="['btn', 'btn-sm', item.isResolved ? 'btn-primary' : 'btn-secondary']"
+            :class="['btn', 'btn-sm', item.isResolved ? 'btn-success' : 'btn-secondary']"
             @click="toggleResolve(item)"
           >{{ item.isResolved ? '해결됨' : '미해결' }}</button>
           <button class="btn btn-secondary btn-sm" @click="deleteItem(item.id)">삭제</button>
@@ -70,6 +75,7 @@ import { useRouter } from 'vue-router'
 import AppBadge from '@/components/common/AppBadge.vue'
 import AppEmpty from '@/components/common/AppEmpty.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
+import MathText from '@/components/common/MathText.vue'
 import { useToast } from '@/composables/useToast'
 import api from '@/utils/api'
 
@@ -156,6 +162,17 @@ async function deleteAll() {
     success('전체 삭제했습니다.')
   } catch {
     error('전체 삭제에 실패했습니다.')
+  }
+}
+
+// [2026-03-21] 재도전 — SINGLE 세션 생성 후 문제풀이 화면으로 이동
+async function retryProblem(item) {
+  try {
+    const res = await api.post('/student/sessions/start-single', { problemId: item.problemId })
+    const sessionId = res.data?.sessionId
+    router.push({ path: `/student/learn/${sessionId}`, query: { from: 'wrong-notes' } })
+  } catch {
+    error('재도전 세션 생성에 실패했습니다.')
   }
 }
 

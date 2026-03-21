@@ -31,6 +31,8 @@ const StudentDetailPage = () => import('@/pages/teacher/StudentDetailPage.vue')
 const AssignmentListPage = () => import('@/pages/teacher/AssignmentListPage.vue')
 const AssignmentCreatePage = () => import('@/pages/teacher/AssignmentCreatePage.vue')
 const AssignmentDetailPage = () => import('@/pages/teacher/AssignmentDetailPage.vue')
+const ProblemBankPage = () => import('@/pages/teacher/ProblemBankPage.vue')
+const ClassManagePage = () => import('@/pages/teacher/ClassManagePage.vue')
 
 // Admin
 const AdminDashboardPage = () => import('@/pages/admin/AdminDashboardPage.vue')
@@ -102,7 +104,9 @@ const routes = [
       { path: 'assignments', component: AssignmentListPage, meta: { title: '과제 관리' } },
       { path: 'assignments/create', component: AssignmentCreatePage, meta: { title: '과제 생성' } },
       { path: 'assignments/:id', component: AssignmentDetailPage, meta: { title: '과제 상세' } },
-      { path: 'analytics', component: TeacherAnalyticsPage, meta: { title: '학습 현황' } }
+      { path: 'analytics', component: TeacherAnalyticsPage, meta: { title: '학습 현황' } },
+      { path: 'problems', component: ProblemBankPage, meta: { title: '문제 은행' } },
+      { path: 'classes', component: ClassManagePage, meta: { title: '학급 관리' } }
     ]
   },
   {

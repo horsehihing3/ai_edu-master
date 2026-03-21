@@ -60,6 +60,8 @@ const teacherMenu = [
   { label: '홈', to: '/teacher/home', icon: icons.home },
   { label: '학생 관리', to: '/teacher/students', icon: icons.users },
   { label: '과제 관리', to: '/teacher/assignments', icon: icons.task },
+  { label: '학급 관리', to: '/teacher/classes', icon: icons.school },
+  { label: '문제 은행', to: '/teacher/problems', icon: icons.db },
   { label: '학습 현황', to: '/teacher/analytics', icon: icons.chart }
 ]
 

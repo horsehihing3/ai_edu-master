@@ -80,6 +80,23 @@
     }
   }
 
+  // Success
+  &.btn-success {
+    background: #16A34A;
+    color: white;
+    border-color: #16A34A;
+
+    &:hover:not(:disabled) {
+      background: #15803D;
+      border-color: #15803D;
+      box-shadow: $shadow-sm;
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+  }
+
   // Danger
   &.btn-danger {
     background: $danger;

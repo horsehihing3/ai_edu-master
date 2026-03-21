@@ -31,8 +31,8 @@
         </div>
 
         <div class="question-text">
-          <p v-if="currentP.questionText">{{ currentP.questionText }}</p>
-          <div v-if="currentP.latex" class="latex-wrap" v-html="renderedLatex" />
+          <!-- [2026-03-21] KaTeX 수식 렌더링 적용 -->
+          <p v-if="currentP.questionText"><MathText :text="currentP.questionText" /></p>
           <img v-if="currentP.imageUrl" :src="currentP.imageUrl" class="question-img" alt="문제 이미지" />
         </div>
 
@@ -45,7 +45,8 @@
             @click="selected = i"
           >
             <span class="choice-num">{{ i + 1 }}</span>
-            <span v-html="choice" />
+            <!-- [2026-03-21] KaTeX 수식 렌더링 적용 -->
+            <MathText :text="choice" />
           </button>
         </div>
 
@@ -78,7 +79,8 @@
               disabled
             >
               <span class="choice-num">{{ i + 1 }}</span>
-              <span v-html="choice" />
+              <!-- [2026-03-21] KaTeX 수식 렌더링 적용 -->
+              <MathText :text="choice" />
               <svg v-if="i === currentP.answer" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" class="ml-auto"><polyline points="20 6 9 17 4 12"/></svg>
               <svg v-if="selected === i && i !== currentP.answer" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" class="ml-auto"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -107,12 +109,18 @@
           <!-- 해설 -->
           <div v-if="showExplanation" class="explanation">
             <h4>해설</h4>
-            <p>{{ currentP.explanation }}</p>
+            <!-- [2026-03-21] KaTeX 수식 렌더링 적용 -->
+            <p><MathText :text="currentP.explanation" /></p>
           </div>
 
           <!-- 액션 버튼 -->
           <!-- [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨 -->
           <div class="answer-actions">
+            <!-- [2026-03-21] SINGLE 세션(오답노트 재도전) + 정답 시 복귀 버튼 노출 -->
+            <button v-if="fromWrongNotes && isCorrect" class="return-wrong-note-btn" @click="returnToWrongNotes">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+              오답노트 복귀
+            </button>
             <button class="video-btn" @click="requestVideo">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
               동영상 풀이
@@ -168,12 +176,16 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBadge from '@/components/common/AppBadge.vue'
 import AppButton from '@/components/common/AppButton.vue'
+import MathText from '@/components/common/MathText.vue'
 import { useToast } from '@/composables/useToast'
 import api from '@/utils/api'
 
 const router = useRouter()
 const route = useRoute()
 const { success, error } = useToast()
+
+// [2026-03-21] 오답노트 재도전 세션 여부
+const fromWrongNotes = computed(() => route.query.from === 'wrong-notes')
 
 const currentIdx = ref(0)
 const selected = ref(null)        // 객관식 선택 인덱스
@@ -184,20 +196,13 @@ const showExplanation = ref(false)
 const results = ref([])
 const elapsed = ref(0)
 let timer = null
+// [2026-03-21] 문제별 소요 시간 측정
+let problemStartTime = Date.now()
 
 const problems = ref([])
 
 const currentP = computed(() => problems.value[currentIdx.value])
 
-const renderedLatex = computed(() => {
-  if (!currentP.value?.latex) return ''
-  try {
-    // KaTeX 없을 시 수식 그대로 표시
-    return `<div class="katex-display">\\(${currentP.value.latex}\\)</div>`
-  } catch {
-    return currentP.value.latex
-  }
-})
 
 const isCorrect = computed(() => {
   if (!currentP.value) return false
@@ -225,9 +230,12 @@ async function submit() {
     const submittedAnswer = currentP.value.problemType === 'SHORT_ANSWER'
       ? userAnswer.value.trim()
       : String(selected.value + 1)
+    // [2026-03-21] 문제별 소요 시간 계산 후 전달
+    const timeSpentSec = Math.round((Date.now() - problemStartTime) / 1000)
     await api.post(`/student/sessions/${sessionId}/submit`, {
       problemId: currentP.value.id,
-      submittedAnswer
+      submittedAnswer,
+      timeSpentSec
     })
   } catch {}
 }
@@ -239,12 +247,14 @@ function nextProblem() {
   submitted.value = false
   showExplanation.value = false
   // [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
+  problemStartTime = Date.now() // [2026-03-21] 문제 전환 시 타이머 리셋
 }
 
 function jumpTo(i) {
   currentIdx.value = i
   selected.value = null
   submitted.value = results.value[i] !== undefined
+  problemStartTime = Date.now() // [2026-03-21] 문제 전환 시 타이머 리셋
 }
 
 // [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
@@ -262,7 +272,17 @@ async function finishSession() {
     })
   } catch {}
   success(`학습 완료! ${correct}/${problems.value.length} 정답`)
-  router.push('/student/learn')
+  // [2026-03-21] 오답노트 세션이면 오답노트로, 아니면 학습 목록으로
+  router.push(fromWrongNotes.value ? '/student/wrong-notes' : '/student/learn')
+}
+
+// [2026-03-21] 오답노트 복귀 — 세션 완료 후 오답노트 페이지로 이동
+async function returnToWrongNotes() {
+  try {
+    const sessionId = route.params.sessionId || route.params.id
+    await api.post(`/student/sessions/${sessionId}/complete`, {})
+  } catch {}
+  router.push('/student/wrong-notes')
 }
 
 function formatTime(sec) {
@@ -279,7 +299,7 @@ onMounted(async () => {
     problems.value = (res.data || []).map(p => ({
       id: p.problemId, subject: p.subject, level: p.level,
       unit: p.unitName || p.unit, questionText: p.questionText,
-      latex: p.latex || null, imageUrl: p.imageUrl || null,
+      imageUrl: p.imageUrl || null,
       problemType: p.problemType || 'MULTIPLE_CHOICE',
       choices: p.options?.map(o => o.content) || [],
       // 객관식: 정답 선택지 인덱스(0-based) / 단답형: 정답 문자열
@@ -368,16 +388,7 @@ onUnmounted(() => clearInterval(timer))
       margin-bottom: $spacing-4;
     }
 
-    .latex-wrap {
-      background: $bg-light;
-      border-radius: $radius-md;
-      padding: $spacing-5;
-      text-align: center;
-      font-size: $font-size-xl;
-      margin: $spacing-4 0;
-    }
-
-    .question-img {
+.question-img {
       max-width: 100%;
       border-radius: $radius-md;
       margin: $spacing-4 0;
@@ -478,6 +489,24 @@ onUnmounted(() => clearInterval(timer))
 }
 
 // [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
+// [2026-03-21] 오답노트 복귀 버튼
+.return-wrong-note-btn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-fast;
+  border: 1.5px solid $success;
+  background: #ECFDF5;
+  color: #065F46;
+
+  &:hover { background: #D1FAE5; }
+}
+
 .video-btn {
   display: flex;
   align-items: center;

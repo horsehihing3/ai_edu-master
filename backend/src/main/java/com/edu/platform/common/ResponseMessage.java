@@ -72,6 +72,13 @@ public final class ResponseMessage {
     public static final String DIAGNOSIS_SUBMITTED       = "답안이 제출되었습니다.";
     public static final String DIAGNOSIS_COMPLETED       = "진단 테스트가 완료되었습니다.";
 
+    // ── Class ─────────────────────────────────────────────
+    public static final String CLASS_CREATED             = "학급이 생성되었습니다.";
+    public static final String CLASS_UPDATED             = "학급이 수정되었습니다.";
+    public static final String CLASS_DELETED             = "학급이 삭제되었습니다.";
+    public static final String CLASS_MEMBER_ADDED        = "학생이 추가되었습니다.";
+    public static final String CLASS_MEMBER_REMOVED      = "학생이 제거되었습니다.";
+
     // ── System Code ───────────────────────────────────────
     public static final String CODE_CREATED              = "코드가 등록되었습니다.";
     public static final String CODE_UPDATED              = "코드가 수정되었습니다.";

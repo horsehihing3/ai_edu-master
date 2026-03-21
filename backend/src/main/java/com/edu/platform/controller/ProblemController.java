@@ -30,13 +30,14 @@ public class ProblemController {
             @RequestParam(required = false) String level,
             @RequestParam(required = false) String grade,
             @RequestParam(required = false) String unitName,
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Map<String, Object> params = Map.of(
-                "level", level != null ? level : "",
-                "grade", grade != null ? grade : "",
-                "unitName", unitName != null ? unitName : ""
-        );
+        Map<String, Object> params = new java.util.HashMap<>();
+        params.put("level", level != null ? level : "");
+        params.put("grade", grade != null ? grade : "");
+        params.put("unitName", unitName != null ? unitName : "");
+        params.put("keyword", keyword != null ? keyword : "");
         PageResponse<Map<String, Object>> problems = problemService.searchProblems(params, page, size);
         return ResponseEntity.ok(ApiResponse.success(problems));
     }

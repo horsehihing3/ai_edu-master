@@ -77,6 +77,11 @@ public class WrongNoteService {
     }
 
     @Transactional
+    public void resolveByStudentAndProblem(Long studentId, Long problemId) {
+        wrongNoteMapper.updateResolvedByStudentAndProblem(studentId, problemId, true);
+    }
+
+    @Transactional
     public void toggleResolved(Long studentId, Long wrongNoteId) {
         WrongNote wrongNote = wrongNoteMapper.findById(wrongNoteId, studentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.WRONG_NOTE_NOT_FOUND));

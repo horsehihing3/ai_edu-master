@@ -21,4 +21,8 @@ public interface WrongNoteMapper {
     void updateResolved(@Param("wrongNoteId") Long wrongNoteId,
                         @Param("studentId") Long studentId,
                         @Param("isResolved") boolean isResolved);
+
+    void updateResolvedByStudentAndProblem(@Param("studentId") Long studentId,
+                                           @Param("problemId") Long problemId,
+                                           @Param("isResolved") boolean isResolved);
 }

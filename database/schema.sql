@@ -414,7 +414,7 @@ CREATE TABLE learning_sessions (
     session_id      BIGINT          NOT NULL AUTO_INCREMENT,
     student_id      BIGINT          NOT NULL,
     assignment_id   BIGINT          NULL COMMENT '과제 풀기면 연결',
-    session_type    ENUM('ASSIGNMENT', 'SELF', 'BOOKMARK') NOT NULL DEFAULT 'SELF',
+    session_type    ENUM('ASSIGNMENT', 'SELF', 'BOOKMARK', 'SINGLE') NOT NULL DEFAULT 'SELF',
     problem_ids     TEXT            NULL COMMENT '북마크 세션용 문제 ID 목록 (콤마 구분)',
     status          ENUM('IN_PROGRESS', 'COMPLETED', 'PAUSED') NOT NULL DEFAULT 'IN_PROGRESS',
     total_problems  INT             NOT NULL DEFAULT 0,

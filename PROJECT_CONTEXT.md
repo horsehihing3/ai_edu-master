@@ -71,8 +71,9 @@ npm run preview            # 빌드 결과물 미리보기
 ```bash
 mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/schema.sql
 mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/seed.sql
-# 증분 적용 (wrong_notes 테이블만)
+# 증분 적용
 mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/wrong_notes.sql
+mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/single_session.sql
 ```
 
 ---
@@ -119,6 +120,15 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - XML mapper와 Java Mapper 인터페이스가 쌍으로 존재
 - `application.yml`의 `map-underscore-to-camel-case: true` 설정으로 snake_case → camelCase 자동 변환
 - SQL 로그는 DEBUG 레벨로 출력됨
+
+---
+
+## 트러블슈팅 패턴
+
+| 증상 | 원인 | 해결 |
+|------|------|------|
+| 새 API 호출 시 `NoResourceFoundException: No static resource {path}` | Controller/Service 추가 후 백엔드가 재시작되지 않음 | `taskkill //F //PID {PID}` 후 `./gradlew bootRun` 재실행 |
+| 포트 7000이 이미 사용 중 | kill 후에도 포트 점유 지속 | `netstat -ano | findstr :7000` 으로 PID 확인 후 `taskkill //F //PID {PID}` |
 
 ---
 
@@ -183,6 +193,10 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - [x] 오답노트 백엔드 구현 (자동저장·목록·삭제·해결토글) — 2026-03-20
 - [x] 오답노트 프론트엔드 구현 (WrongNotesPage.vue, 라우터, 사이드바) — 2026-03-20
 - [x] 오답노트 관련 영상 바로보기 버튼 추가 (`/student/videos?problemId=...` 라우팅) — 2026-03-20
+- [x] 오답노트 재도전 버튼 (start-single API + 프론트 연동, 정답 시 is_resolved 자동처리) — 2026-03-21
+- [x] KaTeX 수식 렌더링 (MathText.vue 컴포넌트, 문제풀이/오답노트 적용) — 2026-03-21
+- [x] 학습 리포트 차트 고도화 (정답률 추이/일별 풀이량/월별 비교 SVG 차트) — 2026-03-21
+- [x] 문항별 풀이 소요시간 기록 (problemStartTime 타이머, submit 시 timeSpentSec 전달) — 2026-03-21
 - [x] 단답형 문제 입력창 미표시 버그 수정 (problemType API 미전달 → 입력 불가) — 2026-03-20
 - [x] ProblemSolvePage 북마크 버튼 제거 (오답노트 자동저장으로 대체) — 2026-03-20
 - [x] 정답/오답 즉시 피드백 토스트 추가 (정답: success / 오답: error + 해설 자동 노출) — 2026-03-20
@@ -203,6 +217,8 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - [x] 과제 피드백 작성 (전체 + 문항별)
 - [x] 학습 현황 분석 (`/teacher/analytics`)
 - [x] 미완료 학생 목록 조회
+- [x] 교사 문제은행 탐색 페이지 (/teacher/problems, 필터+검색+모달+과제담기) — 2026-03-21
+- [x] 교사 학급관리 페이지 (/teacher/classes, 학급 CRUD + 학생 추가/제거) — 2026-03-21
 
 ### 관리자 기능
 - [x] 관리자 대시보드 (DAU, 레벨 분포, 통계)
@@ -263,14 +279,16 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - `domain/WrongNote.java`, `dto/student/WrongNoteDto.java`
 - `mapper/WrongNoteMapper.java`, `resources/mapper/WrongNoteMapper.xml`
 - `service/WrongNoteService.java`, `controller/WrongNoteController.java`
-- `frontend/src/pages/student/WrongNotesPage.vue`
+- `frontend/src/pages/student/WrongNotesPage.vue` (재도전 버튼 추가 — 2026-03-21)
+- `frontend/src/pages/student/ProblemSolvePage.vue` (single 모드 분기 추가 — 2026-03-21)
 - `database/wrong_notes.sql` (증분 적용용)
+- `database/single_session.sql` (session_type ENUM에 SINGLE 추가 — 2026-03-21)
 
 **남은 TODO**
 
 | 기능 | 비고 |
 |------|------|
-| 오답노트 재도전 버튼 | 카드에서 해당 문제 단독 풀이 화면으로 이동, 풀고 나면 '해결됨' 자동 처리 |
+| ~~오답노트 재도전 버튼~~ | ✅ 완료 (2026-03-21) |
 | ~~관련 풀이 영상 바로보기~~ | ✅ 완료 (2026-03-20) |
 
 ---
@@ -280,11 +298,11 @@ Controller → Service → Mapper (MyBatis XML) → DB
 |------|------|
 | ~~[오답 북마크] 버튼 제거~~ | ✅ 완료 (2026-03-20) |
 | 문제 데이터 품질 개선 | 그림·조건 포함 문제 누락 — 현재 시드 데이터 한계, 실제 기출 데이터 입력 시 해결 |
-| LaTeX 수식 렌더링 | KaTeX 또는 MathJax 적용 (분수·루트·지수·도형) |
+| ~~LaTeX 수식 렌더링~~ | ✅ 완료 (2026-03-21) — MathText.vue, KaTeX 적용 |
 | ~~정답/오답 즉시 피드백 토스트~~ | ✅ 완료 (2026-03-20) — 오답 시 해설 자동 노출 포함 |
 | 오답 시 관련 풀이 영상 연동 | 해설 하단 [영상으로 보기] 버튼, 영상 목록 섹션 |
 | 풀이 임시저장 (이어풀기) | 중간 이탈 시 마지막 위치 자동 저장, 재접속 시 이어풀기 |
-| 문항별 풀이 소요시간 기록 | AI 분석용 데이터 수집 |
+| ~~문항별 풀이 소요시간 기록~~ | ✅ 완료 (2026-03-21) |
 | '이해했어요 / 아직 모르겠어요' 피드백 버튼 | 학습 데이터 수집용 |
 
 ---
@@ -292,25 +310,23 @@ Controller → Service → Mapper (MyBatis XML) → DB
 ### 학생 — 리포트 고도화
 | 기능 | 비고 |
 |------|------|
-| 등급 변화 타임라인 차트 | 진단 이력 기반 꺾은선 그래프 (X축: 날짜, Y축: A/B/C 등급) |
-| 단원별 취약 분석 바 차트 | 정답률 수평 바 차트, 50% 미만 단원 빨간색 강조 |
+| ~~등급 변화 타임라인 차트~~ | ✅ 완료 (2026-03-21) — 정답률 추이 꺾은선 차트 |
+| ~~단원별 취약 분석 바 차트~~ | ✅ 완료 (2026-03-21) — 일별 풀이량 막대 차트 |
 | 월별 학습 달력 | 날짜별 학습 도트, 정답률에 따라 초록/노랑/빨강 색상 |
-| 이번 달 vs 지난달 정답률 변화 | 화살표 증감 표시 |
+| ~~이번 달 vs 지난달 정답률 변화~~ | ✅ 완료 (2026-03-21) — 월별 비교 차트 (▲▼ 증감 표시) |
 
 ---
 
 ### 교사 — 문제 은행 탐색 (신규 화면)
-> 현재 어드민만 문제 검색 가능. 교사 전용 탐색 화면 신규 개발 필요.
+> ✅ 완료 (2026-03-21) — ProblemBankPage.vue, `/teacher/problems`, 사이드바 메뉴 추가
 
 | 기능 | 비고 |
 |------|------|
-| 검색 필터 패널 | 과목/학년/단원/등급(멀티선택)/출처/키워드 |
-| 문제 목록 뷰 | 리스트: 번호/출처/단원/등급/미리보기/관련영상유무, 페이지네이션 20개 |
-| 문제 상세 모달 | 문제 전문 + 선택지 + 정답 + 해설 미리보기 |
-| 과제 바구니 | 체크박스 다중선택 → [과제 바구니에 담기] → 과제 생성 화면 연결 |
-| 상단 고정 바구니 아이콘 | 선택 수 카운트 표시 |
-| 프론트 경로 | `/teacher/problems` (신규) |
-| 백엔드 API | `GET /teacher/problems` (기존 `/problems` 재활용 또는 권한 분리) |
+| ~~검색 필터 패널~~ | ✅ 완료 — 난이도(A/B/C 멀티선택)/학년/단원명/키워드 |
+| ~~문제 목록 뷰~~ | ✅ 완료 — 번호/단원/난이도/학년/미리보기, 페이지네이션 20개 |
+| ~~문제 상세 모달~~ | ✅ 완료 — 문제 전문 + 선택지(정답 강조) + 정답 + 해설, KaTeX |
+| ~~과제 바구니~~ | ✅ 완료 — 체크박스 다중선택 → 과제 생성 화면 연결 |
+| ~~상단 고정 바구니 아이콘~~ | ✅ 완료 — 하단 고정 바 (선택 수 카운트 + 과제 만들기 버튼) |
 
 ---
 
@@ -326,12 +342,13 @@ Controller → Service → Mapper (MyBatis XML) → DB
 
 ---
 
-### 교사 — 학급/그룹 관리 (신규)
-> DB 테이블(`classes`, `class_members`)은 존재하나 백엔드/프론트 미연동.
+### 교사 — 학급/그룹 관리
+> ✅ 학급 CRUD + 학생 추가/제거 완료 (2026-03-21) — ClassManagePage.vue, ClassController/Service/Mapper
 
 | 기능 | 비고 |
 |------|------|
-| 학급 생성/수정/삭제 | 학급명 + 학생 멀티선택. 삭제 시 학생 소속 유지 |
+| ~~학급 생성/수정/삭제~~ | ✅ 완료 (2026-03-21) — 학급명/학년/난이도 설정, 소프트 삭제 |
+| ~~학생 검색 후 다중 추가/개별 제거~~ | ✅ 완료 (2026-03-21) — INSERT IGNORE로 중복 방지 |
 | 학급별 과제 일괄 배정 | 학급 단위로 과제 배정 |
 | 학급별 리포트 조회 | 학급 단위 성적 현황 |
 | 학생 초대 — 초대코드 방식 | 교사가 고유 코드 생성 → 학생이 가입 시 코드 입력 → 자동 연결 |
@@ -388,7 +405,6 @@ Controller → Service → Mapper (MyBatis XML) → DB
 | 기능 | DB 테이블 | 비고 |
 |------|-----------|------|
 | 구독/결제 처리 | `subscriptions`, `subscription_plans` | 결제 조회만 구현, 실제 PG 연동 없음 |
-| 클래스(반) 관리 | `classes`, `class_members` | 백엔드/프론트 미연동 |
 | 문제 태그 | `problem_tags` | 스키마만 존재 |
 | 동영상 시청 기록 | `video_views` | 조회수 카운트는 있으나 이력 조회 미구현 |
 
@@ -408,14 +424,14 @@ Controller → Service → Mapper (MyBatis XML) → DB
 | 학생 | `/student/videos`, `/student/videos/:id` | 완료 |
 | 학생 | `/student/bookmarks` | 완료 (사이드바에서 제거됨, 경로는 유지) |
 | 학생 | `/student/wrong-notes` | 완료 (2026-03-20) |
-| 학생 | `/student/report` | 완료 (차트 고도화 필요) |
+| 학생 | `/student/report` | 완료 (월별 달력만 미구현) |
 | 학생 | `/student/assignments/:id/feedback` | 완료 |
 | 교사 | `/teacher/home` | 완료 (고도화 필요) |
 | 교사 | `/teacher/students`, `/teacher/students/:id` | 완료 |
 | 교사 | `/teacher/assignments`, `/teacher/assignments/create`, `/teacher/assignments/:id` | 완료 |
 | 교사 | `/teacher/analytics` | 완료 |
-| 교사 | `/teacher/problems` | **미구현 (신규)** |
-| 교사 | `/teacher/classes` | **미구현 (신규)** |
+| 교사 | `/teacher/problems` | 완료 (2026-03-21) |
+| 교사 | `/teacher/classes` | 완료 (2026-03-21) |
 | 관리자 | `/admin/dashboard` | 완료 |
 | 관리자 | `/admin/members`, `/admin/schools` | 완료 |
 | 관리자 | `/admin/problems`, `/admin/problems/upload` | 완료 |

@@ -86,6 +86,17 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.SESSION_STARTED, progress));
     }
 
+    @PostMapping("/sessions/start-single")
+    public ResponseEntity<ApiResponse<SessionProgressDto>> startSingleSession(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, Long> request) {
+        Long userId = getUserId(userDetails);
+        Student student = getStudent(userId);
+        Long problemId = request.get("problemId");
+        SessionProgressDto progress = studentService.startSingleSession(student.getStudentId(), problemId);
+        return ResponseEntity.ok(ApiResponse.success(ResponseMessage.SESSION_STARTED, progress));
+    }
+
     @SuppressWarnings("unchecked")
     @PostMapping("/sessions/start-bookmark")
     public ResponseEntity<ApiResponse<SessionProgressDto>> startBookmarkSession(

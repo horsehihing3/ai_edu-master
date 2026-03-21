@@ -54,4 +54,9 @@
         WHERE wrong_note_id = #{wrongNoteId} AND student_id = #{studentId}
     </update>
 
+    <update id="updateResolvedByStudentAndProblem">
+        UPDATE wrong_notes SET is_resolved = #{isResolved}, updated_at = NOW()
+        WHERE student_id = #{studentId} AND problem_id = #{problemId}
+    </update>
+
 </mapper>

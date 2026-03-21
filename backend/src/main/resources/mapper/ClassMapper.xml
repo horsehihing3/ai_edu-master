@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.ClassMapper">
+
+    <resultMap id="SchoolClassResultMap" type="com.edu.platform.domain.SchoolClass">
+        <id property="classId"      column="class_id"/>
+        <result property="schoolId"     column="school_id"/>
+        <result property="teacherId"    column="teacher_id"/>
+        <result property="className"    column="class_name"/>
+        <result property="grade"        column="grade"/>
+        <result property="levelFilter"  column="level_filter"/>
+        <result property="isActive"     column="is_active"/>
+        <result property="createdAt"    column="created_at"/>
+        <result property="updatedAt"    column="updated_at"/>
+    </resultMap>
+
+    <select id="findByTeacherId" resultMap="SchoolClassResultMap">
+        SELECT * FROM classes
+        WHERE teacher_id = #{teacherId} AND is_active = 1
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findById" resultMap="SchoolClassResultMap">
+        SELECT * FROM classes WHERE class_id = #{classId}
+    </select>
+
+    <select id="countMembers" resultType="int">
+        SELECT COUNT(*) FROM class_members WHERE class_id = #{classId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="classId">
+        INSERT INTO classes (school_id, teacher_id, class_name, grade, level_filter, is_active, created_at, updated_at)
+        VALUES (#{schoolId}, #{teacherId}, #{className}, #{grade}, #{levelFilter}, 1, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE classes
+        <set>
+            <if test="className != null">class_name = #{className},</if>
+            <if test="grade != null">grade = #{grade},</if>
+            <if test="levelFilter != null">level_filter = #{levelFilter},</if>
+            updated_at = NOW()
+        </set>
+        WHERE class_id = #{classId}
+    </update>
+
+    <update id="deleteById">
+        UPDATE classes SET is_active = 0, updated_at = NOW()
+        WHERE class_id = #{classId}
+    </update>
+
+    <select id="findMembersByClassId" resultType="map">
+        SELECT
+            s.student_id   AS studentId,
+            u.name         AS studentName,
+            u.email        AS email,
+            s.grade        AS grade,
+            s.student_level AS studentLevel,
+            cm.joined_at   AS joinedAt
+        FROM class_members cm
+        JOIN students s ON cm.student_id = s.student_id
+        JOIN users u    ON s.user_id = u.user_id
+        WHERE cm.class_id = #{classId}
+        ORDER BY u.name ASC
+    </select>
+
+    <insert id="addMember">
+        INSERT IGNORE INTO class_members (class_id, student_id, joined_at)
+        VALUES (#{classId}, #{studentId}, NOW())
+    </insert>
+
+    <delete id="removeMember">
+        DELETE FROM class_members
+        WHERE class_id = #{classId} AND student_id = #{studentId}
+    </delete>
+
+    <select id="countMemberByStudentId" resultType="int">
+        SELECT COUNT(*) FROM class_members
+        WHERE class_id = #{classId} AND student_id = #{studentId}
+    </select>
+
+</mapper>
