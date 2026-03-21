@@ -109,6 +109,8 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - `.env` 및 환경변수 파일 커밋 금지
 - 승인 없이 DB 스키마 변경 금지 (테이블 추가/삭제/컬럼 변경)
 - 승인 없이 기존 API 응답 구조 변경 금지 (하위 호환성 깨짐 방지)
+- 백엔드 파일 추가/변경(Controller·Service·Mapper) 후 반드시 bootRun 재시작 확인
+  (미재시작 시 새 API 404/500 오류 발생)
 
 ## 코딩 컨벤션
 

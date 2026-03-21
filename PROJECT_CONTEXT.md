@@ -78,6 +78,16 @@ mysql -h 211.171.152.242 -P 3310 -u root -p edu_platform < database/single_sessi
 
 ---
 
+## 테스트 계정 (비밀번호 공통: Test@1234)
+
+| 역할 | 이메일 |
+|------|------|
+| 학생 | student_a@test.com |
+| 교사 | teacher@test.com |
+| 관리자 | admin@test.com |
+
+---
+
 ## 아키텍처
 
 ### 사용자 역할 및 라우팅
