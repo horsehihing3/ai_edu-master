@@ -102,6 +102,19 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - 백엔드 파일 추가/변경(Controller·Service·Mapper) 후 반드시 bootRun 재시작 확인
   (미재시작 시 새 API 404/500 오류 발생)
 
+## 보안 필수 규칙
+
+**코드 구현 시 아래 보안 규칙을 반드시 준수할 것. 임의로 간소화하거나 TODO로 남기지 말 것.**
+
+- **JWT:** Access Token 유효시간 15분 / Refresh Token 7일 HttpOnly Cookie (localStorage 저장 금지)
+- **비밀번호:** BCrypt strength 12 이상 / 평문 저장·로그 출력 절대 금지
+- **권한:** 모든 API에 `@PreAuthorize` 어노테이션 필수 / 학생은 본인 데이터만 접근 가능
+- **S3:** Presigned URL 방식 (유효시간 15분) / 버킷 퍼블릭 설정 금지
+- **응답:** `password_hash` 등 민감정보 응답 포함 금지 / Entity 직접 반환 금지 → DTO 변환 필수
+- **Rate Limiting:** 로그인 API 분당 10회 제한 (브루트포스 방지)
+- **환경변수:** `JWT_SECRET`, `DB_PASSWORD`, `AWS_ACCESS_KEY` 등 절대 하드코딩 금지
+- **에러 응답:** 스택 트레이스·DB 정보 클라이언트 노출 금지
+
 ## 코딩 컨벤션
 
 ### Backend
@@ -129,12 +142,16 @@ Controller → Service → Mapper (MyBatis XML) → DB
 - [ ] 예외 처리가 `BusinessException(ErrorCode)` 형태인가?
 - [ ] DB 스키마 변경이 있다면 증분 SQL 파일(`database/*.sql`)이 생성되었는가?
 - [ ] bootRun 재시작이 필요한 변경인가? (필요하다면 사용자에게 재시작 안내)
+- [ ] 신규 API에 `@PreAuthorize` 어노테이션이 적용되었는가?
+- [ ] 응답 DTO에 `password_hash` 등 민감정보가 포함되지 않았는가?
+- [ ] 환경변수 하드코딩이 없는가?
 
 ### 프론트엔드
 - [ ] 신규 페이지라면 `router/index.js`에 역할 가드가 추가되었는가?
 - [ ] 컴포넌트 파일명이 PascalCase인가?
 - [ ] API 호출 후 에러 핸들링이 구현되었는가?
 - [ ] 사이드바/탭 메뉴에 신규 페이지 링크가 추가되었는가? (필요한 경우)
+- [ ] 401 응답 시 토큰 자동 갱신 로직이 동작하는가?
 
 ## Key Configuration
 
