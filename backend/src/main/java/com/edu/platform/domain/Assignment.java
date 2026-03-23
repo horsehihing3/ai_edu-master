@@ -24,6 +24,7 @@ public class Assignment {
     private LocalDateTime dueDate;
     private Boolean isAutoAssign;
     private Boolean notifyEmail;
+    private Boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

@@ -52,6 +52,12 @@ public class Problem {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // 검수/승인 워크플로우
+    private String approvalStatus;  // PENDING / APPROVED / REJECTED
+    private Long reviewedBy;
+    private LocalDateTime reviewedAt;
+    private String rejectReason;
+
     public Level getLevelAsEnum() {
         return level != null ? Level.valueOf(level) : null;
     }

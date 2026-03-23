@@ -28,6 +28,8 @@ public final class ResponseMessage {
     public static final String PROBLEM_CREATED           = "문제가 등록되었습니다.";
     public static final String PROBLEM_UPDATED           = "문제가 수정되었습니다.";
     public static final String PROBLEM_DELETED           = "문제가 삭제되었습니다.";
+    public static final String PROBLEM_APPROVED          = "문제가 승인되었습니다.";
+    public static final String PROBLEM_REJECTED          = "문제가 반려되었습니다.";
 
     // ── Assignment ────────────────────────────────────────
     public static final String ASSIGNMENT_CREATED        = "과제가 생성되었습니다.";

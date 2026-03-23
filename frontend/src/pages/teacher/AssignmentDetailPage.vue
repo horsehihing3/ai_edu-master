@@ -6,10 +6,44 @@
         <h1>{{ assignment.title }}</h1>
         <span :class="['status-pill', assignment.status]">{{ statusLabel(assignment.status) }}</span>
       </div>
-      <RouterLink to="/teacher/assignments" class="btn btn-secondary btn-sm">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        목록으로
-      </RouterLink>
+      <div class="detail-header__actions">
+        <button class="btn btn-secondary btn-sm" @click="openEditModal">수정</button>
+        <button class="btn btn-danger btn-sm" @click="handleDelete">삭제</button>
+        <RouterLink to="/teacher/assignments" class="btn btn-ghost btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          목록으로
+        </RouterLink>
+      </div>
+    </div>
+
+    <!-- 수정 모달 -->
+    <div v-if="editModalOpen" class="edit-modal-overlay" @click.self="editModalOpen = false">
+      <div class="edit-modal">
+        <div class="edit-modal__header">
+          <h2>과제 수정</h2>
+          <button class="btn-close" @click="editModalOpen = false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="edit-modal__body">
+          <div class="form-group">
+            <label class="form-label">과제명 <span class="required">*</span></label>
+            <input v-model="editForm.title" type="text" class="form-input" placeholder="과제명을 입력하세요" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">설명</label>
+            <textarea v-model="editForm.description" rows="3" class="form-textarea" placeholder="과제 설명을 입력하세요" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">마감일</label>
+            <input v-model="editForm.dueDate" type="datetime-local" class="form-input" />
+          </div>
+        </div>
+        <div class="edit-modal__footer">
+          <button class="btn btn-secondary" @click="editModalOpen = false">취소</button>
+          <button class="btn btn-primary" @click="handleUpdate" :disabled="!editForm.title.trim()">저장</button>
+        </div>
+      </div>
     </div>
 
     <div class="detail-grid">
@@ -232,17 +266,20 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppBreadcrumb from '@/components/common/AppBreadcrumb.vue'
 import AppBadge from '@/components/common/AppBadge.vue'
 import { useToast } from '@/composables/useToast'
+import { useDialog } from '@/composables/useDialog'
 import api from '@/utils/api'
 
 const route = useRoute()
+const router = useRouter()
 const { success, error } = useToast()
+const dialog = useDialog()
 const assignmentId = route.params.id
 
-const assignment = ref({ title: '', subject: '', problemCount: 0, targetCount: 0, dueDate: '', completionRate: 0, status: '' })
+const assignment = ref({ title: '', subject: '', description: '', problemCount: 0, targetCount: 0, dueDate: '', dueDateRaw: '', completionRate: 0, status: '' })
 const problems = ref([])
 const studentProgress = ref([])
 
@@ -253,6 +290,45 @@ const attempts = ref([])
 const overallFeedback = ref(null)
 const overallComment = ref('')
 const overallDrawingUrl = ref(null)
+
+// [2026-03-23] 과제 수정/삭제
+const editModalOpen = ref(false)
+const editForm = ref({ title: '', description: '', dueDate: '' })
+
+function openEditModal() {
+  editForm.value = {
+    title: assignment.value.title || '',
+    description: assignment.value.description || '',
+    dueDate: assignment.value.dueDateRaw || ''
+  }
+  editModalOpen.value = true
+}
+
+async function handleUpdate() {
+  if (!editForm.value.title.trim()) return
+  try {
+    await api.put(`/teacher/assignments/${assignmentId}`, {
+      title: editForm.value.title,
+      description: editForm.value.description,
+      dueDate: editForm.value.dueDate ? editForm.value.dueDate.replace('T', ' ') + ':00' : null
+    })
+    assignment.value.title = editForm.value.title
+    assignment.value.description = editForm.value.description
+    assignment.value.dueDate = editForm.value.dueDate ? editForm.value.dueDate.slice(0, 10) : ''
+    editModalOpen.value = false
+    success('과제를 수정했습니다.')
+  } catch { error('과제 수정에 실패했습니다.') }
+}
+
+async function handleDelete() {
+  const ok = await dialog.confirm('과제를 삭제하시겠습니까?\n제출 이력이 있는 경우 숨김 처리됩니다.', { type: 'danger', confirmText: '삭제' })
+  if (!ok) return
+  try {
+    await api.delete(`/teacher/assignments/${assignmentId}`)
+    success('과제를 삭제했습니다.')
+    router.push('/teacher/assignments')
+  } catch { error('과제 삭제에 실패했습니다.') }
+}
 
 // 드로잉
 const drawingOpen = ref(false)
@@ -277,8 +353,10 @@ onMounted(async () => {
     ])
     const a = aRes.data || {}
     assignment.value = {
-      title: a.title, subject: a.subject, problemCount: a.problemCount,
-      targetCount: a.targetCount, dueDate: a.dueDate?.slice(0, 10),
+      title: a.title, subject: a.subject, description: a.description || '',
+      problemCount: a.problemCount, targetCount: a.targetCount,
+      dueDate: a.dueDate?.slice(0, 10),
+      dueDateRaw: a.dueDate ? a.dueDate.slice(0, 16) : '',
       completionRate: a.completionRate || 0, status: a.status?.toLowerCase()
     }
     problems.value = probRes.data || []
@@ -464,7 +542,75 @@ function formatDateTime(dt) {
   justify-content: space-between;
   margin-bottom: $spacing-6;
   h1 { font-size: $font-size-2xl; font-weight: 700; margin-bottom: $spacing-2; }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    flex-shrink: 0;
+  }
 }
+
+// 수정 모달
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-modal {
+  background: white;
+  border-radius: $radius-lg;
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  box-shadow: $shadow-lg;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-5 $spacing-6;
+    border-bottom: 1px solid $border;
+    h2 { font-size: $font-size-lg; font-weight: 700; }
+  }
+
+  &__body {
+    padding: $spacing-6;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-5;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-3;
+    padding: $spacing-4 $spacing-6;
+    border-top: 1px solid $border;
+  }
+}
+
+.form-group { display: flex; flex-direction: column; gap: $spacing-2; }
+.form-label {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+  .required { color: $danger; margin-left: 2px; }
+}
+.form-input, .form-textarea {
+  width: 100%;
+  padding: $spacing-3;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-family: inherit;
+  &:focus { outline: none; border-color: $primary; }
+}
+.form-textarea { resize: vertical; }
 
 .detail-grid {
   display: grid;

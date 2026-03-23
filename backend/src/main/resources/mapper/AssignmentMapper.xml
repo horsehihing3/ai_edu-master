@@ -14,12 +14,13 @@
         <result property="dueDate" column="due_date"/>
         <result property="isAutoAssign" column="is_auto_assign"/>
         <result property="notifyEmail" column="notify_email"/>
+        <result property="isDeleted" column="is_deleted"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <select id="findById" resultMap="AssignmentResultMap">
-        SELECT * FROM assignments WHERE assignment_id = #{assignmentId}
+        SELECT * FROM assignments WHERE assignment_id = #{assignmentId} AND is_deleted = 0
     </select>
 
     <select id="findByTeacherId" resultMap="AssignmentResultMap">
@@ -29,13 +30,13 @@
     </select>
 
     <select id="countByTeacherId" resultType="long">
-        SELECT COUNT(*) FROM assignments WHERE teacher_id = #{teacherId}
+        SELECT COUNT(*) FROM assignments WHERE teacher_id = #{teacherId} AND is_deleted = 0
     </select>
 
     <select id="findByStudentId" resultMap="AssignmentResultMap">
         SELECT DISTINCT a.* FROM assignments a
         INNER JOIN assignment_targets at ON a.assignment_id = at.assignment_id
-        WHERE at.student_id = #{studentId}
+        WHERE at.student_id = #{studentId} AND a.is_deleted = 0
         ORDER BY a.created_at DESC
     </select>
 
@@ -130,11 +131,39 @@
                  LEFT JOIN assignment_targets at2 ON at2.assignment_id = a.assignment_id
                  LEFT JOIN learning_sessions ls
                            ON ls.assignment_id = at2.assignment_id AND ls.student_id = at2.student_id
-        WHERE a.teacher_id = #{teacherId}
+        WHERE a.teacher_id = #{teacherId} AND a.is_deleted = 0
         GROUP BY a.assignment_id
         ORDER BY a.created_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
+
+    <!-- [2026-03-23] 과제 수정/삭제 -->
+    <update id="updateBasicInfo">
+        UPDATE assignments
+        SET title       = #{title},
+            description = #{description},
+            due_date    = #{dueDate},
+            updated_at  = NOW()
+        WHERE assignment_id = #{assignmentId}
+    </update>
+
+    <update id="softDelete">
+        UPDATE assignments SET is_deleted = 1, updated_at = NOW()
+        WHERE assignment_id = #{assignmentId}
+    </update>
+
+    <select id="countSubmittedSessions" resultType="long">
+        SELECT COUNT(*) FROM learning_sessions
+        WHERE assignment_id = #{assignmentId}
+    </select>
+
+    <delete id="deleteProblemsByAssignmentId">
+        DELETE FROM assignment_problems WHERE assignment_id = #{assignmentId}
+    </delete>
+
+    <delete id="deleteTargetsByAssignmentId">
+        DELETE FROM assignment_targets WHERE assignment_id = #{assignmentId}
+    </delete>
 
     <insert id="insertTarget">
         INSERT INTO assignment_targets (assignment_id, class_id, student_id)

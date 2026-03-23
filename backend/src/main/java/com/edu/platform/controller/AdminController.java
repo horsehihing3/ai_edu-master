@@ -5,6 +5,7 @@ import com.edu.platform.domain.Payment;
 import com.edu.platform.domain.School;
 import com.edu.platform.domain.Video;
 import com.edu.platform.dto.admin.AdminDashboardDto;
+import com.edu.platform.dto.admin.RejectProblemRequest;
 import com.edu.platform.dto.common.ApiResponse;
 import com.edu.platform.dto.common.PageResponse;
 import com.edu.platform.exception.BusinessException;
@@ -16,6 +17,7 @@ import com.edu.platform.mapper.VideoMapper;
 import com.edu.platform.service.AdminService;
 import com.edu.platform.service.ProblemService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -201,16 +203,14 @@ public class AdminController {
     public ResponseEntity<ApiResponse<PageResponse<Map<String, Object>>>> getProblems(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String level,
-            @RequestParam(required = false) String subject,
-            @RequestParam(required = false) String unitName,
+            @RequestParam(required = false) String approvalStatus,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("keyword", keyword != null ? keyword : "");
-        params.put("level", level != null ? level : "");
-        params.put("grade", "");
-        params.put("unitName", unitName != null ? unitName : (subject != null ? subject : ""));
-        PageResponse<Map<String, Object>> result = problemService.searchProblems(params, page, size);
+        PageResponse<Map<String, Object>> result = adminService.getAdminProblems(
+                approvalStatus != null ? approvalStatus : "",
+                level != null ? level : "",
+                keyword != null ? keyword : "",
+                page, size);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
@@ -237,6 +237,29 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Void>> deleteProblem(@PathVariable Long problemId) {
         problemService.deleteProblem(problemId);
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.PROBLEM_DELETED));
+    }
+
+    @PatchMapping("/problems/{problemId}/approve")
+    public ResponseEntity<ApiResponse<Void>> approveProblem(
+            @PathVariable Long problemId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long adminUserId = userMapper.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))
+                .getUserId();
+        adminService.approveProblem(problemId, adminUserId);
+        return ResponseEntity.ok(ApiResponse.success(ResponseMessage.PROBLEM_APPROVED));
+    }
+
+    @PatchMapping("/problems/{problemId}/reject")
+    public ResponseEntity<ApiResponse<Void>> rejectProblem(
+            @PathVariable Long problemId,
+            @Valid @RequestBody RejectProblemRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long adminUserId = userMapper.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))
+                .getUserId();
+        adminService.rejectProblem(problemId, adminUserId, request.getRejectReason());
+        return ResponseEntity.ok(ApiResponse.success(ResponseMessage.PROBLEM_REJECTED));
     }
 
     // ─── 동영상 관리 ──────────────────────────────────────────────────────────────

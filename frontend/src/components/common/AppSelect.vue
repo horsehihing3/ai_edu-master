@@ -11,7 +11,7 @@
       v-bind="$attrs"
       @change="$emit('update:modelValue', $event.target.value)"
     >
-      <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
+      <option v-if="placeholder" value="">{{ placeholder }}</option>
       <option
         v-for="opt in options"
         :key="opt.value"

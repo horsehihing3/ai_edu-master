@@ -8,6 +8,7 @@ import com.edu.platform.domain.User;
 import com.edu.platform.dto.common.PageResponse;
 import com.edu.platform.dto.teacher.AssignmentCreateRequest;
 import com.edu.platform.dto.teacher.AssignmentListDto;
+import com.edu.platform.dto.teacher.UpdateAssignmentRequest;
 import com.edu.platform.exception.BusinessException;
 import com.edu.platform.exception.ErrorCode;
 import com.edu.platform.mapper.AssignmentMapper;
@@ -132,6 +133,36 @@ public class TeacherService {
                 "completedAssignments", sessions.stream()
                         .filter(s -> "COMPLETED".equals(s.getStatus())).count()
         );
+    }
+
+    @Transactional
+    public void updateAssignment(Long assignmentId, UpdateAssignmentRequest request, Long teacherId) {
+        Assignment assignment = assignmentMapper.findById(assignmentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
+        if (!assignment.getTeacherId().equals(teacherId)) {
+            throw new BusinessException(ErrorCode.ASSIGNMENT_ACCESS_DENIED);
+        }
+        assignmentMapper.updateBasicInfo(assignmentId, request.getTitle(), request.getDescription(), request.getDueDate());
+        log.info("Assignment updated: {} by teacher: {}", assignmentId, teacherId);
+    }
+
+    @Transactional
+    public void deleteAssignment(Long assignmentId, Long teacherId) {
+        Assignment assignment = assignmentMapper.findById(assignmentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
+        if (!assignment.getTeacherId().equals(teacherId)) {
+            throw new BusinessException(ErrorCode.ASSIGNMENT_ACCESS_DENIED);
+        }
+        long submittedCount = assignmentMapper.countSubmittedSessions(assignmentId);
+        if (submittedCount > 0) {
+            assignmentMapper.softDelete(assignmentId);
+            log.info("Assignment soft-deleted: {} (sessions: {})", assignmentId, submittedCount);
+        } else {
+            assignmentMapper.deleteTargetsByAssignmentId(assignmentId);
+            assignmentMapper.deleteProblemsByAssignmentId(assignmentId);
+            assignmentMapper.delete(assignmentId);
+            log.info("Assignment hard-deleted: {}", assignmentId);
+        }
     }
 
     @Transactional

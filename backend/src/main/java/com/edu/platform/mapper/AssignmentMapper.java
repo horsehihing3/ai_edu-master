@@ -3,6 +3,7 @@ package com.edu.platform.mapper;
 import com.edu.platform.domain.Assignment;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,8 +27,17 @@ public interface AssignmentMapper {
     List<Map<String, Object>> getListWithStats(@Param("teacherId") Long teacherId,
                                                @Param("offset") int offset,
                                                @Param("limit") int limit);
-
     void insertTarget(@Param("assignmentId") Long assignmentId,
                       @Param("classId") Long classId,
                       @Param("studentId") Long studentId);
+
+    // [2026-03-23] 과제 수정/삭제
+    void updateBasicInfo(@Param("assignmentId") Long assignmentId,
+                         @Param("title") String title,
+                         @Param("description") String description,
+                         @Param("dueDate") LocalDateTime dueDate);
+    void softDelete(@Param("assignmentId") Long assignmentId);
+    long countSubmittedSessions(@Param("assignmentId") Long assignmentId);
+    void deleteProblemsByAssignmentId(@Param("assignmentId") Long assignmentId);
+    void deleteTargetsByAssignmentId(@Param("assignmentId") Long assignmentId);
 }

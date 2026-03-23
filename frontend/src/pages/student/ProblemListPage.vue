@@ -33,18 +33,22 @@
         <div
           v-for="a in filteredList"
           :key="a.id"
-          class="assignment-card"
+          :class="['assignment-card', { 'assignment-card--urgent': a.status !== 'done' && isUrgent(a.dueDate), 'assignment-card--overdue': a.status !== 'done' && isOverdue(a.dueDate) }]"
           @click="startAssignment(a)"
         >
           <div class="assignment-card__top">
             <span v-if="a.subject" :class="['subject-tag', `subject-tag--${a.subject}`]">{{ a.subject }}</span>
-            <AppBadge v-if="a.level" :type="a.level" />
+            <div class="assignment-card__badges">
+              <span v-if="a.status !== 'done' && isOverdue(a.dueDate)" class="due-badge due-badge--overdue">기간 초과</span>
+              <span v-else-if="a.status !== 'done' && isUrgent(a.dueDate)" class="due-badge due-badge--urgent">마감임박</span>
+              <AppBadge v-if="a.level" :type="a.level" />
+            </div>
           </div>
           <h3>{{ a.title }}</h3>
           <p class="desc">{{ a.description }}</p>
           <div class="assignment-card__meta">
             <span>총 {{ a.totalCount }}문제</span>
-            <span>마감: {{ formatDate(a.dueDate) }}</span>
+            <span :class="{ 'due-text--urgent': a.status !== 'done' && (isUrgent(a.dueDate) || isOverdue(a.dueDate)) }">마감: {{ formatDate(a.dueDate) }}</span>
           </div>
           <div class="assignment-card__progress">
             <div class="progress-bar">
@@ -125,6 +129,27 @@ function viewFeedback(a) {
 function formatDate(d) {
   const date = new Date(d)
   return `${date.getMonth()+1}/${date.getDate()}`
+}
+
+// [2026-03-23] 마감임박 강조 — dueDate 기준 24h 이내 또는 초과 여부 판별
+// KST 명시 파싱: "2026-03-30 12:39:22" → "2026-03-30T12:39:22+09:00"
+function parseDueDate(dueDate) {
+  if (!dueDate) return null
+  const iso = dueDate.includes('T') ? dueDate : dueDate.replace(' ', 'T') + '+09:00'
+  return new Date(iso)
+}
+
+function isUrgent(dueDate) {
+  const due = parseDueDate(dueDate)
+  if (!due) return false
+  const diff = due - Date.now()
+  return diff > 0 && diff <= 24 * 60 * 60 * 1000
+}
+
+function isOverdue(dueDate) {
+  const due = parseDueDate(dueDate)
+  if (!due) return false
+  return due < Date.now()
 }
 </script>
 
@@ -214,11 +239,28 @@ function formatDate(d) {
     transform: translateY(-2px);
   }
 
+  &--urgent {
+    border: 2px solid #F87171;
+    &:hover { box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2); }
+  }
+
+  &--overdue {
+    border: 2px solid #DC2626;
+    background: #FFF5F5;
+    &:hover { box-shadow: 0 4px 16px rgba(220, 38, 38, 0.25); }
+  }
+
   &__top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: $spacing-3;
+  }
+
+  &__badges {
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
   }
 
   h3 {
@@ -289,6 +331,30 @@ function formatDate(d) {
   &.pending { background: #FEF3C7; color: #92400E; }
   &.in_progress { background: #DBEAFE; color: #1E40AF; }
   &.done { background: #D1FAE5; color: #065F46; }
+}
+
+.due-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: $radius-full;
+  font-size: 10px;
+  font-weight: 700;
+
+  &--urgent {
+    background: #FEE2E2;
+    color: #B91C1C;
+  }
+
+  &--overdue {
+    background: #DC2626;
+    color: white;
+  }
+}
+
+.due-text--urgent {
+  color: #DC2626;
+  font-weight: 600;
 }
 
 .loading-wrap {

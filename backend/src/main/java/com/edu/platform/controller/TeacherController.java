@@ -5,6 +5,7 @@ import com.edu.platform.domain.Teacher;
 import com.edu.platform.dto.common.ApiResponse;
 import com.edu.platform.dto.common.PageResponse;
 import com.edu.platform.dto.teacher.AssignmentCreateRequest;
+import com.edu.platform.dto.teacher.UpdateAssignmentRequest;
 import com.edu.platform.exception.BusinessException;
 import com.edu.platform.exception.ErrorCode;
 import com.edu.platform.mapper.TeacherMapper;
@@ -15,6 +16,7 @@ import com.edu.platform.service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -164,16 +166,25 @@ public class TeacherController {
     }
 
     @PutMapping("/assignments/{assignmentId}")
+    @PreAuthorize("hasAnyRole('TEACHER','SUPER_USER')")
     public ResponseEntity<ApiResponse<Void>> updateAssignment(
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long assignmentId,
-            @RequestBody AssignmentCreateRequest request) {
-        // TODO: 수정 서비스 구현
+            @Valid @RequestBody UpdateAssignmentRequest request) {
+        Long userId = getUserId(userDetails);
+        Teacher teacher = getTeacher(userId);
+        teacherService.updateAssignment(assignmentId, request, teacher.getTeacherId());
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.ASSIGNMENT_UPDATED));
     }
 
     @DeleteMapping("/assignments/{assignmentId}")
-    public ResponseEntity<ApiResponse<Void>> deleteAssignment(@PathVariable Long assignmentId) {
-        // TODO: 삭제 서비스 구현
+    @PreAuthorize("hasAnyRole('TEACHER','SUPER_USER')")
+    public ResponseEntity<ApiResponse<Void>> deleteAssignment(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long assignmentId) {
+        Long userId = getUserId(userDetails);
+        Teacher teacher = getTeacher(userId);
+        teacherService.deleteAssignment(assignmentId, teacher.getTeacherId());
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.ASSIGNMENT_DELETED));
     }
 

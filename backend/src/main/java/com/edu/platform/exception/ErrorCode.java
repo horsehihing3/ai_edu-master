@@ -37,6 +37,7 @@ public enum ErrorCode {
     // 과제 관련
     ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "과제를 찾을 수 없습니다."),
     ASSIGNMENT_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "이미 완료된 과제입니다."),
+    ASSIGNMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 과제에 대한 권한이 없습니다."),
 
     // 학습 세션 관련
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "학습 세션을 찾을 수 없습니다."),

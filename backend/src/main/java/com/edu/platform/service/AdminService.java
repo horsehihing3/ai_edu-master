@@ -1,5 +1,6 @@
 package com.edu.platform.service;
 
+import com.edu.platform.domain.Problem;
 import com.edu.platform.domain.User;
 import com.edu.platform.dto.admin.AdminDashboardDto;
 import com.edu.platform.dto.common.PageResponse;
@@ -232,6 +233,47 @@ public class AdminService {
             return rm;
         }).collect(Collectors.toList()));
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<Map<String, Object>> getAdminProblems(String approvalStatus, String level, String keyword, int page, int size) {
+        int offset = page * size;
+        List<Problem> problems = problemMapper.searchAdmin(approvalStatus, level, keyword, offset, size);
+        long total = problemMapper.countSearchAdmin(approvalStatus, level, keyword);
+        int totalPages = (int) Math.ceil((double) total / size);
+
+        List<Map<String, Object>> content = problems.stream().map(p -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("problemId", p.getProblemId());
+            m.put("questionText", p.getQuestionText());
+            m.put("level", p.getLevel());
+            m.put("grade", p.getGrade());
+            m.put("difficulty", p.getDifficulty());
+            m.put("unitPath", p.getUnitPath());
+            m.put("approvalStatus", p.getApprovalStatus());
+            m.put("rejectReason", p.getRejectReason());
+            m.put("isActive", p.getIsActive());
+            m.put("createdAt", p.getCreatedAt() != null ? p.getCreatedAt().toString() : null);
+            return m;
+        }).collect(Collectors.toList());
+
+        return PageResponse.of(content, total, totalPages, page, size);
+    }
+
+    @Transactional
+    public void approveProblem(Long problemId, Long adminUserId) {
+        problemMapper.findById(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
+        problemMapper.updateApprovalStatus(problemId, "APPROVED", adminUserId, null);
+        log.info("Problem {} approved by admin {}", problemId, adminUserId);
+    }
+
+    @Transactional
+    public void rejectProblem(Long problemId, Long adminUserId, String rejectReason) {
+        problemMapper.findById(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
+        problemMapper.updateApprovalStatus(problemId, "REJECTED", adminUserId, rejectReason);
+        log.info("Problem {} rejected by admin {}, reason: {}", problemId, adminUserId, rejectReason);
     }
 
     @Transactional

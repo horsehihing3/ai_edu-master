@@ -27,4 +27,18 @@ public interface ProblemMapper {
     void insertOption(ProblemOption option);
     long count();
     List<Map<String, Object>> getWeakUnitStats();
+
+    // 어드민 전용 — approval_status 필터 포함, is_active 무관
+    List<Problem> searchAdmin(@Param("approvalStatus") String approvalStatus,
+                              @Param("level") String level,
+                              @Param("keyword") String keyword,
+                              @Param("offset") int offset, @Param("limit") int limit);
+    long countSearchAdmin(@Param("approvalStatus") String approvalStatus,
+                          @Param("level") String level,
+                          @Param("keyword") String keyword);
+
+    void updateApprovalStatus(@Param("problemId") Long problemId,
+                              @Param("approvalStatus") String approvalStatus,
+                              @Param("reviewedBy") Long reviewedBy,
+                              @Param("rejectReason") String rejectReason);
 }
