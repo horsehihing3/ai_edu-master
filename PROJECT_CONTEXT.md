@@ -151,19 +151,37 @@ POST /student/sessions/start
 
 ## PDF 파싱 / 이미지 추출 현황
 
+> ⚠️ **이미지 추출 기능 진행 중** — 텍스트 파싱은 완료, 이미지 크롭 정확도 튜닝 작업 중
+
 ### 동작 방식
 ```
 PDF 업로드(base64)
 → PdfParseController: Claude AI로 문제 텍스트 파싱 (max_tokens: 8192)
-→ PdfImageExtractService: 페이지 렌더링(150DPI) → Claude Vision 좌표 감지 → S3 크롭 업로드
+→ PdfImageExtractService: 페이지 렌더링(300DPI) → 750x1000 리사이즈 → Claude Vision 비율 감지 → 원본 이미지 크롭 후 S3 업로드
 → ProblemUploadPage.vue: 파싱 결과 인라인 수정 테이블
-→ POST /problems/upload/batch: DB 저장
+→ POST /problems/upload/batch: DB 저장 (questionImgUrl 포함)
 ```
 
+### 이미지 추출 진행 상태
+- [x] PDF 페이지 렌더링 (300 DPI)
+- [x] Claude Vision에 750x1000 리사이즈 이미지 전송
+- [x] 비율(0~1) 기반 bounding box 응답 파싱
+- [x] 원본 300DPI 이미지에서 비율 적용 크롭 후 S3 업로드
+- [x] questionImgUrl → DB 저장 및 문제 수정 모달 미리보기
+- [ ] **크롭 정확도 튜닝 진행 중** — 선지 포함, y_ratio 오프셋 등 프롬프트 반복 조정 중
+
 ### 알려진 한계
-- Claude Vision 좌표 정확도가 불안정 (그림이 크고 단순한 경우 양호, 복잡한 레이아웃 불량)
+- Claude Vision 좌표 정확도 불안정 — 단순 도형은 양호, 복잡한 레이아웃 불량
+- 선지(①②③④⑤)가 크롭 영역에 포함되는 경우 있음 (프롬프트 개선 중)
 - 벡터 기반 PDF는 PDImageXObject 추출 불가 → 페이지 렌더링 방식만 사용
-- 선생님이 questionImgUrl 수동 수정 가능 (문제 수정 모달에서)
+- 관리자가 questionImgUrl 수동 수정 가능 (문제 수정 모달)
+
+### 환경변수 (로컬 실행 시 필요)
+| 변수 | 용도 |
+|------|------|
+| `ANTHROPIC_API_KEY` | Claude AI 파싱 / Vision |
+| `AWS_ACCESS_KEY` | S3 업로드 |
+| `AWS_SECRET_KEY` | S3 업로드 |
 
 ### 주요 버그 수정 이력
 | 버그 | 원인 | 수정 위치 |
