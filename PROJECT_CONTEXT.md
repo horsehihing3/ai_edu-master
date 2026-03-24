@@ -6,8 +6,14 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 
 ---
 
-## ⚡ 이번 세션 작업
-<!-- 세션 시작 시 현재 작업 내용 1~3줄 기록. 세션 종료 시 삭제 -->
+## ⚡ 다음 세션 작업 (우선순위 순)
+- [ ] 검수 대기 문제 일괄 승인 (`POST /admin/problems/approve-all` 백엔드 미구현)
+- [ ] 교사 계정으로 과제 출제 테스트
+- [ ] 학생 계정으로 문제풀이 테스트
+- [ ] 오답 시 관련 풀이 영상 연동 (VideoController 서비스 구현)
+- [ ] 풀이 임시저장 / 이어풀기
+- [ ] 비밀번호 재설정 이메일 발송
+- [ ] 학생/교사 홈 대시보드 고도화
 
 ---
 
@@ -18,6 +24,7 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 | Backend | Spring Boot 3.2.3 + MyBatis + JWT / `http://localhost:7000/api` |
 | Frontend | Vue 3 + Vite + Pinia / `http://localhost:7001` |
 | DB | MySQL 8.0 / `211.171.152.242:3310/edu_platform` (root/root1234) |
+| AWS S3 | 버킷: `ai-edu-bucket` / 리전: `ap-northeast-2` / 퍼블릭 읽기 허용됨 |
 | 사용자 역할 | STUDENT / TEACHER(=SUPER_USER) / ADMIN |
 | 라우팅 | STUDENT → `/student/*` / TEACHER → `/teacher/*` / ADMIN → `/admin/*` |
 | Backend 레이어 | Controller → Service → Mapper(MyBatis XML) → DB |
@@ -70,9 +77,11 @@ POST /student/sessions/start
 |------|------|------|
 | `JWT_SECRET` | 기본값 사용 중 | 프로덕션 전 변경 필요 |
 | `MAIL_USERNAME` / `MAIL_PASSWORD` | 미설정 | 이메일 기능 동작 안 함 |
-| `AWS_S3_BUCKET` / `AWS_REGION` | 미설정 | S3 연동 안 됨 |
+| `AWS_S3_BUCKET` | `ai-edu-bucket` 설정됨 | S3 연동 완료 |
+| `AWS_REGION` | `ap-northeast-2` 설정됨 | S3 연동 완료 |
 | `CLOUDFRONT_DOMAIN` | 미설정 | CDN 미사용 |
 | `UPLOAD_PATH` | 기본값(`uploads/`) | 로컬 업로드는 동작 |
+| `anthropic.api-key` | 설정됨 | AI 파싱 동작 |
 
 ---
 
@@ -130,6 +139,9 @@ POST /student/sessions/start
 - [x] 1:1 문의, 동영상 관리, 시스템 코드 관리
 - [x] 문제 DB 검색·생성·수정·삭제·배치 업로드 (`POST /problems/upload/batch`)
 - [x] 문제 검수/승인 워크플로우 — 검수 대기 배너, PENDING/APPROVED/REJECTED 상태 배지, 승인/반려/재승인 버튼, 반려 사유 모달. 승인된 문제만 학생·교사에 노출 (is_active 연동)
+- [x] PDF 문제지 업로드 → Claude AI 파싱 (`POST /admin/parse-pdf`) — 24문제 자동 파싱
+- [x] S3 이미지 자동 추출 — PDF 페이지 렌더링 후 Claude Vision으로 그림 영역 감지, S3 업로드 (`PdfImageExtractService.java`)
+- [x] 문제 수정 모달에 `questionImgUrl` 필드 및 이미지 미리보기 추가 (`ProblemDBPage.vue`)
 
 ### 공통
 - [x] 공지사항 CRUD, 1:1 문의, 알림 (목록·읽음·카운트)
@@ -137,7 +149,35 @@ POST /student/sessions/start
 
 ---
 
+## PDF 파싱 / 이미지 추출 현황
+
+### 동작 방식
+```
+PDF 업로드(base64)
+→ PdfParseController: Claude AI로 문제 텍스트 파싱 (max_tokens: 8192)
+→ PdfImageExtractService: 페이지 렌더링(150DPI) → Claude Vision 좌표 감지 → S3 크롭 업로드
+→ ProblemUploadPage.vue: 파싱 결과 인라인 수정 테이블
+→ POST /problems/upload/batch: DB 저장
+```
+
+### 알려진 한계
+- Claude Vision 좌표 정확도가 불안정 (그림이 크고 단순한 경우 양호, 복잡한 레이아웃 불량)
+- 벡터 기반 PDF는 PDImageXObject 추출 불가 → 페이지 렌더링 방식만 사용
+- 선생님이 questionImgUrl 수동 수정 가능 (문제 수정 모달에서)
+
+### 주요 버그 수정 이력
+| 버그 | 원인 | 수정 위치 |
+|------|------|------|
+| questionImgUrl DB 저장 안 됨 | ProblemUploadPage.vue parseWithAI()에서 questionImgUrl 누락 | `ProblemUploadPage.vue:298` — `questionImgUrl: p.questionImgUrl \|\| ''` 추가 |
+
+---
+
 ## 미구현 기능 (TODO)
+
+### 관리자 — 문제 관리
+| 기능 | 위치 | 비고 |
+|------|------|------|
+| 검수 대기 문제 일괄 승인 | `ProblemDBPage.vue` 버튼 있음 | 백엔드 `POST /admin/problems/approve-all` 미구현 |
 
 ### 인증
 | 기능 | 위치 | 비고 |

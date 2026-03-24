@@ -25,6 +25,7 @@ public interface ProblemMapper {
     void update(Problem problem);
     void deleteById(@Param("problemId") Long problemId);
     void insertOption(ProblemOption option);
+    void deleteOptionsByProblemId(@Param("problemId") Long problemId);
     long count();
     List<Map<String, Object>> getWeakUnitStats();
 

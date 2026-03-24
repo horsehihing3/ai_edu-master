@@ -87,6 +87,13 @@ public class ProblemService {
         Problem problem = buildProblemFromRequest(request);
         problem.setProblemId(problemId);
         problemMapper.update(problem);
+
+        // 선지 삭제 후 재저장
+        problemMapper.deleteOptionsByProblemId(problemId);
+        List<?> options = (List<?>) request.get("options");
+        if (options != null && !options.isEmpty()) {
+            saveOptions(problemId, options);
+        }
     }
 
     @Transactional
@@ -200,17 +207,20 @@ public class ProblemService {
                 ))
                 .collect(Collectors.toList());
 
-        return Map.of(
-                "problemId", p.getProblemId(),
-                "questionText", p.getQuestionText() != null ? p.getQuestionText() : "",
-                "questionImgUrl", p.getQuestionImgUrl() != null ? p.getQuestionImgUrl() : "",
-                "level", p.getLevel() != null ? p.getLevel() : "",
-                "grade", p.getGrade() != null ? p.getGrade() : "",
-                "unitName", p.getUnitName() != null ? p.getUnitName() : "",
-                "problemType", p.getProblemType() != null ? p.getProblemType() : "",
-                "hint", p.getHint() != null ? p.getHint() : "",
-                "estimatedTime", p.getEstimatedTime() != null ? p.getEstimatedTime() : 0,
-                "options", options
-        );
+        Map<String, Object> detail = new java.util.LinkedHashMap<>();
+        detail.put("problemId", p.getProblemId());
+        detail.put("subject", p.getSubject() != null ? p.getSubject() : "");
+        detail.put("questionText", p.getQuestionText() != null ? p.getQuestionText() : "");
+        detail.put("questionImgUrl", p.getQuestionImgUrl() != null ? p.getQuestionImgUrl() : "");
+        detail.put("level", p.getLevel() != null ? p.getLevel() : "");
+        detail.put("grade", p.getGrade() != null ? p.getGrade() : "");
+        detail.put("unitName", p.getUnitName() != null ? p.getUnitName() : "");
+        detail.put("problemType", p.getProblemType() != null ? p.getProblemType() : "");
+        detail.put("answer", p.getAnswer() != null ? p.getAnswer() : "");
+        detail.put("explanation", p.getExplanation() != null ? p.getExplanation() : "");
+        detail.put("hint", p.getHint() != null ? p.getHint() : "");
+        detail.put("estimatedTime", p.getEstimatedTime() != null ? p.getEstimatedTime() : 0);
+        detail.put("options", options);
+        return detail;
     }
 }

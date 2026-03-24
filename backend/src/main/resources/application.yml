@@ -1,6 +1,8 @@
 spring:
   application:
     name: edu-platform
+  autoconfigure:
+    exclude: io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
   datasource:
     url: jdbc:mysql://211.171.152.242:3310/edu_platform?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: root
@@ -72,3 +74,17 @@ logging:
   level:
     com.edu.platform: DEBUG
     org.springframework.security: INFO
+
+anthropic:
+  api-key: ${ANTHROPIC_API_KEY:}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:}
+      secret-key: ${AWS_SECRET_KEY:}
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ai-edu-bucket
+

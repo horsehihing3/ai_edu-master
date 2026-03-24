@@ -15,12 +15,10 @@
       <input v-model="search" class="form-control filter-search" placeholder="문제 검색..." />
       <div class="filter-selects">
         <AppSelect v-model="filterLevel" :options="levelOptions" placeholder="전체 레벨" style="margin:0;" />
-        <!-- [2026-03-23] 검수 상태 필터 추가 -->
         <AppSelect v-model="filterApproval" :options="approvalOptions" placeholder="전체 상태" style="margin:0;" />
       </div>
     </div>
 
-    <!-- [2026-03-23] 검수 대기 건수 배너 -->
     <div v-if="pendingCount > 0" class="pending-banner">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       검수 대기 문제가 <strong>{{ pendingCount }}건</strong> 있습니다.
@@ -41,7 +39,6 @@
       </template>
       <template #cell-actions="{ row }">
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <!-- [2026-03-23] 검수 액션 버튼 -->
           <template v-if="row.approvalStatus === 'PENDING'">
             <button class="btn btn-success btn-sm" @click="approveProblem(row)">승인</button>
             <button class="btn btn-warning btn-sm" @click="openRejectModal(row)">반려</button>
@@ -59,20 +56,54 @@
 
     <!-- 문제 추가/수정 모달 -->
     <AppModal v-model="showModal" :title="editingProblem ? '문제 수정' : '문제 추가'" size="lg">
-      <AppSelect v-model="form.subject" label="과목" :options="subjectOptions" placeholder="과목 선택" />
-      <AppSelect v-model="form.level" label="레벨" :options="levelOptions" placeholder="레벨 선택" />
-      <AppInput v-model="form.unit" label="단원" placeholder="단원명" />
-      <div class="form-group">
-        <label>문제 내용</label>
-        <textarea v-model="form.questionText" class="form-control" rows="4" placeholder="문제 내용을 입력하세요" />
+      <div class="modal-form">
+        <div class="form-row">
+          <AppSelect v-model="form.subject" label="과목" :options="subjectOptions" placeholder="과목 선택" />
+          <AppSelect v-model="form.level" label="레벨" :options="levelOptions" placeholder="레벨 선택" />
+          <AppSelect v-model="form.problemType" label="유형" :options="typeOptions" placeholder="유형 선택" />
+        </div>
+        <div class="form-row">
+          <AppInput v-model="form.grade" label="학년" placeholder="예: 중3" />
+          <AppInput v-model="form.unit" label="단원" placeholder="단원명" />
+          <AppInput v-model="form.answer" label="정답" placeholder="정답 입력" />
+        </div>
+        <div class="form-group">
+          <label>문제 내용</label>
+          <textarea v-model="form.questionText" class="form-control" rows="4" placeholder="문제 내용을 입력하세요" />
+        </div>
+
+        <!-- 객관식 선지 -->
+        <div v-if="form.problemType === 'MULTIPLE_CHOICE'" class="form-group">
+          <div class="options-header">
+            <label>선지 (보기)</label>
+            <button class="btn btn-ghost btn-sm" type="button" @click="addOption">+ 선지 추가</button>
+          </div>
+          <div v-for="(opt, i) in form.options" :key="i" class="option-row">
+            <span class="option-no">{{ '①②③④⑤⑥⑦⑧⑨⑩'[i] || (i+1) }}</span>
+            <input v-model="form.options[i].optionText" class="form-control" :placeholder="`${i+1}번 선지`" />
+            <button class="btn btn-ghost btn-sm option-del" type="button" @click="removeOption(i)" v-if="form.options.length > 2">✕</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>해설</label>
+          <textarea v-model="form.explanation" class="form-control" rows="3" placeholder="풀이 해설 (선택)" />
+        </div>
+        <div class="form-group">
+          <label>문제 이미지 URL</label>
+          <input v-model="form.questionImgUrl" class="form-control" placeholder="https://..." />
+          <div v-if="form.questionImgUrl" class="img-preview">
+            <img :src="form.questionImgUrl" alt="문제 이미지 미리보기" style="max-width:100%; max-height:200px; border:1px solid #ddd; margin-top:8px;" />
+          </div>
+        </div>
       </div>
       <template #footer>
         <AppButton variant="secondary" @click="showModal = false">취소</AppButton>
-        <AppButton @click="saveProblem">저장</AppButton>
+        <AppButton :loading="saving" @click="saveProblem">저장</AppButton>
       </template>
     </AppModal>
 
-    <!-- [2026-03-23] 반려 사유 입력 모달 -->
+    <!-- 반려 사유 입력 모달 -->
     <AppModal v-model="showRejectModal" title="반려 사유 입력" size="sm">
       <div class="form-group">
         <label>반려 사유 <span style="color:var(--color-error)">*</span></label>
@@ -87,7 +118,6 @@
 </template>
 
 <script setup>
-// [2026-03-23] 검수/승인 워크플로우 추가
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
 import AppBadge from '@/components/common/AppBadge.vue'
@@ -106,13 +136,34 @@ const search = ref('')
 const filterLevel = ref('')
 const filterApproval = ref('')
 const loading = ref(false)
+const saving = ref(false)
 const page = ref(1)
 const totalPages = ref(1)
 const totalElements = ref(0)
 const pendingCount = ref(0)
 const showModal = ref(false)
 const editingProblem = ref(null)
-const form = reactive({ subject: '', level: '', unit: '', questionText: '' })
+
+const defaultForm = () => ({
+  subject: '',
+  level: '',
+  grade: '',
+  unit: '',
+  questionText: '',
+  problemType: 'MULTIPLE_CHOICE',
+  answer: '',
+  explanation: '',
+  questionImgUrl: '',
+  options: [
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+  ]
+})
+
+const form = reactive(defaultForm())
 
 // 반려 모달
 const showRejectModal = ref(false)
@@ -121,6 +172,10 @@ const rejectReason = ref('')
 
 const subjectOptions = ['수학','영어','국어','과학','사회'].map(v => ({ value: v, label: v }))
 const levelOptions = ['A','B','C'].map(v => ({ value: v, label: `${v} 레벨` }))
+const typeOptions = [
+  { value: 'MULTIPLE_CHOICE', label: '객관식' },
+  { value: 'SHORT_ANSWER', label: '주관식' },
+]
 const approvalOptions = [
   { value: 'PENDING', label: '검수 대기' },
   { value: 'APPROVED', label: '승인됨' },
@@ -143,6 +198,14 @@ function approvalLabel(status) {
   if (status === 'APPROVED') return '승인됨'
   if (status === 'REJECTED') return '반려됨'
   return '검수 대기'
+}
+
+function addOption() {
+  form.options.push({ optionText: '', optionImgUrl: '' })
+}
+
+function removeOption(i) {
+  form.options.splice(i, 1)
 }
 
 async function fetchProblems() {
@@ -180,31 +243,81 @@ onMounted(() => { fetchProblems(); fetchPendingCount() })
 
 function openAddModal() {
   editingProblem.value = null
-  Object.assign(form, { subject: '', level: '', unit: '', questionText: '' })
+  Object.assign(form, defaultForm())
   showModal.value = true
 }
 
-function editProblem(p) {
+async function editProblem(p) {
   editingProblem.value = p
-  Object.assign(form, { subject: p.subject, level: p.level, unit: p.unit, questionText: p.questionText })
+  // 상세 조회로 선지 포함 데이터 가져오기
+  try {
+    const res = await api.get(`/problems/${p.id}`)
+    const detail = res.data?.data || res.data || {}
+    Object.assign(form, {
+      subject: detail.subject || p.subject || '',
+      level: detail.level || p.level || '',
+      grade: detail.grade || '',
+      unit: detail.unitName || p.unit || '',
+      questionText: detail.questionText || p.questionText || '',
+      problemType: detail.problemType || 'MULTIPLE_CHOICE',
+      answer: detail.answer || '',
+      explanation: detail.explanation || '',
+      questionImgUrl: detail.questionImgUrl || '',
+      options: detail.options?.length
+        ? detail.options.map(o => ({ optionText: o.optionText || '', optionImgUrl: o.optionImgUrl || '' }))
+        : defaultForm().options
+    })
+  } catch {
+    Object.assign(form, {
+      ...defaultForm(),
+      subject: p.subject || '',
+      level: p.level || '',
+      unit: p.unit || '',
+      questionText: p.questionText || '',
+    })
+  }
   showModal.value = true
 }
 
 async function saveProblem() {
+  saving.value = true
   try {
+    const payload = {
+      subject: form.subject,
+      level: form.level,
+      grade: form.grade,
+      unitName: form.unit,
+      questionText: form.questionText,
+      problemType: form.problemType,
+      answer: form.answer,
+      explanation: form.explanation,
+      questionImgUrl: form.questionImgUrl || '',
+      options: form.problemType === 'MULTIPLE_CHOICE'
+        ? form.options.filter(o => o.optionText.trim())
+        : []
+    }
+
     if (editingProblem.value) {
-      await api.put(`/admin/problems/${editingProblem.value.id}`, { subject: form.subject, level: form.level, unitName: form.unit, questionText: form.questionText })
-      Object.assign(editingProblem.value, form)
+      await api.put(`/admin/problems/${editingProblem.value.id}`, payload)
+      Object.assign(editingProblem.value, { level: form.level, unit: form.unit, questionText: form.questionText })
       success('문제를 수정했습니다.')
     } else {
-      const res = await api.post('/admin/problems', { subject: form.subject, level: form.level, unitName: form.unit, questionText: form.questionText })
-      const p = res.data || {}
-      problems.value.unshift({ id: p.problemId || Date.now(), ...form, unit: form.unit, approvalStatus: 'PENDING', createdAt: new Date().toISOString().slice(0, 10) })
+      const res = await api.post('/admin/problems', payload)
+      const p = res.data?.data || res.data || {}
+      problems.value.unshift({
+        id: p.problemId || Date.now(),
+        level: form.level,
+        unit: form.unit,
+        questionText: form.questionText,
+        approvalStatus: 'PENDING',
+        createdAt: new Date().toISOString().slice(0, 10)
+      })
       pendingCount.value++
       success('문제를 추가했습니다.')
     }
     showModal.value = false
   } catch { error('저장에 실패했습니다.') }
+  finally { saving.value = false }
 }
 
 async function deleteProblem(id) {
@@ -306,7 +419,6 @@ async function confirmReject() {
   }
 }
 
-// [2026-03-23] 검수 대기 배너
 .pending-banner {
   display: flex;
   align-items: center;
@@ -333,7 +445,6 @@ async function confirmReject() {
   }
 }
 
-// [2026-03-23] 승인 상태 배지
 .approval-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -344,5 +455,60 @@ async function confirmReject() {
   &--pending  { background: #fff3cd; color: #856404; }
   &--approved { background: #d1fae5; color: #065f46; }
   &--rejected { background: #fee2e2; color: #991b1b; }
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-3;
+
+  @media (max-width: $bp-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-2;
+
+  label { margin: 0; font-weight: 600; font-size: $font-size-sm; }
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin-bottom: $spacing-2;
+}
+
+.option-no {
+  font-size: $font-size-base;
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.option-del {
+  flex-shrink: 0;
+  color: $danger;
+  padding: 4px 8px;
+}
+
+.img-preview {
+  margin-top: $spacing-2;
+  img {
+    max-width: 100%;
+    max-height: 300px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+  }
 }
 </style>
