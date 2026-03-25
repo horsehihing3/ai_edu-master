@@ -140,7 +140,7 @@ POST /student/sessions/start
 - [x] 문제 DB 검색·생성·수정·삭제·배치 업로드 (`POST /problems/upload/batch`)
 - [x] 문제 검수/승인 워크플로우 — 검수 대기 배너, PENDING/APPROVED/REJECTED 상태 배지, 승인/반려/재승인 버튼, 반려 사유 모달. 승인된 문제만 학생·교사에 노출 (is_active 연동)
 - [x] PDF 문제지 업로드 → Claude AI 파싱 (`POST /admin/parse-pdf`) — 24문제 자동 파싱
-- [x] S3 이미지 자동 추출 — PDF 페이지 렌더링 후 Claude Vision으로 그림 영역 감지, S3 업로드 (`PdfImageExtractService.java`)
+- [x] S3 이미지 자동 추출 — PyMuPDF(Python) + Claude Vision 하이브리드. bbox union 크롭 방식으로 다중 조각 정확 추출. 12번·15번·16번 확인 (`PdfImageExtractService.java`, `scripts/extract_images.py`)
 - [x] 문제 수정 모달에 `questionImgUrl` 필드 및 이미지 미리보기 추가 (`ProblemDBPage.vue`)
 
 ### 공통
@@ -151,29 +151,32 @@ POST /student/sessions/start
 
 ## PDF 파싱 / 이미지 추출 현황
 
-> ⚠️ **이미지 추출 기능 진행 중** — 텍스트 파싱은 완료, 이미지 크롭 정확도 튜닝 작업 중
+> ✅ **이미지 추출 기능 완료** — PyMuPDF + Claude Vision 하이브리드 방식. 12번·15번·16번 정확 추출 확인
 
 ### 동작 방식
 ```
 PDF 업로드(base64)
 → PdfParseController: Claude AI로 문제 텍스트 파싱 (max_tokens: 8192)
-→ PdfImageExtractService: 페이지 렌더링(300DPI) → 750x1000 리사이즈 → Claude Vision 비율 감지 → 원본 이미지 크롭 후 S3 업로드
+→ PdfImageExtractService:
+   1. Python(PyMuPDF) 스크립트로 PDF 임베디드 이미지 추출 → bbox 좌표 반환
+   2. PDFBox로 페이지 전체를 1000px 리사이즈 base64 렌더링 → Claude Vision에 전송
+   3. Vision이 페이지 이미지 + bbox 위치 비율(x/y/w/h)로 문제번호 식별
+   4. 같은 문제번호 조각들 bbox union → 5% 여백 추가
+   5. PDFBox 200DPI BufferedImage에서 union bbox 직접 크롭 → S3 업로드
 → ProblemUploadPage.vue: 파싱 결과 인라인 수정 테이블
 → POST /problems/upload/batch: DB 저장 (questionImgUrl 포함)
 ```
 
-### 이미지 추출 진행 상태
-- [x] PDF 페이지 렌더링 (300 DPI)
-- [x] Claude Vision에 750x1000 리사이즈 이미지 전송
-- [x] 비율(0~1) 기반 bounding box 응답 파싱
-- [x] 원본 300DPI 이미지에서 비율 적용 크롭 후 S3 업로드
-- [x] questionImgUrl → DB 저장 및 문제 수정 모달 미리보기
-- [ ] **크롭 정확도 튜닝 진행 중** — 선지 포함, y_ratio 오프셋 등 프롬프트 반복 조정 중
+### 이미지 추출 완료 상태
+- [x] PyMuPDF Python 스크립트로 임베디드 이미지 추출 (`scripts/extract_images.py`)
+- [x] PDFBox 1000px 리사이즈 페이지 이미지 → Claude Vision 컨텍스트 전송
+- [x] Vision이 페이지 전체 이미지 + bbox 위치 비율로 문제번호 식별
+- [x] 동일 문제번호 다중 조각 → bbox union → 5% 여백 → 200DPI 이미지에서 직접 크롭
+- [x] S3 업로드 및 questionImgUrl DB 저장
+- [x] **12번(3조각 합산), 15번(단일), 16번(4조각 합산) 정확 추출 확인**
 
 ### 알려진 한계
-- Claude Vision 좌표 정확도 불안정 — 단순 도형은 양호, 복잡한 레이아웃 불량
-- 선지(①②③④⑤)가 크롭 영역에 포함되는 경우 있음 (프롬프트 개선 중)
-- 벡터 기반 PDF는 PDImageXObject 추출 불가 → 페이지 렌더링 방식만 사용
+- 임베디드 이미지 없는 벡터 기반 PDF (텍스트만 있는 경우)는 추출 대상 없음
 - 관리자가 questionImgUrl 수동 수정 가능 (문제 수정 모달)
 
 ### 환경변수 (로컬 실행 시 필요)

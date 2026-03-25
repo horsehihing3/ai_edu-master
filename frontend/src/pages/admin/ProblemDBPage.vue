@@ -17,6 +17,14 @@
         <AppSelect v-model="filterLevel" :options="levelOptions" placeholder="전체 레벨" style="margin:0;" />
         <AppSelect v-model="filterApproval" :options="approvalOptions" placeholder="전체 상태" style="margin:0;" />
       </div>
+      <div v-if="selectedIds.size > 0" class="bulk-actions">
+        <span class="bulk-count">{{ selectedIds.size }}건 선택됨</span>
+        <button class="btn btn-danger btn-md" @click="deleteBulk">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          선택 삭제
+        </button>
+        <button class="btn btn-ghost btn-md" @click="clearSelection">취소</button>
+      </div>
     </div>
 
     <div v-if="pendingCount > 0" class="pending-banner">
@@ -25,7 +33,28 @@
       <button class="btn-link" @click="filterApproval = 'PENDING'; page = 1; fetchProblems()">바로가기</button>
     </div>
 
+    <!-- 전체 선택 툴바 -->
+    <div class="select-toolbar">
+      <label class="select-all-label">
+        <input
+          type="checkbox"
+          :checked="isAllSelected"
+          :indeterminate.prop="isIndeterminate"
+          @change="toggleSelectAll"
+        />
+        <span>전체 선택 ({{ problems.length }}건)</span>
+      </label>
+    </div>
+
     <AppTable :columns="columns" :data="problems" :loading="loading">
+      <template #cell-checkbox="{ row }">
+        <input
+          type="checkbox"
+          :checked="selectedIds.has(row.id)"
+          @change="toggleSelect(row.id)"
+          @click.stop
+        />
+      </template>
       <template #cell-level="{ value }">
         <AppBadge :type="value" />
       </template>
@@ -183,6 +212,7 @@ const approvalOptions = [
 ]
 
 const columns = [
+  { key: 'checkbox', label: '' },
   { key: 'id', label: 'ID', sortable: true },
   { key: 'level', label: '레벨' },
   { key: 'unit', label: '단원' },
@@ -193,6 +223,87 @@ const columns = [
 ]
 
 const problems = ref([])
+
+// 체크박스 선택 상태
+const selectedIds = ref(new Set())
+
+const isAllSelected = computed(
+  () => problems.value.length > 0 && problems.value.every(p => selectedIds.value.has(p.id))
+)
+const isIndeterminate = computed(
+  () => selectedIds.value.size > 0 && !isAllSelected.value
+)
+
+function toggleSelect(id) {
+  const next = new Set(selectedIds.value)
+  next.has(id) ? next.delete(id) : next.add(id)
+  selectedIds.value = next
+}
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    selectedIds.value = new Set()
+  } else {
+    selectedIds.value = new Set(problems.value.map(p => p.id))
+  }
+}
+
+function clearSelection() {
+  selectedIds.value = new Set()
+}
+
+async function deleteBulk() {
+  if (selectedIds.value.size === 0) return
+  const ids = [...selectedIds.value]
+  const ok = await dialog.confirm(
+    `선택한 ${ids.length}건의 문제를 삭제하시겠습니까?\n제출 이력이 있는 문제는 숨김 처리됩니다.`,
+    { type: 'danger', confirmText: '일괄 삭제' }
+  )
+  if (!ok) return
+
+  loading.value = true
+  try {
+    // 병렬 삭제 후 성공/실패 집계
+    const results = await Promise.allSettled(
+      ids.map(id => api.delete(`/admin/problems/${id}`))
+    )
+    const successCount = results.filter(r => r.status === 'fulfilled').length
+    const failCount    = results.filter(r => r.status === 'rejected').length
+
+    // 성공한 ID만 즉시 로컬 제거 (UX: 깜빡임 없이 바로 반영)
+    const failedIds = new Set(
+      results
+        .map((r, i) => r.status === 'rejected' ? ids[i] : null)
+        .filter(Boolean)
+    )
+    problems.value = problems.value.filter(p => !selectedIds.value.has(p.id) || failedIds.has(p.id))
+    totalElements.value = Math.max(0, totalElements.value - successCount)
+
+    clearSelection()
+
+    if (failCount === 0) {
+      success(`${successCount}건을 삭제했습니다.`)
+    } else if (successCount === 0) {
+      error(`삭제에 실패했습니다. (${failCount}건 오류)`)
+    } else {
+      success(`${successCount}건 삭제 완료`)
+      error(`${failCount}건은 삭제할 수 없습니다. (제출 이력 또는 권한 문제)`)
+    }
+
+    // 현재 페이지 문제가 다 사라졌으면 이전 페이지로
+    if (problems.value.length === 0 && page.value > 1) {
+      page.value = page.value - 1
+    } else {
+      await fetchProblems()
+    }
+    await fetchPendingCount()
+  } catch (e) {
+    error('일괄 삭제 중 오류가 발생했습니다.')
+    await fetchProblems()
+  } finally {
+    loading.value = false
+  }
+}
 
 function approvalLabel(status) {
   if (status === 'APPROVED') return '승인됨'
@@ -227,6 +338,7 @@ async function fetchProblems() {
     }))
     totalPages.value = res.data?.totalPages || 1
     totalElements.value = res.data?.totalElements || problems.value.length
+    clearSelection()
   } catch {} finally { loading.value = false }
 }
 
@@ -510,5 +622,50 @@ async function confirmReject() {
     border: 1px solid var(--color-border);
     border-radius: 8px;
   }
+}
+
+.select-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 4px;
+  margin-bottom: 4px;
+}
+
+.select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+  }
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+
+  @media (max-width: $bp-mobile) {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.bulk-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-light, #e8f4ff);
+  padding: 4px 10px;
+  border-radius: 20px;
 }
 </style>

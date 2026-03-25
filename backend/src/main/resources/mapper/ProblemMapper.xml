@@ -180,7 +180,7 @@
         VALUES (#{problemId}, #{optionNo}, #{optionText}, #{optionImgUrl})
     </insert>
 
-    <!-- 어드민 전용: approval_status 포함, is_active 무관 -->
+    <!-- 어드민 전용: approval_status 포함, 삭제된 문제(is_active=0) 제외 -->
     <select id="searchAdmin" resultMap="ProblemResultMap">
         SELECT p.*,
                sc_subj.code_name AS subject_name,
@@ -188,7 +188,7 @@
                <include refid="unitPathSelect"/>
         FROM problems p
         <include refid="unitJoins"/>
-        WHERE 1=1
+        WHERE p.is_active = 1
         <if test="approvalStatus != null and approvalStatus != ''">AND p.approval_status = #{approvalStatus}</if>
         <if test="level != null and level != ''">AND p.level = #{level}</if>
         <if test="keyword != null and keyword != ''">AND p.question_text LIKE CONCAT('%', #{keyword}, '%')</if>
@@ -198,7 +198,7 @@
 
     <select id="countSearchAdmin" resultType="long">
         SELECT COUNT(*) FROM problems p
-        WHERE 1=1
+        WHERE p.is_active = 1
         <if test="approvalStatus != null and approvalStatus != ''">AND p.approval_status = #{approvalStatus}</if>
         <if test="level != null and level != ''">AND p.level = #{level}</if>
         <if test="keyword != null and keyword != ''">AND p.question_text LIKE CONCAT('%', #{keyword}, '%')</if>

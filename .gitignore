@@ -13,6 +13,12 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env.local
 
+# Environment / secrets
+.env
+.env.*
+*.env
+프롬프트.txt
+
 # OS
 .DS_Store
 Thumbs.db
