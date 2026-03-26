@@ -68,7 +68,7 @@
       </template>
       <template #cell-actions="{ row }">
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <template v-if="row.approvalStatus === 'PENDING'">
+          <template v-if="row.approvalStatus === 'PENDING_REVIEW'">
             <button class="btn btn-success btn-sm" @click="approveProblem(row)">승인</button>
             <button class="btn btn-warning btn-sm" @click="openRejectModal(row)">반려</button>
           </template>
@@ -206,7 +206,7 @@ const typeOptions = [
   { value: 'SHORT_ANSWER', label: '주관식' },
 ]
 const approvalOptions = [
-  { value: 'PENDING', label: '검수 대기' },
+  { value: 'PENDING_REVIEW', label: '검수 대기' },
   { value: 'APPROVED', label: '승인됨' },
   { value: 'REJECTED', label: '반려됨' },
 ]
@@ -308,6 +308,7 @@ async function deleteBulk() {
 function approvalLabel(status) {
   if (status === 'APPROVED') return '승인됨'
   if (status === 'REJECTED') return '반려됨'
+  if (status === 'DRAFT') return '초안'
   return '검수 대기'
 }
 
@@ -332,7 +333,7 @@ async function fetchProblems() {
       level: p.level,
       unit: p.unitPath || p.unitName || '',
       questionText: p.questionText,
-      approvalStatus: p.approvalStatus || 'PENDING',
+      approvalStatus: p.approvalStatus || 'PENDING_REVIEW',
       rejectReason: p.rejectReason,
       createdAt: p.createdAt?.slice(0, 10)
     }))
@@ -344,7 +345,7 @@ async function fetchProblems() {
 
 async function fetchPendingCount() {
   try {
-    const res = await api.get('/admin/problems', { params: { approvalStatus: 'PENDING', size: 1 } })
+    const res = await api.get('/admin/problems', { params: { approvalStatus: 'PENDING_REVIEW', size: 1 } })
     pendingCount.value = res.data?.totalElements || 0
   } catch {}
 }
@@ -421,7 +422,7 @@ async function saveProblem() {
         level: form.level,
         unit: form.unit,
         questionText: form.questionText,
-        approvalStatus: 'PENDING',
+        approvalStatus: 'PENDING_REVIEW',
         createdAt: new Date().toISOString().slice(0, 10)
       })
       pendingCount.value++
@@ -564,9 +565,10 @@ async function confirmReject() {
   font-size: 12px;
   font-weight: 500;
 
-  &--pending  { background: #fff3cd; color: #856404; }
-  &--approved { background: #d1fae5; color: #065f46; }
-  &--rejected { background: #fee2e2; color: #991b1b; }
+  &--pending_review { background: #fff3cd; color: #856404; }
+  &--approved       { background: #d1fae5; color: #065f46; }
+  &--rejected       { background: #fee2e2; color: #991b1b; }
+  &--draft          { background: #e5e7eb; color: #374151; }
 }
 
 .modal-form {

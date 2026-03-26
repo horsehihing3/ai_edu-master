@@ -34,6 +34,19 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 | Frontend 경로 | Pages: `pages/{student,teacher,admin,auth,common}/` / Store: `store/` / Layout: `DefaultLayout.vue`(인증후) `AuthLayout.vue`(로그인) |
 | MyBatis | snake_case → camelCase 자동변환 (`map-underscore-to-camel-case: true`) / XML·Interface 쌍으로 생성 |
 
+
+## 개발 작업 방식
+
+### Claude CLI 기반 협업 플로우
+이 프로젝트는 Claude LLM + Claude CLI를 조합한 방식으로 개발 중.
+```
+Claude LLM (claude.ai)
+  → 명령어/코드 작성
+  → 개발자가 Claude CLI 터미널에 붙여넣기
+  → CLI 실행 결과를 Claude LLM에 다시 전달
+  → 다음 명령어 작성
+
+
 ### 학생 등급 체계
 | 등급 | 정답률 기준 | 문제 배정 |
 |------|------|------|
@@ -73,15 +86,23 @@ POST /student/sessions/start
 
 ## 환경변수 현황
 
+> ⚠️ **새 PC 세팅 시 아래 항목들을 Windows 시스템 환경변수(Machine 레벨)로 반드시 등록할 것**
+> 관리자 PowerShell에서 한 번만 실행하면 영구 적용됨 (재부팅·VS Code 재시작 후에도 유지)
+> ```powershell
+> [System.Environment]::SetEnvironmentVariable("변수명", "값", "Machine")
+> ```
+
 | 변수 | 상태 | 비고 |
 |------|------|------|
 | `JWT_SECRET` | 기본값 사용 중 | 프로덕션 전 변경 필요 |
 | `MAIL_USERNAME` / `MAIL_PASSWORD` | 미설정 | 이메일 기능 동작 안 함 |
-| `AWS_S3_BUCKET` | `ai-edu-bucket` 설정됨 | S3 연동 완료 |
-| `AWS_REGION` | `ap-northeast-2` 설정됨 | S3 연동 완료 |
+| `AWS_S3_BUCKET` | `ai-edu-bucket` — Machine 레벨 영구 등록 완료 | S3 연동 완료 |
+| `AWS_REGION` | `ap-northeast-2` — Machine 레벨 영구 등록 완료 | S3 연동 완료 |
+| `AWS_ACCESS_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | S3 업로드 동작 |
+| `AWS_SECRET_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | S3 업로드 동작 |
+| `ANTHROPIC_API_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | AI 파싱 동작 |
 | `CLOUDFRONT_DOMAIN` | 미설정 | CDN 미사용 |
 | `UPLOAD_PATH` | 기본값(`uploads/`) | 로컬 업로드는 동작 |
-| `anthropic.api-key` | 설정됨 | AI 파싱 동작 |
 
 ---
 
@@ -91,6 +112,8 @@ POST /student/sessions/start
 |------|------|------|
 | 새 API 호출 시 `NoResourceFoundException` | Controller/Service 추가 후 백엔드 미재시작 | `taskkill //F //PID {PID}` 후 `./gradlew bootRun` |
 | 포트 7000 이미 사용 중 | kill 후에도 포트 점유 지속 | `netstat -ano \| findstr :7000` 으로 PID 확인 후 kill |
+| PDF 파싱 / S3 업로드 안 됨 | VS Code 재시작 후 환경변수 미반영 | Machine 레벨 등록 후 VS Code 완전 재시작 필요 |
+| 문제 DB 페이지 500 에러 | DB `status` 컬럼 enum값 `PENDING_REVIEW`인데 프론트가 `PENDING` 사용 | `ProblemDBPage.vue` — `PENDING` → `PENDING_REVIEW` 수정 완료 (2026-03-26) |
 
 ---
 
@@ -138,8 +161,8 @@ POST /student/sessions/start
 - [x] 대시보드, 회원·학교 관리, 결제 목록(조회만), 시스템 분석
 - [x] 1:1 문의, 동영상 관리, 시스템 코드 관리
 - [x] 문제 DB 검색·생성·수정·삭제·배치 업로드 (`POST /problems/upload/batch`)
-- [x] 문제 검수/승인 워크플로우 — 검수 대기 배너, PENDING/APPROVED/REJECTED 상태 배지, 승인/반려/재승인 버튼, 반려 사유 모달. 승인된 문제만 학생·교사에 노출 (is_active 연동)
-- [x] PDF 문제지 업로드 → Claude AI 파싱 (`POST /admin/parse-pdf`) — 24문제 자동 파싱
+- [x] 문제 검수/승인 워크플로우 — 검수 대기 배너, PENDING_REVIEW/APPROVED/REJECTED 상태 배지, 승인/반려/재승인 버튼, 반려 사유 모달. 승인된 문제만 학생·교사에 노출 (is_active 연동)
+- [x] PDF 문제지 업로드 → Claude AI 파싱 (`POST /admin/parse-pdf`) — 자동 파싱
 - [x] S3 이미지 자동 추출 — PyMuPDF(Python) + Claude Vision 하이브리드. bbox union 크롭 방식으로 다중 조각 정확 추출. 12번·15번·16번 확인 (`PdfImageExtractService.java`, `scripts/extract_images.py`)
 - [x] 문제 수정 모달에 `questionImgUrl` 필드 및 이미지 미리보기 추가 (`ProblemDBPage.vue`)
 
@@ -179,7 +202,7 @@ PDF 업로드(base64)
 - 임베디드 이미지 없는 벡터 기반 PDF (텍스트만 있는 경우)는 추출 대상 없음
 - 관리자가 questionImgUrl 수동 수정 가능 (문제 수정 모달)
 
-### 환경변수 (로컬 실행 시 필요)
+### 환경변수 (로컬 실행 시 필요 — Windows Machine 레벨 등록 권장)
 | 변수 | 용도 |
 |------|------|
 | `ANTHROPIC_API_KEY` | Claude AI 파싱 / Vision |
@@ -190,6 +213,8 @@ PDF 업로드(base64)
 | 버그 | 원인 | 수정 위치 |
 |------|------|------|
 | questionImgUrl DB 저장 안 됨 | ProblemUploadPage.vue parseWithAI()에서 questionImgUrl 누락 | `ProblemUploadPage.vue:298` — `questionImgUrl: p.questionImgUrl \|\| ''` 추가 |
+| 문제 DB 페이지 500 에러 | 프론트 `PENDING` vs DB enum `PENDING_REVIEW` 불일치 | `ProblemDBPage.vue` — `PENDING` → `PENDING_REVIEW` 일괄 수정 (2026-03-26) |
+| PDF 파싱/S3 업로드 안 됨 | 환경변수 세션 종료 시 초기화 | `ANTHROPIC_API_KEY`, `AWS_ACCESS_KEY`, `AWS_SECRET_KEY` Windows Machine 레벨 영구 등록 (2026-03-26) |
 
 ---
 

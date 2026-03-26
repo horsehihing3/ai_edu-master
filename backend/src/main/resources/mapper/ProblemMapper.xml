@@ -26,7 +26,7 @@
         <result property="createdBy"       column="created_by"/>
         <result property="createdAt"       column="created_at"/>
         <result property="updatedAt"       column="updated_at"/>
-        <result property="approvalStatus"  column="approval_status"/>
+        <result property="approvalStatus"  column="status"/>
         <result property="reviewedBy"      column="reviewed_by"/>
         <result property="reviewedAt"      column="reviewed_at"/>
         <result property="rejectReason"    column="reject_reason"/>
@@ -189,7 +189,7 @@
         FROM problems p
         <include refid="unitJoins"/>
         WHERE p.is_active = 1
-        <if test="approvalStatus != null and approvalStatus != ''">AND p.approval_status = #{approvalStatus}</if>
+        <if test="approvalStatus != null and approvalStatus != ''">AND p.status = #{approvalStatus}</if>
         <if test="level != null and level != ''">AND p.level = #{level}</if>
         <if test="keyword != null and keyword != ''">AND p.question_text LIKE CONCAT('%', #{keyword}, '%')</if>
         ORDER BY p.created_at DESC
@@ -199,17 +199,15 @@
     <select id="countSearchAdmin" resultType="long">
         SELECT COUNT(*) FROM problems p
         WHERE p.is_active = 1
-        <if test="approvalStatus != null and approvalStatus != ''">AND p.approval_status = #{approvalStatus}</if>
+        <if test="approvalStatus != null and approvalStatus != ''">AND p.status = #{approvalStatus}</if>
         <if test="level != null and level != ''">AND p.level = #{level}</if>
         <if test="keyword != null and keyword != ''">AND p.question_text LIKE CONCAT('%', #{keyword}, '%')</if>
     </select>
 
     <update id="updateApprovalStatus">
         UPDATE problems
-        SET approval_status = #{approvalStatus},
-            reviewed_by     = #{reviewedBy},
-            reviewed_at     = NOW(),
-            reject_reason   = #{rejectReason},
+        SET status          = #{approvalStatus},
+            review_comment  = #{rejectReason},
             is_active       = <choose>
                                   <when test="approvalStatus == 'APPROVED'">1</when>
                                   <otherwise>0</otherwise>
