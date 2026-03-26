@@ -103,14 +103,39 @@ public class ProblemService {
         problemMapper.deleteById(problemId);
     }
 
+    // [2026-03-26] 배치 업로드 시 question_text 기준 중복 감지 → duplicate_problem_id 저장
     @Transactional
     public Map<String, Object> uploadBatch(List<Map<String, Object>> problems, Long createdBy) {
         int success = 0;
+        int duplicateCount = 0;
         List<String> errors = new ArrayList<>();
 
         for (int i = 0; i < problems.size(); i++) {
             try {
-                createProblem(problems.get(i), createdBy);
+                Map<String, Object> req = problems.get(i);
+                String questionText = toString(req.get("questionText"));
+
+                // question_text 기준 중복 체크
+                Long duplicateProblemId = null;
+                if (questionText != null && !questionText.isBlank()) {
+                    duplicateProblemId = problemMapper.findIdByQuestionText(questionText);
+                }
+
+                Problem problem = buildProblemFromRequest(req);
+                problem.setCreatedBy(createdBy);
+                problem.setDuplicateProblemId(duplicateProblemId); // 중복이면 원본 ID 세팅, 없으면 null
+
+                problemMapper.insert(problem);
+
+                List<?> options = (List<?>) req.get("options");
+                if (options != null) {
+                    saveOptions(problem.getProblemId(), options);
+                }
+
+                if (duplicateProblemId != null) {
+                    duplicateCount++;
+                    log.info("중복 문제 감지 - 새 problem_id: {}, 원본 problem_id: {}", problem.getProblemId(), duplicateProblemId);
+                }
                 success++;
             } catch (Exception e) {
                 errors.add("row " + (i + 1) + ": " + e.getMessage());
@@ -122,6 +147,7 @@ public class ProblemService {
                 "total", problems.size(),
                 "success", success,
                 "failed", problems.size() - success,
+                "duplicates", duplicateCount,
                 "errors", errors
         );
     }
@@ -193,6 +219,8 @@ public class ProblemService {
         map.put("problemType", p.getProblemType() != null ? p.getProblemType() : "");
         map.put("difficulty", p.getDifficulty() != null ? p.getDifficulty() : 0);
         map.put("createdAt", p.getCreatedAt() != null ? p.getCreatedAt().toString() : "");
+        // [2026-03-26] 중복 문제 ID 추가
+        map.put("duplicateProblemId", p.getDuplicateProblemId());
         return map;
     }
 
@@ -221,6 +249,8 @@ public class ProblemService {
         detail.put("hint", p.getHint() != null ? p.getHint() : "");
         detail.put("estimatedTime", p.getEstimatedTime() != null ? p.getEstimatedTime() : 0);
         detail.put("options", options);
+        // [2026-03-26] 중복 문제 ID 추가
+        detail.put("duplicateProblemId", p.getDuplicateProblemId());
         return detail;
     }
 }

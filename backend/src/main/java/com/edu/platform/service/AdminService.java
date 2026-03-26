@@ -254,6 +254,7 @@ public class AdminService {
             m.put("rejectReason", p.getRejectReason());
             m.put("isActive", p.getIsActive());
             m.put("createdAt", p.getCreatedAt() != null ? p.getCreatedAt().toString() : null);
+            m.put("duplicateProblemId", p.getDuplicateProblemId());
             return m;
         }).collect(Collectors.toList());
 

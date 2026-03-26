@@ -58,6 +58,9 @@ public class Problem {
     private LocalDateTime reviewedAt;
     private String rejectReason;
 
+    // [2026-03-26] 중복 문제 감지 — question_text 완전 일치 시 원본 problem_id 저장
+    private Long duplicateProblemId;
+
     public Level getLevelAsEnum() {
         return level != null ? Level.valueOf(level) : null;
     }

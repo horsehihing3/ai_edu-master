@@ -58,8 +58,12 @@
       <template #cell-level="{ value }">
         <AppBadge :type="value" />
       </template>
-      <template #cell-questionText="{ value }">
-        <span style="max-width:260px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ value }}</span>
+      <!-- [2026-03-26] 중복 문제 뱃지 추가 -->
+      <template #cell-questionText="{ row }">
+        <div style="display:flex; align-items:center; gap:6px; max-width:260px;">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">{{ row.questionText }}</span>
+          <span v-if="row.duplicateProblemId" class="duplicate-badge" :title="`${row.duplicateProblemId}번 문제와 중복`">중복</span>
+        </div>
       </template>
       <template #cell-approvalStatus="{ value }">
         <span :class="['approval-badge', `approval-badge--${value?.toLowerCase()}`]">
@@ -86,6 +90,12 @@
     <!-- 문제 추가/수정 모달 -->
     <AppModal v-model="showModal" :title="editingProblem ? '문제 수정' : '문제 추가'" size="lg">
       <div class="modal-form">
+        <!-- [2026-03-26] 중복 경고 배너 -->
+        <div v-if="editingProblem?.duplicateProblemId" class="duplicate-warning">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>⚠️ <strong>{{ editingProblem.duplicateProblemId }}번 문제</strong>와 중복되는 문제입니다. 내용을 확인하고 삭제하거나 수정하세요.</span>
+        </div>
+
         <div class="form-row">
           <AppSelect v-model="form.subject" label="과목" :options="subjectOptions" placeholder="과목 선택" />
           <AppSelect v-model="form.level" label="레벨" :options="levelOptions" placeholder="레벨 선택" />
@@ -335,7 +345,9 @@ async function fetchProblems() {
       questionText: p.questionText,
       approvalStatus: p.approvalStatus || 'PENDING_REVIEW',
       rejectReason: p.rejectReason,
-      createdAt: p.createdAt?.slice(0, 10)
+      createdAt: p.createdAt?.slice(0, 10),
+      // [2026-03-26] 중복 문제 ID 매핑
+      duplicateProblemId: p.duplicateProblemId || null
     }))
     totalPages.value = res.data?.totalPages || 1
     totalElements.value = res.data?.totalElements || problems.value.length
@@ -423,7 +435,8 @@ async function saveProblem() {
         unit: form.unit,
         questionText: form.questionText,
         approvalStatus: 'PENDING_REVIEW',
-        createdAt: new Date().toISOString().slice(0, 10)
+        createdAt: new Date().toISOString().slice(0, 10),
+        duplicateProblemId: null
       })
       pendingCount.value++
       success('문제를 추가했습니다.')
@@ -569,6 +582,35 @@ async function confirmReject() {
   &--approved       { background: #d1fae5; color: #065f46; }
   &--rejected       { background: #fee2e2; color: #991b1b; }
   &--draft          { background: #e5e7eb; color: #374151; }
+}
+
+/* [2026-03-26] 중복 문제 뱃지 */
+.duplicate-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #991b1b;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+/* [2026-03-26] 수정 모달 중복 경고 배너 */
+.duplicate-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #7a5800;
+
+  svg { flex-shrink: 0; stroke: #f59e0b; margin-top: 1px; }
 }
 
 .modal-form {

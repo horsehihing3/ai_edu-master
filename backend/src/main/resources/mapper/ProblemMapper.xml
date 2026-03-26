@@ -30,6 +30,8 @@
         <result property="reviewedBy"      column="reviewed_by"/>
         <result property="reviewedAt"      column="reviewed_at"/>
         <result property="rejectReason"    column="reject_reason"/>
+        <!-- [2026-03-26] 중복 문제 ID 매핑 -->
+        <result property="duplicateProblemId" column="duplicate_problem_id"/>
         <!-- JOIN 조회 컬럼 -->
         <result property="subject"        column="subject_name"/>
         <result property="unitName"       column="unit_code_name"/>
@@ -136,17 +138,28 @@
         SELECT COUNT(*) FROM problems WHERE is_active = 1
     </select>
 
+    <!-- [2026-03-26] 중복 감지 — 앞 50글자 일치 기준 (AI 파싱 미세 오차 대응) -->
+    <select id="findIdByQuestionText" resultType="java.lang.Long">
+        SELECT problem_id
+        FROM problems
+        WHERE LEFT(REPLACE(question_text, ' ', ''), 50) = LEFT(REPLACE(#{questionText}, ' ', ''), 50)
+          AND is_active = 1
+        ORDER BY problem_id ASC
+        LIMIT 1
+    </select>
+
+    <!-- [2026-03-26] insert에 duplicate_problem_id 컬럼 추가 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="problemId">
         INSERT INTO problems
             (school_id, subject_code_id, unit_code_id, level, grade,
              source, source_detail, problem_type, question_text, question_img_url,
              answer, explanation, hint, difficulty, estimated_time,
-             is_active, created_by, created_at, updated_at)
+             is_active, created_by, duplicate_problem_id, created_at, updated_at)
         VALUES
             (#{schoolId}, #{subjectCodeId}, #{unitCodeId}, #{level}, #{grade},
              #{source}, #{sourceDetail}, #{problemType}, #{questionText}, #{questionImgUrl},
              #{answer}, #{explanation}, #{hint}, #{difficulty}, #{estimatedTime},
-             1, #{createdBy}, NOW(), NOW())
+             1, #{createdBy}, #{duplicateProblemId}, NOW(), NOW())
     </insert>
 
     <update id="update">

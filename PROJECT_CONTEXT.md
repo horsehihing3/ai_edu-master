@@ -8,6 +8,7 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 
 ## ⚡ 다음 세션 작업 (우선순위 순)
 - [ ] 검수 대기 문제 일괄 승인 (`POST /admin/problems/approve-all` 백엔드 미구현)
+- [ ] PDF 업로드 화면 — 원본 PDF와 파싱 결과 2분할 비교 뷰 구현
 - [ ] 교사 계정으로 과제 출제 테스트
 - [ ] 학생 계정으로 문제풀이 테스트
 - [ ] 오답 시 관련 풀이 영상 연동 (VideoController 서비스 구현)
@@ -34,18 +35,59 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 | Frontend 경로 | Pages: `pages/{student,teacher,admin,auth,common}/` / Store: `store/` / Layout: `DefaultLayout.vue`(인증후) `AuthLayout.vue`(로그인) |
 | MyBatis | snake_case → camelCase 자동변환 (`map-underscore-to-camel-case: true`) / XML·Interface 쌍으로 생성 |
 
+---
 
 ## 개발 작업 방식
 
 ### Claude CLI 기반 협업 플로우
 이 프로젝트는 Claude LLM + Claude CLI를 조합한 방식으로 개발 중.
+
 ```
 Claude LLM (claude.ai)
   → 명령어/코드 작성
   → 개발자가 Claude CLI 터미널에 붙여넣기
   → CLI 실행 결과를 Claude LLM에 다시 전달
   → 다음 명령어 작성
+```
 
+### 작업 환경
+- **OS:** Windows (PowerShell + Git Bash 혼용)
+- **IDE:** VS Code
+- **터미널:** VS Code 내장 터미널 (bash / powershell 탭 분리)
+- **프로젝트 경로:** `C:\claude\ai_edu-master`
+- **Git Bash 경로 표기:** `/c/claude/ai_edu-master`
+
+### 명령어 작성 규칙
+- 파일 탐색·수정·git 작업 → **bash** 문법 사용
+- Windows 시스템 환경변수 설정 → **PowerShell** 문법 사용
+- `&&` 체이닝은 bash에서만 동작. PowerShell에서는 `;` 사용
+
+### 환경변수 영구 등록 방법 (Windows)
+서버 재시작·VS Code 재시작 후에도 유지되려면 반드시 Machine 레벨로 등록:
+```powershell
+# 관리자 PowerShell에서 실행
+[System.Environment]::SetEnvironmentVariable("키이름", "값", "Machine")
+
+# 확인
+[System.Environment]::GetEnvironmentVariable("키이름", "Machine")
+```
+등록 후 **VS Code 완전 종료 → 재시작** 해야 새 환경변수가 백엔드에 반영됨.
+
+### 새 PC(노트북) 세팅 체크리스트
+```
+1. git clone 또는 pull
+2. 관리자 PowerShell에서 환경변수 5개 Machine 레벨 등록:
+   - ANTHROPIC_API_KEY
+   - AWS_ACCESS_KEY
+   - AWS_SECRET_KEY
+   - AWS_S3_BUCKET (값: ai-edu-bucket)
+   - AWS_REGION (값: ap-northeast-2)
+3. VS Code 재시작
+4. cd backend && ./gradlew bootRun
+5. cd frontend && npm install && npm run dev
+```
+
+---
 
 ### 학생 등급 체계
 | 등급 | 정답률 기준 | 문제 배정 |
@@ -114,6 +156,8 @@ POST /student/sessions/start
 | 포트 7000 이미 사용 중 | kill 후에도 포트 점유 지속 | `netstat -ano \| findstr :7000` 으로 PID 확인 후 kill |
 | PDF 파싱 / S3 업로드 안 됨 | VS Code 재시작 후 환경변수 미반영 | Machine 레벨 등록 후 VS Code 완전 재시작 필요 |
 | 문제 DB 페이지 500 에러 | DB `status` 컬럼 enum값 `PENDING_REVIEW`인데 프론트가 `PENDING` 사용 | `ProblemDBPage.vue` — `PENDING` → `PENDING_REVIEW` 수정 완료 (2026-03-26) |
+| 배치 업로드 시 문제 저장 안 됨 | `duplicate_problem_id` 컬럼 DB 미존재 | `mysql ... -e "ALTER TABLE problems ADD COLUMN duplicate_problem_id BIGINT NULL"` 실행. 증분SQL: `database/problem_duplicate_check.sql` |
+| answer 컬럼 저장 오류 | VARCHAR(10) 길이 초과 | `ALTER TABLE problems MODIFY COLUMN answer VARCHAR(500) NOT NULL DEFAULT ''` 완료 (2026-03-26) |
 
 ---
 
@@ -163,8 +207,10 @@ POST /student/sessions/start
 - [x] 문제 DB 검색·생성·수정·삭제·배치 업로드 (`POST /problems/upload/batch`)
 - [x] 문제 검수/승인 워크플로우 — 검수 대기 배너, PENDING_REVIEW/APPROVED/REJECTED 상태 배지, 승인/반려/재승인 버튼, 반려 사유 모달. 승인된 문제만 학생·교사에 노출 (is_active 연동)
 - [x] PDF 문제지 업로드 → Claude AI 파싱 (`POST /admin/parse-pdf`) — 자동 파싱
-- [x] S3 이미지 자동 추출 — PyMuPDF(Python) + Claude Vision 하이브리드. bbox union 크롭 방식으로 다중 조각 정확 추출. 12번·15번·16번 확인 (`PdfImageExtractService.java`, `scripts/extract_images.py`)
+- [x] S3 이미지 자동 추출 — PyMuPDF(Python) + Claude Vision 하이브리드. bbox union 크롭 방식으로 다중 조각 정확 추출 (`PdfImageExtractService.java`, `scripts/extract_images.py`)
 - [x] 문제 수정 모달에 `questionImgUrl` 필드 및 이미지 미리보기 추가 (`ProblemDBPage.vue`)
+- [x] **중복 문제 감지** — 배치 업로드 시 공백 제거 후 앞 50글자 비교로 중복 감지 → `duplicate_problem_id` 저장. 목록에 🔴 중복 뱃지, 수정 모달에 "N번 문제와 중복" 경고 배너 (2026-03-26)
+- [x] **PDF 파싱 프롬프트 개선** — 수식 변수 오인 방지 (`Ax → 4x` 오류 방지), 그림 포함 문제 `[그림]` 태그 표시 (2026-03-26)
 
 ### 공통
 - [x] 공지사항 CRUD, 1:1 문의, 알림 (목록·읽음·카운트)
@@ -174,7 +220,7 @@ POST /student/sessions/start
 
 ## PDF 파싱 / 이미지 추출 현황
 
-> ✅ **이미지 추출 기능 완료** — PyMuPDF + Claude Vision 하이브리드 방식. 12번·15번·16번 정확 추출 확인
+> ✅ **이미지 추출 기능 완료** — PyMuPDF + Claude Vision 하이브리드 방식
 
 ### 동작 방식
 ```
@@ -190,16 +236,15 @@ PDF 업로드(base64)
 → POST /problems/upload/batch: DB 저장 (questionImgUrl 포함)
 ```
 
-### 이미지 추출 완료 상태
-- [x] PyMuPDF Python 스크립트로 임베디드 이미지 추출 (`scripts/extract_images.py`)
-- [x] PDFBox 1000px 리사이즈 페이지 이미지 → Claude Vision 컨텍스트 전송
-- [x] Vision이 페이지 전체 이미지 + bbox 위치 비율로 문제번호 식별
-- [x] 동일 문제번호 다중 조각 → bbox union → 5% 여백 → 200DPI 이미지에서 직접 크롭
-- [x] S3 업로드 및 questionImgUrl DB 저장
-- [x] **12번(3조각 합산), 15번(단일), 16번(4조각 합산) 정확 추출 확인**
+### 파싱 프롬프트 주요 규칙 (2026-03-26 개선)
+- 수식 변수(A, B, x, y 등) 절대 숫자로 변환 금지 (`Ax → 4x` 오류 방지)
+- PDF 원문 그대로 추출 (임의 수정 금지)
+- 그림 포함 문제는 questionText에 `[그림]` 태그 포함
+- √, ², ³ 등 수학 기호 원문 유지
 
 ### 알려진 한계
-- 임베디드 이미지 없는 벡터 기반 PDF (텍스트만 있는 경우)는 추출 대상 없음
+- 임베디드 이미지 없는 벡터 기반 PDF는 이미지 추출 대상 없음
+- AI 파싱 시 수식 인식 오류 가능 → 파싱 결과 화면에서 수동 수정 필요
 - 관리자가 questionImgUrl 수동 수정 가능 (문제 수정 모달)
 
 ### 환경변수 (로컬 실행 시 필요 — Windows Machine 레벨 등록 권장)
@@ -215,6 +260,40 @@ PDF 업로드(base64)
 | questionImgUrl DB 저장 안 됨 | ProblemUploadPage.vue parseWithAI()에서 questionImgUrl 누락 | `ProblemUploadPage.vue:298` — `questionImgUrl: p.questionImgUrl \|\| ''` 추가 |
 | 문제 DB 페이지 500 에러 | 프론트 `PENDING` vs DB enum `PENDING_REVIEW` 불일치 | `ProblemDBPage.vue` — `PENDING` → `PENDING_REVIEW` 일괄 수정 (2026-03-26) |
 | PDF 파싱/S3 업로드 안 됨 | 환경변수 세션 종료 시 초기화 | `ANTHROPIC_API_KEY`, `AWS_ACCESS_KEY`, `AWS_SECRET_KEY` Windows Machine 레벨 영구 등록 (2026-03-26) |
+| 배치 업로드 시 저장 안 됨 | `duplicate_problem_id` 컬럼 DB 미존재 | `database/problem_duplicate_check.sql` 실행 필요 (2026-03-26) |
+| answer 컬럼 저장 오류 | VARCHAR(10) 길이 초과 | `ALTER TABLE problems MODIFY COLUMN answer VARCHAR(500)` 완료 (2026-03-26) |
+
+---
+
+## 중복 문제 감지 현황 (2026-03-26 신규)
+
+### 동작 방식
+```
+배치 업로드(POST /problems/upload/batch)
+→ ProblemService.uploadBatch()
+→ 각 문제의 questionText에서 공백 제거 후 앞 50글자 비교
+→ ProblemMapper.findIdByQuestionText() — DB에서 동일 문자열 검색
+→ 일치하면 duplicate_problem_id에 원본 problem_id 저장
+→ ProblemDBPage.vue: 목록에 🔴 중복 뱃지 표시
+→ 수정 모달: "N번 문제와 중복됩니다" 경고 배너
+```
+
+### DB 컬럼
+```sql
+-- database/problem_duplicate_check.sql
+ALTER TABLE problems
+ADD COLUMN duplicate_problem_id BIGINT NULL DEFAULT NULL COMMENT '중복 문제 ID';
+```
+
+> ⚠️ **주의:** 배치 업로드 오류 발생 시 이 컬럼 존재 여부 먼저 확인
+> ```bash
+> mysql -h 211.171.152.242 -P 3310 -u root -proot1234 edu_platform -e "SHOW COLUMNS FROM problems LIKE 'duplicate%';"
+> ```
+> 없으면 위 SQL 직접 실행
+
+### 알려진 한계
+- AI 파싱 시마다 텍스트가 미세하게 달라질 수 있어 일부 중복이 감지 안 될 수 있음
+- 향후 개선 후보: 유사도 기반 매칭 또는 batch_id 관리 방식
 
 ---
 
@@ -224,6 +303,7 @@ PDF 업로드(base64)
 | 기능 | 위치 | 비고 |
 |------|------|------|
 | 검수 대기 문제 일괄 승인 | `ProblemDBPage.vue` 버튼 있음 | 백엔드 `POST /admin/problems/approve-all` 미구현 |
+| PDF 업로드 2분할 비교 뷰 | `ProblemUploadPage.vue` | 원본 PDF(좌) + 파싱 결과(우) 나란히 비교 |
 
 ### 인증
 | 기능 | 위치 | 비고 |
