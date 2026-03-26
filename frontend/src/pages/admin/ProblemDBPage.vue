@@ -30,7 +30,7 @@
     <div v-if="pendingCount > 0" class="pending-banner">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       검수 대기 문제가 <strong>{{ pendingCount }}건</strong> 있습니다.
-      <button class="btn-link" @click="filterApproval = 'PENDING'; page = 1; fetchProblems()">바로가기</button>
+      <button class="btn-link" @click="filterApproval = 'PENDING_REVIEW'; page = 1; fetchProblems()">바로가기</button>
     </div>
 
     <!-- 전체 선택 툴바 -->
