@@ -174,6 +174,8 @@ public class ProblemService {
                 .hint(toString(req.get("hint")))
                 .difficulty(difficulty != null ? difficulty : 3)
                 .estimatedTime(toInt(req.get("estimatedTime")))
+                .passage(toString(req.get("passage")))
+                .passageImgUrl(toString(req.get("passageImgUrl")))
                 .build();
     }
 
@@ -251,6 +253,9 @@ public class ProblemService {
         detail.put("options", options);
         // [2026-03-26] 중복 문제 ID 추가
         detail.put("duplicateProblemId", p.getDuplicateProblemId());
+        // [2026-03-27] 보기(참고 지문) 추가
+        detail.put("passage", p.getPassage() != null ? p.getPassage() : "");
+        detail.put("passageImgUrl", p.getPassageImgUrl() != null ? p.getPassageImgUrl() : "");
         return detail;
     }
 }

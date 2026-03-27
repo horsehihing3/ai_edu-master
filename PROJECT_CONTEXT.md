@@ -9,8 +9,9 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 ## ⚡ 다음 세션 작업 (우선순위 순)
 - [ ] 검수 대기 문제 일괄 승인 (`POST /admin/problems/approve-all` 백엔드 미구현)
 - [ ] PDF 업로드 화면 — 원본 PDF와 파싱 결과 2분할 비교 뷰 구현
+- [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
 - [ ] 교사 계정으로 과제 출제 테스트
-- [ ] 학생 계정으로 문제풀이 테스트
+- [ ] 학생 계정으로 문제풀이 테스트 (보기 표시 확인 포함)
 - [ ] 오답 시 관련 풀이 영상 연동 (VideoController 서비스 구현)
 - [ ] 풀이 임시저장 / 이어풀기
 - [ ] 비밀번호 재설정 이메일 발송
@@ -157,7 +158,10 @@ POST /student/sessions/start
 | PDF 파싱 / S3 업로드 안 됨 | VS Code 재시작 후 환경변수 미반영 | Machine 레벨 등록 후 VS Code 완전 재시작 필요 |
 | 문제 DB 페이지 500 에러 | DB `status` 컬럼 enum값 `PENDING_REVIEW`인데 프론트가 `PENDING` 사용 | `ProblemDBPage.vue` — `PENDING` → `PENDING_REVIEW` 수정 완료 (2026-03-26) |
 | 배치 업로드 시 문제 저장 안 됨 | `duplicate_problem_id` 컬럼 DB 미존재 | `mysql ... -e "ALTER TABLE problems ADD COLUMN duplicate_problem_id BIGINT NULL"` 실행. 증분SQL: `database/problem_duplicate_check.sql` |
-| answer 컬럼 저장 오류 | VARCHAR(10) 길이 초과 | `ALTER TABLE problems MODIFY COLUMN answer VARCHAR(500) NOT NULL DEFAULT ''` 완료 (2026-03-26) |
+| answer 컬럼 저장 오류 | VARCHAR(10) 길이 초과 | `ALTER TABLE problems MODIFY COLUMN answer VARCHAR(500) NOT NULL DEFAULT ''` 완료 (2026-03-27, migration: `database/alter_answer_column.sql`) |
+| 보기 테두리 박스가 이미지로 캡처 | 벡터 클러스터가 텍스트 박스 테두리를 도형으로 인식 | `extract_images.py` 텍스트 밀도 30% 초과 시 캡처 생략 (2026-03-27) |
+| 이미지가 인접 문제번호로 잘못 매핑 | Vision 프롬프트가 도형 아래 문제로 매핑 | `PdfImageExtractService.java` 프롬프트에 "도형 위쪽 문제번호 우선" 규칙 추가 (2026-03-27) |
+| 문제 수정 모달에 보기 표시 안 됨 | `mapToDetailDto()`에 passage 필드 누락 | `ProblemService.java:255` passage/passageImgUrl 추가 (2026-03-27) |
 
 ---
 
@@ -211,6 +215,18 @@ POST /student/sessions/start
 - [x] 문제 수정 모달에 `questionImgUrl` 필드 및 이미지 미리보기 추가 (`ProblemDBPage.vue`)
 - [x] **중복 문제 감지** — 배치 업로드 시 공백 제거 후 앞 50글자 비교로 중복 감지 → `duplicate_problem_id` 저장. 목록에 🔴 중복 뱃지, 수정 모달에 "N번 문제와 중복" 경고 배너 (2026-03-26)
 - [x] **PDF 파싱 프롬프트 개선** — 수식 변수 오인 방지 (`Ax → 4x` 오류 방지), 그림 포함 문제 `[그림]` 태그 표시 (2026-03-26)
+- [x] **보기(passage) 필드 신규 추가** — 테두리 박스 안 참고 지문을 별도 필드로 분리 저장. "보기" 글자 유무 무관하게 직사각형 박스 감지 시 추출 (2026-03-27)
+  - `Problem.java` passage/passageImgUrl 필드 추가
+  - `ProblemMapper.xml` resultMap·INSERT·UPDATE 반영
+  - `ProblemService.java` mapToDetailDto()에 passage 포함
+  - `PdfParseController.java` 파싱 프롬프트에 passage 필드 추가 (테두리 박스 감지 규칙 포함)
+  - `ProblemUploadPage.vue` 파싱 매핑·배치 payload에 passage 추가
+  - `ProblemSolvePage.vue` passage 테두리 박스 UI (.passage-box) 추가
+  - `ProblemDBPage.vue` 보기 텍스트 편집 필드 추가
+- [x] **벡터 이미지 텍스트 밀도 필터** — `extract_images.py`에서 벡터 클러스터 bbox 내 텍스트 비율 > 30%이면 이미지 캡처 생략 (보기 테두리 박스 오캡처 방지) (2026-03-27)
+- [x] **Vision 문제번호 매핑 개선** — 도형 위쪽 문제번호 우선 매핑, 도형 아래쪽 문제로 잘못 배정 방지 (`PdfImageExtractService.java`) (2026-03-27)
+- [x] **주관식 정답 저장 오류 수정** — `answer` 컬럼 `VARCHAR(10)` → `VARCHAR(500)` 확장 (`database/alter_answer_column.sql`) (2026-03-27)
+- [x] **로그 파일 출력 설정** — `application.yml` `logging.file.name: logs/app.log` 추가 (2026-03-27)
 
 ### 공통
 - [x] 공지사항 CRUD, 1:1 문의, 알림 (목록·읽음·카운트)
@@ -236,16 +252,23 @@ PDF 업로드(base64)
 → POST /problems/upload/batch: DB 저장 (questionImgUrl 포함)
 ```
 
-### 파싱 프롬프트 주요 규칙 (2026-03-26 개선)
+### 파싱 프롬프트 주요 규칙 (2026-03-27 개선)
 - 수식 변수(A, B, x, y 등) 절대 숫자로 변환 금지 (`Ax → 4x` 오류 방지)
 - PDF 원문 그대로 추출 (임의 수정 금지)
 - 그림 포함 문제는 questionText에 `[그림]` 태그 포함
 - √, ², ³ 등 수학 기호 원문 유지
+- **보기(passage)**: 직사각형 테두리 박스 내용은 "보기" 글자 유무 무관하게 passage 필드로 분리 추출
+
+### 벡터 이미지 탐지 (extract_images.py)
+- `page.get_drawings()` 클러스터링으로 벡터 도형 감지
+- 텍스트 밀도 > 30%이면 이미지 캡처 생략 (보기 텍스트 박스 오감지 방지)
+- 래스터 이미지와 30% 이상 겹치면 중복 skip
+- 클러스터 최소 면적 4000pt², 최소 가로/세로 40pt
 
 ### 알려진 한계
-- 임베디드 이미지 없는 벡터 기반 PDF는 이미지 추출 대상 없음
+- 보기가 도형+텍스트 혼합인 경우 passage/이미지 혼용 가능 — 수동 수정 필요
 - AI 파싱 시 수식 인식 오류 가능 → 파싱 결과 화면에서 수동 수정 필요
-- 관리자가 questionImgUrl 수동 수정 가능 (문제 수정 모달)
+- 관리자가 questionImgUrl/passage 수동 수정 가능 (문제 수정 모달)
 
 ### 환경변수 (로컬 실행 시 필요 — Windows Machine 레벨 등록 권장)
 | 변수 | 용도 |

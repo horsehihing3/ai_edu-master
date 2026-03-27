@@ -74,6 +74,8 @@ logging:
   level:
     com.edu.platform: DEBUG
     org.springframework.security: INFO
+  file:
+    name: logs/app.log
 
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}

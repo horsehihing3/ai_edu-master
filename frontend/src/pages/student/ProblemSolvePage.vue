@@ -34,6 +34,10 @@
           <!-- [2026-03-21] KaTeX 수식 렌더링 적용 -->
           <p v-if="currentP.questionText"><MathText :text="currentP.questionText" /></p>
           <img v-if="currentP.imageUrl" :src="currentP.imageUrl" class="question-img" alt="문제 이미지" />
+          <!-- [2026-03-27] 보기(passage) 표시 -->
+          <div v-if="currentP.passage" class="passage-box">
+            <MathText :text="currentP.passage" />
+          </div>
         </div>
 
         <!-- 선택지 (객관식) -->
@@ -300,6 +304,7 @@ onMounted(async () => {
       id: p.problemId, subject: p.subject, level: p.level,
       unit: p.unitName || p.unit, questionText: p.questionText,
       imageUrl: p.imageUrl || null,
+      passage: p.passage || '',
       problemType: p.problemType || 'MULTIPLE_CHOICE',
       choices: p.options?.map(o => o.content) || [],
       // 객관식: 정답 선택지 인덱스(0-based) / 단답형: 정답 문자열
@@ -392,6 +397,18 @@ onUnmounted(() => clearInterval(timer))
       max-width: 100%;
       border-radius: $radius-md;
       margin: $spacing-4 0;
+    }
+
+    /* [2026-03-27] 보기 박스 스타일 */
+    .passage-box {
+      border: 1.5px solid $color-border;
+      border-radius: $radius-md;
+      padding: $spacing-4 $spacing-5;
+      margin: $spacing-3 0 $spacing-4;
+      background: $color-surface-2;
+      font-size: 0.95em;
+      line-height: 1.7;
+      white-space: pre-line;
     }
   }
 }

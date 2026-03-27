@@ -97,12 +97,53 @@ public class PdfImageExtractService {
                     List<Map<String, Object>> imgs = pe.getValue();
 
                     try {
+                        // [2026-03-27] 벡터 outlier 필터: 래스터 이미지가 있을 때
+                        // 래스터 bbox 범위에서 y 15% / x 25% 이상 벗어난 벡터 항목 제거
+                        List<Map<String, Object>> rasterImgs = imgs.stream()
+                                .filter(img -> !Boolean.TRUE.equals(img.get("isVector")))
+                                .collect(java.util.stream.Collectors.toList());
+
+                        List<Map<String, Object>> mergeImgs = imgs;
+                        if (!rasterImgs.isEmpty()) {
+                            double rMinY0 = rasterImgs.stream()
+                                    .mapToDouble(img -> toDouble(((Map<String, Object>) img.get("bbox")).get("y0")))
+                                    .min().getAsDouble();
+                            double rMaxY1 = rasterImgs.stream()
+                                    .mapToDouble(img -> toDouble(((Map<String, Object>) img.get("bbox")).get("y1")))
+                                    .max().getAsDouble();
+                            double rMinX0 = rasterImgs.stream()
+                                    .mapToDouble(img -> toDouble(((Map<String, Object>) img.get("bbox")).get("x0")))
+                                    .min().getAsDouble();
+                            double rMaxX1 = rasterImgs.stream()
+                                    .mapToDouble(img -> toDouble(((Map<String, Object>) img.get("bbox")).get("x1")))
+                                    .max().getAsDouble();
+                            double pageH = toDouble(rasterImgs.get(0).get("pageHeight"));
+                            double pageW = toDouble(rasterImgs.get(0).get("pageWidth"));
+                            double tolerY = pageH * 0.15;
+                            double tolerX = pageW * 0.12;
+
+                            mergeImgs = imgs.stream().filter(img -> {
+                                if (!Boolean.TRUE.equals(img.get("isVector"))) return true;
+                                Map<String, Object> b = (Map<String, Object>) img.get("bbox");
+                                double vy0 = toDouble(b.get("y0")), vy1 = toDouble(b.get("y1"));
+                                double vx0 = toDouble(b.get("x0")), vx1 = toDouble(b.get("x1"));
+                                boolean yOk = vy0 <= rMaxY1 + tolerY && vy1 >= rMinY0 - tolerY;
+                                boolean xOk = vx0 <= rMaxX1 + tolerX && vx1 >= rMinX0 - tolerX;
+                                boolean inRange = yOk && xOk;
+                                if (!inRange) log.info("페이지:{} 문제:{} — 벡터 outlier 제거 (x={}~{} y={}~{}, raster x={}~{} y={}~{})",
+                                        pageNumber, problemNo,
+                                        (int)vx0, (int)vx1, (int)vy0, (int)vy1,
+                                        (int)rMinX0, (int)rMaxX1, (int)rMinY0, (int)rMaxY1);
+                                return inRange;
+                            }).collect(java.util.stream.Collectors.toList());
+                        }
+
                         // 모든 bbox 합산 (union)
                         double minX0 = Double.MAX_VALUE, minY0 = Double.MAX_VALUE;
                         double maxX1 = -Double.MAX_VALUE, maxY1 = -Double.MAX_VALUE;
                         double pageWidth = 0, pageHeight = 0;
 
-                        for (Map<String, Object> imgInfo : imgs) {
+                        for (Map<String, Object> imgInfo : mergeImgs) {
                             Map<String, Object> bbox = (Map<String, Object>) imgInfo.get("bbox");
                             minX0 = Math.min(minX0, toDouble(bbox.get("x0")));
                             minY0 = Math.min(minY0, toDouble(bbox.get("y0")));
@@ -141,14 +182,14 @@ public class PdfImageExtractService {
                                 pageNumber, problemNo, cx0, cy0, cx1, cy1, cx1 - cx0, cy1 - cy0);
                         } else {
                             // fallback: 첫 번째 이미지 사용
-                            croppedBytes = Base64.getDecoder().decode((String) imgs.get(0).get("imageBase64"));
+                            croppedBytes = Base64.getDecoder().decode((String) mergeImgs.get(0).get("imageBase64"));
                             log.warn("페이지:{} 문제:{} — 크롭 불가, fallback 이미지 사용", pageNumber, problemNo);
                         }
 
                         String url = s3Service.uploadImage(croppedBytes, "problem-images");
                         result.put(problemNo, url);
                         log.info("완료 — 페이지:{} 문제:{} 조각수:{} URL:{}",
-                            pageNumber, problemNo, imgs.size(), url);
+                            pageNumber, problemNo, mergeImgs.size(), url);
 
                     } catch (Exception e) {
                         log.warn("페이지:{} 문제:{} 크롭/업로드 실패: {}", pageNumber, problemNo, e.getMessage());
@@ -353,16 +394,20 @@ public class PdfImageExtractService {
             int pageNumber, double xRatio, double yRatio, double wRatio, double hRatio) {
 
         String prompt = String.format("""
-                This is page %d of a math exam.
+                This is page %d of a math exam (Korean middle school math).
 
                 A figure (geometric shape/graph/diagram) has been extracted from this page.
-                The figure is located at approximately:
+                The figure's bounding box on the page:
                 - Left edge: %.0f%% from left
                 - Top edge: %.0f%% from top
                 - Width: %.0f%% of page width
                 - Height: %.0f%% of page height
 
-                Look at the page image and find which problem number contains a figure at that location.
+                Rules for identifying the problem number:
+                1. The problem number is printed ABOVE or IMMEDIATELY BEFORE the figure.
+                2. Find the problem number whose text starts just above the top edge of the figure.
+                3. Do NOT assign it to a problem whose text appears BELOW the figure.
+                4. If the figure is at the very top of a problem block (e.g. the figure appears right after the problem number), use that problem's number.
 
                 Reply with ONLY the problem number as a single integer. Nothing else.
                 If you cannot determine it, reply with: 0

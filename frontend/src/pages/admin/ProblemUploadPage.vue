@@ -296,6 +296,7 @@ async function parseWithAI(base64Data, fileName) {
     explanation: p.explanation || '',
     options: (p.options || []).map(opt => typeof opt === 'string' ? { optionText: opt, optionImgUrl: '' } : opt),
     questionImgUrl: p.questionImgUrl || '',
+    passage: p.passage || '',
     status: 'ok',
     errorMsg: null
   }))
@@ -413,6 +414,7 @@ async function confirmUpload() {
       answer: p.answer,
       explanation: p.explanation,
       questionImgUrl: p.questionImgUrl || '',
+      passage: p.passage || '',
       options: p.options || []
     }))
 

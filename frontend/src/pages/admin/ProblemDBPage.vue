@@ -128,6 +128,11 @@
           <label>해설</label>
           <textarea v-model="form.explanation" class="form-control" rows="3" placeholder="풀이 해설 (선택)" />
         </div>
+        <!-- [2026-03-27] 보기(passage) 필드 -->
+        <div class="form-group">
+          <label>보기 (참고 지문)</label>
+          <textarea v-model="form.passage" class="form-control" rows="3" placeholder="테두리 박스 안의 보기 내용 (없으면 비워두세요)" />
+        </div>
         <div class="form-group">
           <label>문제 이미지 URL</label>
           <input v-model="form.questionImgUrl" class="form-control" placeholder="https://..." />
@@ -193,6 +198,7 @@ const defaultForm = () => ({
   answer: '',
   explanation: '',
   questionImgUrl: '',
+  passage: '',
   options: [
     { optionText: '', optionImgUrl: '' },
     { optionText: '', optionImgUrl: '' },
@@ -388,6 +394,7 @@ async function editProblem(p) {
       answer: detail.answer || '',
       explanation: detail.explanation || '',
       questionImgUrl: detail.questionImgUrl || '',
+      passage: detail.passage || '',
       options: detail.options?.length
         ? detail.options.map(o => ({ optionText: o.optionText || '', optionImgUrl: o.optionImgUrl || '' }))
         : defaultForm().options
@@ -417,6 +424,7 @@ async function saveProblem() {
       answer: form.answer,
       explanation: form.explanation,
       questionImgUrl: form.questionImgUrl || '',
+      passage: form.passage || '',
       options: form.problemType === 'MULTIPLE_CHOICE'
         ? form.options.filter(o => o.optionText.trim())
         : []

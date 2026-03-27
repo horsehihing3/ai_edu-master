@@ -61,6 +61,10 @@ public class Problem {
     // [2026-03-26] 중복 문제 감지 — question_text 완전 일치 시 원본 problem_id 저장
     private Long duplicateProblemId;
 
+    // [2026-03-27] 보기(참고 지문) — 테두리 박스 안의 참고 텍스트
+    private String passage;
+    private String passageImgUrl;
+
     public Level getLevelAsEnum() {
         return level != null ? Level.valueOf(level) : null;
     }
