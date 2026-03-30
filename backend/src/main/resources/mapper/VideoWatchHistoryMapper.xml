@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.VideoWatchHistoryMapper">
+
+    <resultMap id="HistoryResultMap" type="com.edu.platform.domain.VideoWatchHistory">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="videoId" column="video_id"/>
+        <result property="watchedAt" column="watched_at"/>
+        <result property="watchDurationSec" column="watch_duration_sec"/>
+        <result property="source" column="source"/>
+    </resultMap>
+
+    <resultMap id="ResponseDtoResultMap" type="com.edu.platform.dto.video.VideoWatchHistoryResponseDto">
+        <id property="id" column="id"/>
+        <result property="videoId" column="video_id"/>
+        <result property="videoTitle" column="title"/>
+        <result property="watchedAt" column="watched_at"/>
+        <result property="source" column="source"/>
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO video_watch_history (user_id, video_id, watched_at, watch_duration_sec, source)
+        VALUES (#{userId}, #{videoId}, NOW(), #{watchDurationSec}, #{source})
+    </insert>
+
+    <update id="updateWatchedAt">
+        UPDATE video_watch_history
+        SET watched_at = NOW(),
+            watch_duration_sec = #{watchDurationSec},
+            source = #{source}
+        WHERE user_id = #{userId} AND video_id = #{videoId}
+    </update>
+
+    <select id="findByUserId" resultMap="ResponseDtoResultMap">
+        SELECT h.id, h.video_id, v.title, h.watched_at, h.source
+        FROM video_watch_history h
+        LEFT JOIN videos v ON h.video_id = v.video_id
+        WHERE h.user_id = #{userId}
+        ORDER BY h.watched_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findByUserIdAndVideoId" resultMap="HistoryResultMap">
+        SELECT * FROM video_watch_history
+        WHERE user_id = #{userId} AND video_id = #{videoId}
+        LIMIT 1
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM video_watch_history WHERE user_id = #{userId}
+    </select>
+
+</mapper>

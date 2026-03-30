@@ -76,6 +76,11 @@ public enum ErrorCode {
     VERIFICATION_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 인증 토큰입니다."),
     VERIFICATION_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "만료된 인증 토큰입니다."),
 
+    // 비밀번호 재설정 토큰 관련
+    RESET_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다."),
+    RESET_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "만료된 토큰입니다. 비밀번호 재설정을 다시 요청해주세요."),
+    RESET_TOKEN_ALREADY_USED(HttpStatus.BAD_REQUEST, "이미 사용된 토큰입니다."),
+
     // 시스템 코드 관련
     CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "코드를 찾을 수 없습니다."),
     CODE_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 코드입니다."),

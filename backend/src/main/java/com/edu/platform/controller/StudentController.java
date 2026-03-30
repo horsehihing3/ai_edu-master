@@ -5,6 +5,7 @@ import com.edu.platform.domain.Student;
 import com.edu.platform.dto.common.ApiResponse;
 import com.edu.platform.dto.common.PageResponse;
 import com.edu.platform.dto.student.ProblemSubmitRequest;
+import com.edu.platform.dto.student.SaveProgressRequest;
 import com.edu.platform.dto.student.SessionProgressDto;
 import com.edu.platform.dto.student.StudentHomeDto;
 import com.edu.platform.exception.BusinessException;
@@ -119,8 +120,11 @@ public class StudentController {
     }
 
     @PutMapping("/sessions/{sessionId}/save")
-    public ResponseEntity<ApiResponse<Void>> saveProgress(@PathVariable Long sessionId) {
-        studentService.saveSessionProgress(sessionId);
+    public ResponseEntity<ApiResponse<Void>> saveProgress(
+            @PathVariable Long sessionId,
+            @RequestBody(required = false) SaveProgressRequest request) {
+        Integer currentIndex = request != null ? request.getCurrentIndex() : null;
+        studentService.saveSessionProgress(sessionId, currentIndex);
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.SESSION_SAVED));
     }
 

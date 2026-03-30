@@ -236,6 +236,15 @@
         WHERE problem_id = #{problemId}
     </update>
 
+    <!-- [2026-03-30] 검수 대기 일괄 승인 추가 -->
+    <update id="approveAllPending">
+        UPDATE problems
+        SET status     = 'APPROVED',
+            is_active  = 1,
+            updated_at = NOW()
+        WHERE status = 'PENDING_REVIEW'
+    </update>
+
     <select id="getWeakUnitStats" resultType="map">
         SELECT
             CASE

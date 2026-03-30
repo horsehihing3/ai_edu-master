@@ -277,6 +277,14 @@ public class AdminService {
         log.info("Problem {} rejected by admin {}, reason: {}", problemId, adminUserId, rejectReason);
     }
 
+    // [2026-03-30] 검수 대기 일괄 승인 추가
+    @Transactional
+    public int approveAllPending() {
+        int count = problemMapper.approveAllPending();
+        log.info("Approved all pending problems: {} rows updated", count);
+        return count;
+    }
+
     @Transactional
     public void replyToInquiry(Long inquiryId, Long adminUserId, String content) {
         inquiryMapper.findById(inquiryId)

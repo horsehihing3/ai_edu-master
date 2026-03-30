@@ -38,8 +38,8 @@
     </select>
 
     <select id="findByProblemId" resultMap="VideoResultMap">
-        SELECT * FROM videos WHERE problem_id = #{problemId} AND is_active = 1
-        ORDER BY created_at DESC
+        SELECT * FROM videos
+        WHERE problem_id = #{problemId}
         LIMIT 1
     </select>
 

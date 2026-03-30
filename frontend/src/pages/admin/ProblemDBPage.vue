@@ -31,6 +31,8 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       검수 대기 문제가 <strong>{{ pendingCount }}건</strong> 있습니다.
       <button class="btn-link" @click="filterApproval = 'PENDING_REVIEW'; page = 1; fetchProblems()">바로가기</button>
+      <!-- [2026-03-30] 검수 대기 일괄 승인 추가 -->
+      <button class="btn-approve-all" @click="approveAll">전체 승인</button>
     </div>
 
     <!-- 전체 선택 툴바 -->
@@ -321,6 +323,28 @@ async function deleteBulk() {
   }
 }
 
+// [2026-03-30] 검수 대기 일괄 승인 추가
+async function approveAll() {
+  const ok = await dialog.confirm(
+    `검수 대기(PENDING_REVIEW) 상태인 문제를 모두 승인하시겠습니까?\n승인된 문제는 학생에게 즉시 노출됩니다.`,
+    { type: 'warning', confirmText: '전체 승인' }
+  )
+  if (!ok) return
+
+  loading.value = true
+  try {
+    const res = await api.post('/admin/problems/approve-all')
+    const count = res.data.approvedCount
+    success(`${count}개 문제가 승인되었습니다.`)
+    await fetchProblems()
+    await fetchPendingCount()
+  } catch (e) {
+    error('일괄 승인 중 오류가 발생했습니다.')
+  } finally {
+    loading.value = false
+  }
+}
+
 function approvalLabel(status) {
   if (status === 'APPROVED') return '승인됨'
   if (status === 'REJECTED') return '반려됨'
@@ -576,6 +600,20 @@ async function confirmReject() {
     font-size: 14px;
     padding: 0;
     margin-left: 4px;
+  }
+
+  /* [2026-03-30] 검수 대기 일괄 승인 추가 */
+  .btn-approve-all {
+    margin-left: auto;
+    padding: 4px 12px;
+    background: #2e7d32;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    &:hover { background: #1b5e20; }
   }
 }
 

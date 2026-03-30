@@ -176,9 +176,20 @@ async function retryProblem(item) {
   }
 }
 
-// [2026-03-20] 오답노트 관련 영상 바로보기 추가
-function goToVideo(problemId) {
-  router.push({ path: '/student/videos', query: { problemId } })
+// [2026-03-30] 오답노트 → 영상 바로이동: by-problem API로 videoId 조회 후 직접 이동
+async function goToVideo(problemId) {
+  try {
+    const res = await api.get(`/videos/by-problem/${problemId}`)
+    const video = res.data
+    if (video && video.videoId) {
+      await api.post(`/videos/${video.videoId}/watch`, { source: 'WRONG_NOTE' }).catch(() => {})
+      router.push(`/student/videos/${video.videoId}`)
+    } else {
+      router.push({ path: '/student/videos', query: { problemId } })
+    }
+  } catch {
+    router.push({ path: '/student/videos', query: { problemId } })
+  }
 }
 
 function formatDate(d) {

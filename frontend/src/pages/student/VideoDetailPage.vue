@@ -6,9 +6,9 @@
       <div class="video-main">
         <!-- 동영상 플레이어 -->
         <div class="player-wrap">
-          <template v-if="isYoutube(video.videoUrl)">
+          <template v-if="video.videoType === 'YOUTUBE' || video.videoType === 'VIMEO'">
             <iframe
-              :src="toYoutubeEmbed(video.videoUrl)"
+              :src="video.videoUrl"
               class="youtube-iframe"
               frameborder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -17,7 +17,7 @@
           </template>
           <template v-else>
             <video ref="videoEl" class="plyr-video" playsinline controls>
-              <source :src="video.videoUrl" :type="videoMimeType(video.videoUrl)" />
+              <source :src="video.cdnUrl || video.videoUrl" :type="videoMimeType(video.videoUrl)" />
             </video>
           </template>
         </div>
@@ -81,8 +81,10 @@ import { useRoute } from 'vue-router'
 import AppBreadcrumb from '@/components/common/AppBreadcrumb.vue'
 import AppBadge from '@/components/common/AppBadge.vue'
 import api from '@/utils/api'
+import { useAuthStore } from '@/store/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const videoEl = ref(null)
 let player = null
 
@@ -98,7 +100,8 @@ onMounted(async () => {
     const v = videoRes.data || {}
     video.value = {
       id: v.videoId, title: v.title, subject: v.subject || '', level: v.level || '',
-      unit: v.unitName || v.unit || '', videoUrl: v.videoUrl || v.cdnUrl || '',
+      unit: v.unitName || v.unit || '', videoType: v.videoType || '',
+      videoUrl: v.videoUrl || v.cdnUrl || '', cdnUrl: v.cdnUrl || '',
       problemText: v.questionText || '', problemLatex: '',
       explanation: v.explanation || ''
     }
@@ -107,6 +110,15 @@ onMounted(async () => {
     }))
   } catch (e) {
     console.error('영상 로드 실패:', e)
+  }
+
+  // [2026-03-30] 로그인 사용자의 DIRECT 시청 이력 저장
+  if (authStore.isAuthenticated) {
+    try {
+      await api.post(`/videos/${route.params.id}/watch`, { source: 'DIRECT' })
+    } catch {
+      // 이력 저장 실패해도 영상 재생에는 영향 없음
+    }
   }
 
   await nextTick()

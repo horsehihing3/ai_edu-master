@@ -68,6 +68,15 @@
         LIMIT 1
     </select>
 
+    <select id="findInProgressByStudentAndAssignment" resultMap="SessionResultMap">
+        SELECT * FROM learning_sessions
+        WHERE student_id = #{studentId}
+          AND assignment_id = #{assignmentId}
+          AND status = 'IN_PROGRESS'
+        ORDER BY started_at DESC
+        LIMIT 1
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="sessionId">
         INSERT INTO learning_sessions (student_id, assignment_id, session_type, problem_ids, status,
             total_problems, solved_count, correct_count, started_at)
@@ -78,6 +87,7 @@
     <update id="update">
         UPDATE learning_sessions SET
             status = #{status},
+            problem_ids = #{problemIds},
             total_problems = #{totalProblems},
             solved_count = #{solvedCount},
             correct_count = #{correctCount},

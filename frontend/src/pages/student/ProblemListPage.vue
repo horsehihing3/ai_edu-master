@@ -115,10 +115,27 @@ async function startAssignment(a) {
   }
   try {
     const res = await api.post('/student/sessions/start', { assignmentId: a.id })
-    const sessionId = res.data?.sessionId
-    if (sessionId) {
-      router.push(`/student/learn/${sessionId}`)
+    const { sessionId, resumed, currentIndex } = res.data || {}
+    if (!sessionId) return
+
+    // [2026-03-30] 이어풀기: resumed 응답 처리
+    if (resumed) {
+      const confirmResume = window.confirm(
+        `이전에 ${currentIndex}번 문제까지 풀었습니다.\n이어서 풀까요?\n(취소 시 처음부터 시작)`
+      )
+      if (confirmResume) {
+        router.push(`/student/learn/${sessionId}?currentIndex=${currentIndex}`)
+        return
+      }
+      // 처음부터: 기존 세션 완료 처리 후 새 세션 시작
+      await api.post(`/student/sessions/${sessionId}/complete`)
+      const newRes = await api.post('/student/sessions/start', { assignmentId: a.id })
+      const newSessionId = newRes.data?.sessionId
+      if (newSessionId) router.push(`/student/learn/${newSessionId}`)
+      return
     }
+
+    router.push(`/student/learn/${sessionId}`)
   } catch {}
 }
 

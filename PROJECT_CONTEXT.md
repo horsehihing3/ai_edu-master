@@ -7,14 +7,11 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 ---
 
 ## ⚡ 다음 세션 작업 (우선순위 순)
-- [ ] 검수 대기 문제 일괄 승인 (`POST /admin/problems/approve-all` 백엔드 미구현)
+- [ ] 영상 시청 이력 저장 (user_id+video_id 매핑 테이블 신규)
 - [ ] PDF 업로드 화면 — 원본 PDF와 파싱 결과 2분할 비교 뷰 구현
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
 - [ ] 교사 계정으로 과제 출제 테스트
 - [ ] 학생 계정으로 문제풀이 테스트 (보기 표시 확인 포함)
-- [ ] 오답 시 관련 풀이 영상 연동 (VideoController 서비스 구현)
-- [ ] 풀이 임시저장 / 이어풀기
-- [ ] 비밀번호 재설정 이메일 발송
 - [ ] 학생/교사 홈 대시보드 고도화
 
 ---
@@ -138,7 +135,8 @@ POST /student/sessions/start
 | 변수 | 상태 | 비고 |
 |------|------|------|
 | `JWT_SECRET` | 기본값 사용 중 | 프로덕션 전 변경 필요 |
-| `MAIL_USERNAME` / `MAIL_PASSWORD` | 미설정 | 이메일 기능 동작 안 함 |
+| `MAIL_FROM` | `horsehihing3@gmail.com` — Machine 레벨 영구 등록 완료 (2026-03-30) | AWS SES 발신 이메일 (Sandbox, Verified) |
+| `APP_BASE_URL` | `http://localhost:7001` — Machine 레벨 영구 등록 완료 (2026-03-30) | 비밀번호 재설정 링크 base URL |
 | `AWS_S3_BUCKET` | `ai-edu-bucket` — Machine 레벨 영구 등록 완료 | S3 연동 완료 |
 | `AWS_REGION` | `ap-northeast-2` — Machine 레벨 영구 등록 완료 | S3 연동 완료 |
 | `AWS_ACCESS_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | S3 업로드 동작 |
@@ -158,10 +156,16 @@ POST /student/sessions/start
 | PDF 파싱 / S3 업로드 안 됨 | VS Code 재시작 후 환경변수 미반영 | Machine 레벨 등록 후 VS Code 완전 재시작 필요 |
 | 문제 DB 페이지 500 에러 | DB `status` 컬럼 enum값 `PENDING_REVIEW`인데 프론트가 `PENDING` 사용 | `ProblemDBPage.vue` — `PENDING` → `PENDING_REVIEW` 수정 완료 (2026-03-26) |
 | 배치 업로드 시 문제 저장 안 됨 | `duplicate_problem_id` 컬럼 DB 미존재 | `mysql ... -e "ALTER TABLE problems ADD COLUMN duplicate_problem_id BIGINT NULL"` 실행. 증분SQL: `database/problem_duplicate_check.sql` |
+| SES 이메일 스팸함 분류 | Sandbox 모드 + 도메인 미인증 | 도메인 연결 후 해결. 테스트 시 스팸함 확인 |
+| 비밀번호 재설정 API 경로 | `/reset-request` 아님 | `POST /auth/password/forgot` 사용 |
 | answer 컬럼 저장 오류 | VARCHAR(10) 길이 초과 | `ALTER TABLE problems MODIFY COLUMN answer VARCHAR(500) NOT NULL DEFAULT ''` 완료 (2026-03-27, migration: `database/alter_answer_column.sql`) |
 | 보기 테두리 박스가 이미지로 캡처 | 벡터 클러스터가 텍스트 박스 테두리를 도형으로 인식 | `extract_images.py` 텍스트 밀도 30% 초과 시 캡처 생략 (2026-03-27) |
 | 이미지가 인접 문제번호로 잘못 매핑 | Vision 프롬프트가 도형 아래 문제로 매핑 | `PdfImageExtractService.java` 프롬프트에 "도형 위쪽 문제번호 우선" 규칙 추가 (2026-03-27) |
 | 문제 수정 모달에 보기 표시 안 됨 | `mapToDetailDto()`에 passage 필드 누락 | `ProblemService.java:255` passage/passageImgUrl 추가 (2026-03-27) |
+| `videos.problem_id` 없음 | 문제-영상 연결 구조 미구현 | `videos` 테이블에 `problem_id` 컬럼 추가 (2026-03-30, 추후 중간테이블 전환 예정). 증분SQL: `database/add_video_problem_id.sql` |
+| `assignments.is_deleted` 없음 | schema SQL 미적용 | `ALTER TABLE assignments ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0` 실행 (2026-03-30) |
+| `student_id` vs `user_id` 혼동 | `users.user_id` ≠ `students.student_id` | `learning_sessions`은 `students.student_id` 기준. 예: student_a = user_id:6, student_id:1 |
+| YouTube embed 재생 안 됨 | `watch?v=` URL을 `<video>` 태그로 재생 시도 | embed URL + `<iframe>` 사용. `videoType === 'YOUTUBE'\|'VIMEO'`로 분기 (`ProblemSolvePage.vue`, `VideoDetailPage.vue`) |
 
 ---
 
@@ -180,6 +184,7 @@ POST /student/sessions/start
 ### 인증
 - [x] 이메일/비밀번호 로그인·회원가입, JWT Access/Refresh Token, 로그아웃
 - [x] 비밀번호 찾기 UI, OAuth2 엔드포인트 라우팅, 내 정보 조회 (`GET /auth/me`)
+- [x] 비밀번호 재설정 이메일 발송 (AWS SES 연동 완료, 2026-03-30)
 
 ### 설정
 - [x] 프로필 조회/수정, 비밀번호 변경
@@ -205,6 +210,9 @@ POST /student/sessions/start
 - [x] 과제 수정 (제목·설명·마감일) — AssignmentDetailPage.vue 수정 모달
 - [x] 과제 삭제 — 제출 이력 없음 시 하드 삭제 / 있음 시 소프트 삭제(is_deleted=1). 학생·교사 목록 자동 제외
 
+### 공통 — 레이아웃
+- [x] 모바일 하단 탭바 (학생) — `BottomNavBar.vue`, 360~767px, 홈/문제풀기/동영상/오답노트/설정 5개 탭, 활성탭 강조, 사이드바 자동 닫기 (2026-03-30)
+
 ### 관리자
 - [x] 대시보드, 회원·학교 관리, 결제 목록(조회만), 시스템 분석
 - [x] 1:1 문의, 동영상 관리, 시스템 코드 관리
@@ -226,6 +234,10 @@ POST /student/sessions/start
 - [x] **벡터 이미지 텍스트 밀도 필터** — `extract_images.py`에서 벡터 클러스터 bbox 내 텍스트 비율 > 30%이면 이미지 캡처 생략 (보기 테두리 박스 오캡처 방지) (2026-03-27)
 - [x] **Vision 문제번호 매핑 개선** — 도형 위쪽 문제번호 우선 매핑, 도형 아래쪽 문제로 잘못 배정 방지 (`PdfImageExtractService.java`) (2026-03-27)
 - [x] **주관식 정답 저장 오류 수정** — `answer` 컬럼 `VARCHAR(10)` → `VARCHAR(500)` 확장 (`database/alter_answer_column.sql`) (2026-03-27)
+- [x] **검수 대기 문제 일괄 승인** — `POST /admin/problems/approve-all`, 검수 대기 배너에 [전체 승인] 버튼 (2026-03-30)
+- [x] **오답 시 관련 풀이 영상 연동** — 오답 판정 시 자동 조회, 모달 재생. `videoType`으로 YOUTUBE/VIMEO → `<iframe>`, UPLOAD → `<video>` 분기. `videos.problem_id` 컬럼 추가 (2026-03-30)
+- [x] **VideoDetailPage.vue YouTube/Vimeo iframe 렌더링 수정** — URL 패턴 검사 → `videoType` 기준으로 교체, 이미 embed URL인 경우 재변환 오류 방지 (2026-03-30)
+- [x] **풀이 임시저장 / 이어풀기** — `nextProblem` 시 자동저장, 이탈 시 `onBeforeUnmount` 저장, 재시작 시 이어풀기 confirm 다이얼로그. `learning_sessions.problem_ids`에 currentIndex 저장 (2026-03-30)
 - [x] **로그 파일 출력 설정** — `application.yml` `logging.file.name: logs/app.log` 추가 (2026-03-27)
 
 ### 공통
@@ -325,21 +337,17 @@ ADD COLUMN duplicate_problem_id BIGINT NULL DEFAULT NULL COMMENT '중복 문제 
 ### 관리자 — 문제 관리
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 검수 대기 문제 일괄 승인 | `ProblemDBPage.vue` 버튼 있음 | 백엔드 `POST /admin/problems/approve-all` 미구현 |
 | PDF 업로드 2분할 비교 뷰 | `ProblemUploadPage.vue` | 원본 PDF(좌) + 파싱 결과(우) 나란히 비교 |
 
 ### 인증
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 비밀번호 재설정 이메일 발송 | `AuthService.java:209` | 골격만 존재 |
 | 이메일 인증 토큰 생성/발송/검증 | `AuthService.java:229` | 골격만 존재 |
 | 소셜 로그인 실제 연동 (Google/Kakao) | `build.gradle:32` | OAuth2 의존성 주석처리됨 |
 
 ### 학생 — 문제풀이
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 오답 시 관련 풀이 영상 연동 | - | 해설 하단 [영상으로 보기] 버튼 |
-| 풀이 임시저장 (이어풀기) | - | 중간 이탈 시 마지막 위치 저장. ProblemListPage.vue 미완료/완료 탭은 구현됨 |
 | '이해했어요 / 아직 모르겠어요' 피드백 버튼 | - | 학습 데이터 수집용 |
 | 문제 데이터 품질 개선 | - | 실제 기출 데이터 입력 시 해결 예정 |
 
@@ -386,7 +394,6 @@ ADD COLUMN duplicate_problem_id BIGINT NULL DEFAULT NULL COMMENT '중복 문제 
 ### 공통 — 레이아웃
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 모바일 하단 탭바 (학생) | DefaultLayout.vue / AppSidebar.vue | 360~767px 구간 Bottom Navigation Bar 미구현. 현재 slide-in 사이드바 방식만 존재 |
 
 ### 설정 / 기타
 | 기능 | 비고 |

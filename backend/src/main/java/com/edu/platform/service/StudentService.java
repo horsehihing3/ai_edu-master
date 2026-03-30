@@ -85,6 +85,28 @@ public class StudentService {
         assignmentMapper.findById(assignmentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
 
+        // [2026-03-30] 이어풀기: 기존 IN_PROGRESS 세션 있으면 재사용
+        Optional<LearningSession> existing =
+                learningSessionMapper.findInProgressByStudentAndAssignment(studentId, assignmentId);
+        if (existing.isPresent()) {
+            LearningSession session = existing.get();
+            int currentIndex = 0;
+            if (session.getProblemIds() != null && !session.getProblemIds().isEmpty()) {
+                try { currentIndex = Integer.parseInt(session.getProblemIds()); } catch (NumberFormatException ignored) {}
+            }
+            return SessionProgressDto.builder()
+                    .sessionId(session.getSessionId())
+                    .solvedCount(session.getSolvedCount() != null ? session.getSolvedCount() : 0)
+                    .totalProblems(session.getTotalProblems() != null ? session.getTotalProblems() : 0)
+                    .correctCount(session.getCorrectCount() != null ? session.getCorrectCount() : 0)
+                    .completionRate(session.getCompletionRate() != null ? session.getCompletionRate().doubleValue() : 0.0)
+                    .accuracy(0.0)
+                    .status(session.getStatus())
+                    .currentIndex(currentIndex)
+                    .resumed(true)
+                    .build();
+        }
+
         int totalProblems = problemMapper.findByAssignmentId(assignmentId).size();
 
         LearningSession session = LearningSession.builder()
@@ -108,6 +130,8 @@ public class StudentService {
                 .completionRate(0.0)
                 .accuracy(0.0)
                 .status(session.getStatus())
+                .currentIndex(0)
+                .resumed(false)
                 .build();
     }
 
@@ -226,12 +250,16 @@ public class StudentService {
     }
 
     @Transactional
-    public void saveSessionProgress(Long sessionId) {
+    public void saveSessionProgress(Long sessionId, Integer currentIndex) {
         LearningSession session = learningSessionMapper.findById(sessionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
 
+        // [2026-03-30] 임시저장: currentIndex를 problem_ids에 저장
+        if (currentIndex != null) {
+            session.setProblemIds(String.valueOf(currentIndex));
+        }
         session.setLastSavedAt(LocalDateTime.now());
-        session.setStatus(LearningSession.SessionStatus.PAUSED.name());
+        session.setStatus(LearningSession.SessionStatus.IN_PROGRESS.name());
         learningSessionMapper.update(session);
     }
 

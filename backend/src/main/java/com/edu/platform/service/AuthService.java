@@ -1,6 +1,7 @@
 package com.edu.platform.service;
 
 import com.edu.platform.config.JwtProvider;
+import com.edu.platform.domain.PasswordResetToken;
 import com.edu.platform.domain.School;
 import com.edu.platform.domain.Student;
 import com.edu.platform.domain.Teacher;
@@ -12,12 +13,14 @@ import com.edu.platform.dto.auth.TokenRefreshRequest;
 import com.edu.platform.dto.common.UserInfo;
 import com.edu.platform.exception.BusinessException;
 import com.edu.platform.exception.ErrorCode;
+import com.edu.platform.mapper.PasswordResetTokenMapper;
 import com.edu.platform.mapper.SchoolMapper;
 import com.edu.platform.mapper.StudentMapper;
 import com.edu.platform.mapper.TeacherMapper;
 import com.edu.platform.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +28,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -39,6 +45,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
+    private final PasswordResetTokenMapper passwordResetTokenMapper;
+    private final EmailService emailService;
+
+    @Value("${app.mail.reset-token-expiry-minutes:30}")
+    private int resetTokenExpiryMinutes;
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
@@ -202,19 +213,54 @@ public class AuthService {
 
     @Transactional
     public void sendPasswordResetEmail(String email) {
-        userMapper.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        // 열거 공격 방지 — 사용자 없어도 동일 응답
+        userMapper.findByEmail(email).ifPresent(user -> {
+            passwordResetTokenMapper.deleteExpiredByUserId(user.getUserId());
 
-        // 비밀번호 재설정 토큰 생성 및 이메일 발송 로직
-        // TODO: 실제 이메일 발송 서비스 연동
-        log.info("Password reset email sent to: {}", email);
+            String token = UUID.randomUUID().toString().replace("-", "");
+            PasswordResetToken resetToken = new PasswordResetToken();
+            resetToken.setUserId(user.getUserId());
+            resetToken.setToken(token);
+            resetToken.setExpiresAt(LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes));
+            resetToken.setUsed(false);
+            passwordResetTokenMapper.insert(resetToken);
+
+            emailService.sendPasswordResetEmail(user.getEmail(), token, user.getName());
+        });
+        log.info("Password reset requested for: {}", email);
+    }
+
+    @Transactional(readOnly = true)
+    public void validateResetToken(String token) {
+        PasswordResetToken resetToken = passwordResetTokenMapper.findByToken(token);
+        if (resetToken == null) {
+            throw new BusinessException(ErrorCode.RESET_TOKEN_INVALID);
+        }
+        if (resetToken.isUsed()) {
+            throw new BusinessException(ErrorCode.RESET_TOKEN_ALREADY_USED);
+        }
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.RESET_TOKEN_EXPIRED);
+        }
     }
 
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        // 토큰 검증 후 비밀번호 변경 로직
-        // TODO: 실제 토큰 검증 로직 구현
-        log.info("Password reset with token");
+        PasswordResetToken resetToken = passwordResetTokenMapper.findByToken(token);
+        if (resetToken == null) {
+            throw new BusinessException(ErrorCode.RESET_TOKEN_INVALID);
+        }
+        if (resetToken.isUsed()) {
+            throw new BusinessException(ErrorCode.RESET_TOKEN_ALREADY_USED);
+        }
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.RESET_TOKEN_EXPIRED);
+        }
+
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        userMapper.updatePassword(resetToken.getUserId(), encodedPassword);
+        passwordResetTokenMapper.markUsed(token);
+        log.info("Password reset completed for userId: {}", resetToken.getUserId());
     }
 
     @Transactional

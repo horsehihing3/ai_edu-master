@@ -43,6 +43,9 @@ public interface ProblemMapper {
                               @Param("reviewedBy") Long reviewedBy,
                               @Param("rejectReason") String rejectReason);
 
+    // [2026-03-30] 검수 대기 일괄 승인 추가 — 변경된 행 수 반환
+    int approveAllPending();
+
     // [2026-03-26] 중복 문제 감지 — question_text 완전 일치 시 기존 problem_id 반환 (null이면 중복 없음)
     Long findIdByQuestionText(@Param("questionText") String questionText);
 }

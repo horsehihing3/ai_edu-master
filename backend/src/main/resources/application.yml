@@ -56,6 +56,10 @@ aws:
 app:
   upload:
     path: ${UPLOAD_PATH:uploads}
+  base-url: ${APP_BASE_URL:http://localhost:7001}
+  mail:
+    from: ${MAIL_FROM:noreply@example.com}
+    reset-token-expiry-minutes: 30
 
 cors:
   allowed-origins: http://localhost:7001,http://localhost:3000,http://211.171.152.242:7001,http://edu.com4in.com,https://edu.com4in.com,http://edu.com4in.com:7001,https://edu.com4in.com:7001

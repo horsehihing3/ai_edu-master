@@ -18,4 +18,7 @@ public class SessionProgressDto {
     private Double completionRate;
     private Double accuracy;
     private String status;
+    // [2026-03-30] 이어풀기 필드
+    private Integer currentIndex;
+    private Boolean resumed;
 }

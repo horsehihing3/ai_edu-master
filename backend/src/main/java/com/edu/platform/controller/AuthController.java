@@ -3,6 +3,8 @@ package com.edu.platform.controller;
 import com.edu.platform.common.ResponseMessage;
 import com.edu.platform.dto.auth.LoginRequest;
 import com.edu.platform.dto.auth.LoginResponse;
+import com.edu.platform.dto.auth.PasswordResetDto;
+import com.edu.platform.dto.auth.PasswordResetRequestDto;
 import com.edu.platform.dto.auth.RegisterRequest;
 import com.edu.platform.dto.auth.TokenRefreshRequest;
 import com.edu.platform.dto.common.ApiResponse;
@@ -53,15 +55,21 @@ public class AuthController {
 
     @PostMapping("/password/forgot")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(
-            @RequestBody Map<String, String> request) {
-        authService.sendPasswordResetEmail(request.get("email"));
+            @Valid @RequestBody PasswordResetRequestDto request) {
+        authService.sendPasswordResetEmail(request.getEmail());
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.PASSWORD_RESET_EMAIL_SENT));
+    }
+
+    @GetMapping("/password/validate-token")
+    public ResponseEntity<ApiResponse<Void>> validateToken(@RequestParam String token) {
+        authService.validateResetToken(token);
+        return ResponseEntity.ok(ApiResponse.success("유효한 토큰입니다."));
     }
 
     @PostMapping("/password/reset")
     public ResponseEntity<ApiResponse<Void>> resetPassword(
-            @RequestBody Map<String, String> request) {
-        authService.resetPassword(request.get("token"), request.get("newPassword"));
+            @Valid @RequestBody PasswordResetDto request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.PASSWORD_CHANGED));
     }
 

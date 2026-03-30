@@ -125,10 +125,19 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
               오답노트 복귀
             </button>
-            <button class="video-btn" @click="requestVideo">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              동영상 풀이
-            </button>
+          </div>
+
+          <!-- [2026-03-30] 오답 시 연결 영상 표시 -->
+          <div v-if="isWrong" class="video-section">
+            <div v-if="relatedVideo" class="video-btn-wrap">
+              <button class="btn-watch-video" @click="showVideoModal = true">
+                ▶ 풀이 영상 보기
+              </button>
+              <span class="video-title">{{ relatedVideo.title }}</span>
+            </div>
+            <div v-else-if="relatedVideo !== undefined" class="no-video">
+              등록된 풀이 영상이 없습니다
+            </div>
           </div>
         </div>
 
@@ -172,11 +181,38 @@
         </div>
       </div>
     </div>
+  <!-- [2026-03-30] 풀이 영상 모달 -->
+  <div v-if="showVideoModal" class="video-modal-overlay" @click.self="showVideoModal = false">
+    <div class="video-modal">
+      <div class="video-modal-header">
+        <span>{{ relatedVideo?.title }}</span>
+        <button @click="showVideoModal = false">✕</button>
+      </div>
+      <div class="video-modal-body">
+        <template v-if="relatedVideo">
+          <!-- YOUTUBE 또는 VIMEO 타입 -->
+          <iframe
+            v-if="relatedVideo.videoType === 'YOUTUBE' || relatedVideo.videoType === 'VIMEO' || relatedVideo.externalUrl"
+            :src="relatedVideo.videoUrl || relatedVideo.externalUrl"
+            style="width:100%; height:360px; border:none"
+            allowfullscreen
+          ></iframe>
+          <!-- 직접 업로드 파일 -->
+          <video
+            v-else
+            :src="relatedVideo.cdnUrl || relatedVideo.videoUrl"
+            controls
+            style="width:100%"
+          ></video>
+        </template>
+      </div>
+    </div>
+  </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBadge from '@/components/common/AppBadge.vue'
 import AppButton from '@/components/common/AppButton.vue'
@@ -191,6 +227,10 @@ const { success, error } = useToast()
 // [2026-03-21] 오답노트 재도전 세션 여부
 const fromWrongNotes = computed(() => route.query.from === 'wrong-notes')
 
+// [2026-03-30] sessionId ref — 임시저장/이어풀기에서 공통 참조
+const sessionId = computed(() => route.params.sessionId || route.params.id)
+const isCompleted = ref(false)
+
 const currentIdx = ref(0)
 const selected = ref(null)        // 객관식 선택 인덱스
 const userAnswer = ref('')        // 단답형 입력값
@@ -199,6 +239,9 @@ const showExplanation = ref(false)
 // [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
 const results = ref([])
 const elapsed = ref(0)
+// [2026-03-30] 오답 시 연결 영상 연동
+const relatedVideo = ref(undefined)   // undefined: 미조회, null: 없음, object: 있음
+const showVideoModal = ref(false)
 let timer = null
 // [2026-03-21] 문제별 소요 시간 측정
 let problemStartTime = Date.now()
@@ -217,6 +260,18 @@ const isCorrect = computed(() => {
   // 객관식: 선택 인덱스와 정답 인덱스 비교
   return selected.value === currentP.value.answer
 })
+// [2026-03-30] 오답 여부 — 제출 후 오답일 때 true
+const isWrong = computed(() => submitted.value && !isCorrect.value)
+
+// [2026-03-30] 오답 시 연결 영상 조회
+async function fetchRelatedVideo(problemId) {
+  try {
+    const res = await api.get(`/videos/by-problem/${problemId}`)
+    relatedVideo.value = res.data ?? null
+  } catch {
+    relatedVideo.value = null
+  }
+}
 
 async function submit() {
   submitted.value = true
@@ -227,19 +282,30 @@ async function submit() {
   } else {
     error('❌ 오답입니다. 해설을 확인해보세요.')
     showExplanation.value = true
+    // [2026-03-30] 오답 시 연결 영상 비동기 조회
+    fetchRelatedVideo(currentP.value.id)
   }
   try {
-    const sessionId = route.params.sessionId || route.params.id
     // 단답형: 입력 텍스트 그대로 전송 / 객관식: 선택 번호(1-based) 전송
     const submittedAnswer = currentP.value.problemType === 'SHORT_ANSWER'
       ? userAnswer.value.trim()
       : String(selected.value + 1)
     // [2026-03-21] 문제별 소요 시간 계산 후 전달
     const timeSpentSec = Math.round((Date.now() - problemStartTime) / 1000)
-    await api.post(`/student/sessions/${sessionId}/submit`, {
+    await api.post(`/student/sessions/${sessionId.value}/submit`, {
       problemId: currentP.value.id,
       submittedAnswer,
       timeSpentSec
+    })
+  } catch {}
+}
+
+// [2026-03-30] 임시저장 — currentIndex를 서버에 저장
+async function saveProgress() {
+  if (!sessionId.value) return
+  try {
+    await api.put(`/student/sessions/${sessionId.value}/save`, {
+      currentIndex: currentIdx.value
     })
   } catch {}
 }
@@ -252,6 +318,10 @@ function nextProblem() {
   showExplanation.value = false
   // [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
   problemStartTime = Date.now() // [2026-03-21] 문제 전환 시 타이머 리셋
+  // [2026-03-30] 다음 문제로 넘어갈 때 영상 상태 초기화 + 임시저장
+  relatedVideo.value = undefined
+  showVideoModal.value = false
+  saveProgress()
 }
 
 function jumpTo(i) {
@@ -263,15 +333,11 @@ function jumpTo(i) {
 
 // [2026-03-20] 북마크 버튼 제거 — 오답 시 wrong_notes 자동저장으로 대체됨
 
-function requestVideo() {
-  router.push(`/student/videos`)
-}
-
 async function finishSession() {
   const correct = results.value.filter(r => r === true).length
+  isCompleted.value = true  // [2026-03-30] 완료 플래그 — onBeforeUnmount 임시저장 방지
   try {
-    const sessionId = route.params.sessionId || route.params.id
-    await api.post(`/student/sessions/${sessionId}/complete`, {
+    await api.post(`/student/sessions/${sessionId.value}/complete`, {
       results: results.value, elapsedSeconds: elapsed.value
     })
   } catch {}
@@ -282,9 +348,9 @@ async function finishSession() {
 
 // [2026-03-21] 오답노트 복귀 — 세션 완료 후 오답노트 페이지로 이동
 async function returnToWrongNotes() {
+  isCompleted.value = true
   try {
-    const sessionId = route.params.sessionId || route.params.id
-    await api.post(`/student/sessions/${sessionId}/complete`, {})
+    await api.post(`/student/sessions/${sessionId.value}/complete`, {})
   } catch {}
   router.push('/student/wrong-notes')
 }
@@ -297,9 +363,12 @@ function formatTime(sec) {
 
 onMounted(async () => {
   timer = setInterval(() => elapsed.value++, 1000)
+  // [2026-03-30] 이어풀기: 라우터에서 currentIndex 전달받으면 복원
+  if (route.query.currentIndex !== undefined) {
+    currentIdx.value = Number(route.query.currentIndex)
+  }
   try {
-    const sessionId = route.params.sessionId || route.params.id
-    const res = await api.get(`/student/sessions/${sessionId}/problems`)
+    const res = await api.get(`/student/sessions/${sessionId.value}/problems`)
     problems.value = (res.data || []).map(p => ({
       id: p.problemId, subject: p.subject, level: p.level,
       unit: p.unitName || p.unit, questionText: p.questionText,
@@ -318,6 +387,13 @@ onMounted(async () => {
 })
 
 onUnmounted(() => clearInterval(timer))
+
+// [2026-03-30] 페이지 이탈 시 임시저장 (완료된 세션은 제외)
+onBeforeUnmount(async () => {
+  if (sessionId.value && !isCompleted.value) {
+    await saveProgress()
+  }
+})
 </script>
 
 <style scoped lang="scss">
@@ -401,11 +477,11 @@ onUnmounted(() => clearInterval(timer))
 
     /* [2026-03-27] 보기 박스 스타일 */
     .passage-box {
-      border: 1.5px solid $color-border;
+      border: 1.5px solid #e5e7eb;
       border-radius: $radius-md;
       padding: $spacing-4 $spacing-5;
       margin: $spacing-3 0 $spacing-4;
-      background: $color-surface-2;
+      background: #f9fafb;
       font-size: 0.95em;
       line-height: 1.7;
       white-space: pre-line;
@@ -621,4 +697,69 @@ onUnmounted(() => clearInterval(timer))
 }
 
 .ml-auto { margin-left: auto; }
+
+// [2026-03-30] 오답 시 연결 영상 스타일
+.video-section {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+.video-btn-wrap {
+  display: flex;
+  align-items: center;
+}
+.btn-watch-video {
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  &:hover { background: #4f46e5; }
+}
+.video-title {
+  font-size: 13px;
+  color: #555;
+  margin-left: 10px;
+}
+.no-video {
+  font-size: 13px;
+  color: #999;
+}
+.video-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.video-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 680px;
+  max-width: 95vw;
+  overflow: hidden;
+}
+.video-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #eee;
+  font-weight: 500;
+  button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #888;
+  }
+}
+.video-modal-body {
+  padding: 16px;
+}
 </style>

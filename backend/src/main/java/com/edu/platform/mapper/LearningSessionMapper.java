@@ -19,6 +19,8 @@ public interface LearningSessionMapper {
     Optional<LearningSession> findInProgressByStudentId(@Param("studentId") Long studentId);
     Optional<LearningSession> findLatestByStudentAndAssignment(@Param("studentId") Long studentId,
                                                                 @Param("assignmentId") Long assignmentId);
+    Optional<LearningSession> findInProgressByStudentAndAssignment(@Param("studentId") Long studentId,
+                                                                    @Param("assignmentId") Long assignmentId);
     void insert(LearningSession session);
     void update(LearningSession session);
     void updateStatus(@Param("sessionId") Long sessionId, @Param("status") String status);

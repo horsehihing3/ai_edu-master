@@ -54,7 +54,7 @@ async function handleSubmit() {
   if (!email.value) { emailError.value = '이메일을 입력하세요.'; return }
   loading.value = true
   try {
-    await api.post('/auth/forgot-password', { email: email.value })
+    await api.post('/auth/password/forgot', { email: email.value })
     sent.value = true
   } catch (e) {
     error(e.message || '오류가 발생했습니다.')

@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -237,6 +238,15 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Void>> deleteProblem(@PathVariable Long problemId) {
         problemService.deleteProblem(problemId);
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.PROBLEM_DELETED));
+    }
+
+    // [2026-03-30] 검수 대기 일괄 승인 추가
+    @PostMapping("/problems/approve-all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Map<String, Integer>>> approveAllPending(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        int count = adminService.approveAllPending();
+        return ResponseEntity.ok(ApiResponse.success(Map.of("approvedCount", count)));
     }
 
     @PatchMapping("/problems/{problemId}/approve")
