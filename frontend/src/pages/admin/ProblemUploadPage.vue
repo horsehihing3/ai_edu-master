@@ -60,7 +60,15 @@
           <div class="stat"><strong class="text-success">{{ okCount }}</strong><span>정상</span></div>
           <div class="stat"><strong class="text-danger">{{ errCount }}</strong><span>오류</span></div>
         </div>
-        <div style="display:flex;gap:12px;">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <!-- PDF일 때만 비교뷰 토글 버튼 표시 -->
+          <button
+            v-if="isPdf"
+            :class="['btn btn-md', splitView ? 'btn-primary' : 'btn-secondary']"
+            @click="splitView = !splitView"
+          >
+            {{ splitView ? '📄 단일 뷰' : '⬛ PDF 비교 뷰' }}
+          </button>
           <button class="btn btn-secondary btn-md" @click="resetUpload">다시 업로드</button>
           <AppButton :loading="saving" :disabled="okCount === 0" @click="confirmUpload">
             업로드 확정 ({{ okCount }}개)
@@ -68,8 +76,105 @@
         </div>
       </div>
 
-      <!-- 인라인 수정 가능 테이블 -->
-      <div class="review-table-wrap">
+      <!-- AI 검증 브리핑 -->
+      <div v-if="verifying" class="verify-banner verify-loading">
+        🤖 AI가 원본과 파싱 결과를 비교 중입니다...
+      </div>
+      <div v-else-if="verifySummary" :class="['verify-banner', verifySummary.mismatched > 0 ? 'verify-warn' : 'verify-ok']">
+        <span v-if="verifySummary.mismatched === 0">✅ AI 검증 완료 — 전체 {{ verifySummary.total }}문제 이상 없음</span>
+        <span v-else>⚠️ AI 검증 완료 — {{ verifySummary.mismatched }}개 문제에서 불일치 감지 (아래 ⚠️ 표시 확인)</span>
+      </div>
+
+      <!-- 2분할 비교 뷰 (PDF + 파싱 결과) -->
+      <div v-if="isPdf && splitView" class="split-container" ref="splitContainerRef">
+        <!-- 좌측: PDF 원본 -->
+        <div class="split-pane split-left" :style="{ width: leftPct + '%' }">
+          <div class="split-pane-header">
+            <span class="split-pane-title">📄 원본 PDF</span>
+            <span class="split-pane-filename">{{ selectedFile?.name }}</span>
+          </div>
+          <iframe
+            v-if="pdfObjectUrl"
+            :src="pdfObjectUrl"
+            class="pdf-iframe"
+            type="application/pdf"
+          />
+          <div v-else class="pdf-loading">PDF 로딩 중...</div>
+        </div>
+
+        <!-- 스플리터 -->
+        <div
+          class="splitter"
+          @mousedown="startDrag"
+          title="드래그하여 비율 조절"
+        >
+          <div class="splitter-handle">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- 우측: 파싱 결과 테이블 -->
+        <div class="split-pane split-right" :style="{ width: (100 - leftPct - splitterPct) + '%' }">
+          <div class="split-pane-header">
+            <span class="split-pane-title">✏️ 파싱 결과 (수정 가능)</span>
+            <span class="split-pane-sub">클릭하여 직접 수정하세요</span>
+          </div>
+          <div class="review-table-wrap">
+            <table class="review-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>과목</th>
+                  <th>레벨</th>
+                  <th>학년</th>
+                  <th>단원</th>
+                  <th>문제 내용</th>
+                  <th>유형</th>
+                  <th>정답</th>
+                  <th>상태</th>
+                  <th>오류</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(p, i) in parsedProblems" :key="i" :class="{ 'row-error': p.status === 'error' }" :title="verifyResults[String(p.row)]?.issues?.join(', ') || ''">
+                  <td>
+                    {{ i + 1 }}
+                    <span v-if="verifyResults[String(p.row)]?.match === false" title="AI 검증 불일치">⚠️</span>
+                  </td>
+                  <td><input v-model="p.subject" class="cell-input" /></td>
+                  <td>
+                    <select v-model="p.level" class="cell-select" @change="validateRow(p)">
+                      <option value="">-</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                    </select>
+                  </td>
+                  <td><input v-model="p.grade" class="cell-input short" /></td>
+                  <td><input v-model="p.unitName" class="cell-input" /></td>
+                  <td><input v-model="p.questionText" class="cell-input wide" /></td>
+                  <td>
+                    <select v-model="p.problemType" class="cell-select" @change="validateRow(p)">
+                      <option value="MULTIPLE_CHOICE">객관식</option>
+                      <option value="SHORT_ANSWER">주관식</option>
+                    </select>
+                  </td>
+                  <td><input v-model="p.answer" class="cell-input short" @change="validateRow(p)" /></td>
+                  <td>
+                    <span :class="['status-icon', p.status]">
+                      {{ p.status === 'ok' ? '✓ 정상' : '✗ 오류' }}
+                    </span>
+                  </td>
+                  <td><span v-if="p.errorMsg" class="error-msg">{{ p.errorMsg }}</span><span v-else>-</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 단일 뷰 (기존 테이블) -->
+      <div v-else class="review-table-wrap">
         <table class="review-table">
           <thead>
             <tr>
@@ -86,8 +191,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(p, i) in parsedProblems" :key="i" :class="{ 'row-error': p.status === 'error' }">
-              <td>{{ i + 1 }}</td>
+            <tr v-for="(p, i) in parsedProblems" :key="i" :class="{ 'row-error': p.status === 'error' }" :title="verifyResults[String(p.row)]?.issues?.join(', ') || ''">
+              <td>
+                {{ i + 1 }}
+                <span v-if="verifyResults[String(p.row)]?.match === false" title="AI 검증 불일치">⚠️</span>
+              </td>
               <td><input v-model="p.subject" class="cell-input" /></td>
               <td>
                 <select v-model="p.level" class="cell-select" @change="validateRow(p)">
@@ -134,7 +242,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppButton from '@/components/common/AppButton.vue'
 import { useToast } from '@/composables/useToast'
@@ -155,10 +263,64 @@ const fileInputRef = ref(null)
 const parsingSteps = ['파일 읽기', '형식 검증', 'AI 문제 파싱', '레벨 자동 분류', '최종 검토']
 
 const parsedProblems = ref([])
+const rawTexts = ref({})
+const verifyResults = ref({})
+const verifying = ref(false)
+const verifySummary = ref(null)
 
 const okCount = computed(() => parsedProblems.value.filter(p => p.status === 'ok').length)
 const errCount = computed(() => parsedProblems.value.filter(p => p.status === 'error').length)
 const progressPct = computed(() => Math.round((currentStep.value / (parsingSteps.length - 1)) * 100))
+
+// ──────────────────────────────────────────
+// PDF 2분할 비교 뷰 관련
+// ──────────────────────────────────────────
+const isPdf = computed(() => selectedFile.value?.name?.toLowerCase().endsWith('.pdf'))
+const splitView = ref(false)
+const pdfObjectUrl = ref(null)
+const splitContainerRef = ref(null)
+const leftPct = ref(50)
+const splitterPct = 0.6 // 스플리터 너비 (%)
+
+let isDragging = false
+let dragStartX = 0
+let dragStartLeft = 0
+
+function startDrag(e) {
+  isDragging = true
+  dragStartX = e.clientX
+  dragStartLeft = leftPct.value
+
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+function onDrag(e) {
+  if (!isDragging || !splitContainerRef.value) return
+  const containerWidth = splitContainerRef.value.offsetWidth
+  const deltaX = e.clientX - dragStartX
+  const deltaPct = (deltaX / containerWidth) * 100
+  leftPct.value = Math.min(75, Math.max(25, dragStartLeft + deltaPct))
+}
+
+function stopDrag() {
+  isDragging = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
+
+onUnmounted(() => {
+  stopDrag()
+  if (pdfObjectUrl.value) {
+    URL.revokeObjectURL(pdfObjectUrl.value)
+  }
+})
+
+// ──────────────────────────────────────────
 
 function triggerFileInput() {
   fileInputRef.value?.click()
@@ -181,6 +343,15 @@ function resetUpload() {
   selectedFile.value = null
   currentStep.value = 0
   parseError.value = ''
+  splitView.value = false
+  rawTexts.value = {}
+  verifyResults.value = {}
+  verifySummary.value = null
+  verifying.value = false
+  if (pdfObjectUrl.value) {
+    URL.revokeObjectURL(pdfObjectUrl.value)
+    pdfObjectUrl.value = null
+  }
   if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
@@ -208,6 +379,12 @@ async function startParsing(file) {
   step.value = 'parsing'
   currentStep.value = 0
   parseError.value = ''
+
+  // PDF인 경우 Object URL 미리 생성 (비교 뷰용)
+  if (file.name.toLowerCase().endsWith('.pdf')) {
+    if (pdfObjectUrl.value) URL.revokeObjectURL(pdfObjectUrl.value)
+    pdfObjectUrl.value = URL.createObjectURL(file)
+  }
 
   try {
     const ext = file.name.split('.').pop().toLowerCase()
@@ -241,6 +418,11 @@ async function startParsing(file) {
 
     parsedProblems.value = problems
     step.value = 'review'
+
+    if (ext === 'pdf') {
+      splitView.value = true
+      verifyParsing() // 백그라운드로 자동 실행
+    }
 
   } catch (e) {
     parseError.value = e.message || '파싱 중 오류가 발생했습니다.'
@@ -280,7 +462,9 @@ function readFile(file, ext) {
 // ──────────────────────────────────────────
 async function parseWithAI(base64Data, fileName) {
   const res = await api.post('/admin/parse-pdf', { base64Data }, { timeout: 120000 }) // 2분
-  const parsed = res.data
+  const result = res.data?.data || res.data
+  const parsed = result?.problems || (Array.isArray(result) ? result : null)
+  rawTexts.value = result?.rawTexts || {}
 
   if (!Array.isArray(parsed)) throw new Error('AI가 올바른 형식으로 응답하지 않았습니다.')
 
@@ -303,27 +487,32 @@ async function parseWithAI(base64Data, fileName) {
 }
 
 // ──────────────────────────────────────────
-// xlsx 파싱 (SheetJS CDN)
+// XLSX 파싱
 // ──────────────────────────────────────────
 async function parseXlsx(base64Data) {
   if (!window.XLSX) {
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')
   }
-  const workbook = window.XLSX.read(base64Data, { type: 'base64' })
-  const sheet = workbook.Sheets[workbook.SheetNames[0]]
-  const rows = window.XLSX.utils.sheet_to_json(sheet, { defval: '' })
+  const binary = atob(base64Data)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  const wb = window.XLSX.read(bytes, { type: 'array' })
+  const ws = wb.Sheets[wb.SheetNames[0]]
+  const rows = window.XLSX.utils.sheet_to_json(ws, { defval: '' })
 
   return rows.map((r, i) => ({
     row: i + 1,
-    subject: r['과목'] || r['subject'] || '수학',
-    grade: r['학년'] || r['grade'] || '',
-    unitName: r['단원'] || r['unitName'] || r['unit'] || '',
-    questionText: r['문제'] || r['questionText'] || r['question'] || '',
-    problemType: r['유형'] === '객관식' ? 'MULTIPLE_CHOICE' : (r['problemType'] || 'SHORT_ANSWER'),
-    level: r['레벨'] || r['level'] || '',
-    answer: String(r['정답'] ?? r['answer'] ?? ''),
-    explanation: r['해설'] || r['explanation'] || '',
+    subject: r.subject || r['과목'] || '수학',
+    grade: normalizeGrade(r.grade || r['학년']),
+    unitName: r.unitName || r['단원'] || '',
+    questionText: r.questionText || r['문제'] || '',
+    problemType: r.problemType || r['유형'] || 'SHORT_ANSWER',
+    level: r.level || r['레벨'] || '',
+    answer: String(r.answer ?? r['정답'] ?? ''),
+    explanation: r.explanation || r['해설'] || '',
     options: [],
+    questionImgUrl: '',
+    passage: '',
     status: 'ok',
     errorMsg: null
   }))
@@ -334,45 +523,49 @@ async function parseXlsx(base64Data) {
 // ──────────────────────────────────────────
 function parseCSV(text) {
   const lines = text.trim().split('\n')
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
   return lines.slice(1).map((line, i) => {
-    const values = line.split(',').map(v => v.trim().replace(/"/g, ''))
-    const r = Object.fromEntries(headers.map((h, j) => [h, values[j] || '']))
+    const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''))
+    const r = {}
+    headers.forEach((h, j) => { r[h] = vals[j] || '' })
     return {
       row: i + 1,
-      subject: r['과목'] || r['subject'] || '수학',
-      grade: r['학년'] || r['grade'] || '',
-      unitName: r['단원'] || r['unitName'] || '',
-      questionText: r['문제'] || r['questionText'] || '',
-      problemType: r['유형'] === '객관식' ? 'MULTIPLE_CHOICE' : (r['problemType'] || 'SHORT_ANSWER'),
-      level: r['레벨'] || r['level'] || '',
-      answer: r['정답'] || r['answer'] || '',
-      explanation: r['해설'] || r['explanation'] || '',
+      subject: r.subject || r['과목'] || '수학',
+      grade: normalizeGrade(r.grade || r['학년']),
+      unitName: r.unitName || r['단원'] || '',
+      questionText: r.questionText || r['문제'] || '',
+      problemType: r.problemType || r['유형'] || 'SHORT_ANSWER',
+      level: r.level || r['레벨'] || '',
+      answer: String(r.answer ?? r['정답'] ?? ''),
+      explanation: r.explanation || r['해설'] || '',
       options: [],
+      questionImgUrl: '',
+      passage: '',
       status: 'ok',
       errorMsg: null
     }
-  }).filter(p => p.questionText)
+  })
 }
 
 // ──────────────────────────────────────────
 // JSON 파싱
 // ──────────────────────────────────────────
 function parseJSON(text) {
-  let data
-  try { data = JSON.parse(text) } catch { throw new Error('JSON 형식이 올바르지 않습니다.') }
-  const arr = Array.isArray(data) ? data : data.problems || []
+  const data = JSON.parse(text)
+  const arr = Array.isArray(data) ? data : (data.problems || [])
   return arr.map((p, i) => ({
     row: i + 1,
     subject: p.subject || '수학',
-    grade: p.grade || '',
-    unitName: p.unitName || p.unit || '',
-    questionText: p.questionText || p.question || '',
+    grade: normalizeGrade(p.grade),
+    unitName: p.unitName || '',
+    questionText: p.questionText || '',
     problemType: p.problemType || 'SHORT_ANSWER',
     level: p.level || '',
     answer: String(p.answer ?? ''),
     explanation: p.explanation || '',
     options: p.options || [],
+    questionImgUrl: '',
+    passage: '',
     status: 'ok',
     errorMsg: null
   }))
@@ -392,6 +585,37 @@ function loadScript(src) {
 }
 
 // ──────────────────────────────────────────
+// AI 파싱 검증
+// ──────────────────────────────────────────
+async function verifyParsing() {
+  if (!rawTexts.value || Object.keys(rawTexts.value).length === 0) return
+  verifying.value = true
+  try {
+    const payload = {
+      problems: parsedProblems.value.map(p => ({
+        problemNo: String(p.row),
+        questionText: p.questionText,
+        options: p.options,
+        answer: p.answer
+      })),
+      rawTexts: rawTexts.value
+    }
+    const res = await api.post('/admin/verify-parsing', payload, { timeout: 60000 })
+    const data = res.data?.data
+    const map = {}
+    for (const r of (data?.results || [])) {
+      map[r.problemNo] = r
+    }
+    verifyResults.value = map
+    verifySummary.value = data?.summary || null
+  } catch (e) {
+    console.warn('AI 검증 실패:', e.message)
+  } finally {
+    verifying.value = false
+  }
+}
+
+// ──────────────────────────────────────────
 // 실제 배치 업로드 API 호출
 // ──────────────────────────────────────────
 async function confirmUpload() {
@@ -403,7 +627,6 @@ async function confirmUpload() {
 
   saving.value = true
   try {
-    // API 스펙에 맞게 변환
     const payload = validProblems.map(p => ({
       subject: p.subject,
       grade: p.grade,
@@ -563,6 +786,112 @@ async function confirmUpload() {
   }
 }
 
+// ──────────────────────────────────────────
+// 2분할 비교 뷰
+// ──────────────────────────────────────────
+.split-container {
+  display: flex;
+  height: calc(100vh - 220px);
+  min-height: 500px;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.split-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.split-pane-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: $bg-light;
+  border-bottom: 1px solid $border;
+  flex-shrink: 0;
+}
+
+.split-pane-title {
+  font-weight: 700;
+  font-size: $font-size-sm;
+  color: $text-primary;
+}
+
+.split-pane-filename,
+.split-pane-sub {
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.split-left {
+  border-right: none;
+
+  .pdf-iframe {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .pdf-loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $text-muted;
+    font-size: $font-size-sm;
+  }
+}
+
+.split-right {
+  .review-table-wrap {
+    flex: 1;
+    overflow: auto;
+    border-radius: 0;
+    border: none;
+  }
+}
+
+.splitter {
+  width: 8px;
+  background: $border;
+  cursor: col-resize;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+
+  &:hover {
+    background: $primary-light;
+
+    .splitter-handle span {
+      background: white;
+    }
+  }
+
+  .splitter-handle {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    span {
+      display: block;
+      width: 2px;
+      height: 8px;
+      background: $text-muted;
+      border-radius: 1px;
+      transition: background 0.15s;
+    }
+  }
+}
+
+// ──────────────────────────────────────────
+
 .review-table-wrap {
   overflow-x: auto;
   border-radius: $radius-md;
@@ -663,4 +992,15 @@ async function confirmUpload() {
 
 .text-success { color: $success !important; }
 .text-danger { color: $danger !important; }
+
+.verify-banner {
+  padding: 12px 16px;
+  border-radius: $radius-md;
+  margin-bottom: 12px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+}
+.verify-loading { background: #EFF6FF; color: #1D4ED8; }
+.verify-ok { background: #F0FDF4; color: #15803D; }
+.verify-warn { background: #FFFBEB; color: #B45309; }
 </style>

@@ -13,10 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -350,13 +349,40 @@ public class StudentService {
         int totalCorrect = sessions.stream().mapToInt(s -> s.getCorrectCount() != null ? s.getCorrectCount() : 0).sum();
         double accuracy = totalSolved > 0 ? Math.round((double) totalCorrect / totalSolved * 100.0) : 0;
 
+        // todaySolved / todayCorrect / todayAccuracy
+        LocalDate today = LocalDate.now();
+        List<LearningSession> todaySessions = sessions.stream()
+                .filter(s -> s.getStartedAt() != null && s.getStartedAt().toLocalDate().equals(today))
+                .collect(Collectors.toList());
+        int todaySolved = todaySessions.stream().mapToInt(s -> s.getSolvedCount() != null ? s.getSolvedCount() : 0).sum();
+        int todayCorrect = todaySessions.stream().mapToInt(s -> s.getCorrectCount() != null ? s.getCorrectCount() : 0).sum();
+        double todayAccuracy = todaySolved > 0 ? Math.round((double) todayCorrect / todaySolved * 100.0) : 0;
+
+        // todayTime: 오늘 세션의 완료시간 - 시작시간 합계 (초)
+        long todayTime = todaySessions.stream()
+                .filter(s -> s.getCompletedAt() != null)
+                .mapToLong(s -> java.time.Duration.between(s.getStartedAt(), s.getCompletedAt()).getSeconds())
+                .sum();
+
+        // streak: 오늘(또는 어제)부터 역순으로 연속 학습일 수
+        Set<LocalDate> studyDates = sessions.stream()
+                .filter(s -> s.getStartedAt() != null)
+                .map(s -> s.getStartedAt().toLocalDate())
+                .collect(Collectors.toSet());
+        int streak = 0;
+        LocalDate check = studyDates.contains(today) ? today : today.minusDays(1);
+        while (studyDates.contains(check)) {
+            streak++;
+            check = check.minusDays(1);
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("totalSolved", totalSolved);
         result.put("accuracy", accuracy);
-        result.put("streak", 0);
-        result.put("todaySolved", 0);
-        result.put("todayTime", 0);
-        result.put("todayAccuracy", accuracy);
+        result.put("streak", streak);
+        result.put("todaySolved", todaySolved);
+        result.put("todayTime", todayTime);
+        result.put("todayAccuracy", todayAccuracy);
         result.put("level", student.getStudentLevel() != null ? student.getStudentLevel() : "N/A");
         return result;
     }
@@ -370,7 +396,13 @@ public class StudentService {
             double acc = solved > 0 ? Math.round((double) correct / solved * 100.0) : 0;
             Map<String, Object> entry = new HashMap<>();
             entry.put("date", s.getStartedAt() != null ? s.getStartedAt().toLocalDate().toString() : "");
-            entry.put("subject", "종합");
+            String subject = "종합";
+            if (s.getAssignmentId() != null) {
+                subject = assignmentMapper.findById(s.getAssignmentId())
+                        .map(a -> a.getTitle() != null ? a.getTitle() : "종합")
+                        .orElse("종합");
+            }
+            entry.put("subject", subject);
             entry.put("problemCount", solved);
             entry.put("accuracy", (int) acc);
             entry.put("sessionId", s.getSessionId());

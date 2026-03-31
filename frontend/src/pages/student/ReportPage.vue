@@ -234,10 +234,17 @@
     <div class="card" style="margin-top: 24px;">
       <div class="card__header">
         <h3>학습 캘린더</h3>
-        <div class="calendar-nav">
-          <button @click="prevMonth">&lt;</button>
-          <span>{{ calYear }}년 {{ calMonth }}월</span>
-          <button @click="nextMonth">&gt;</button>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="cal-legend">
+            <span><i class="legend-dot high"></i>80%↑</span>
+            <span><i class="legend-dot mid"></i>50~79%</span>
+            <span><i class="legend-dot low"></i>49%↓</span>
+          </div>
+          <div class="calendar-nav">
+            <button @click="prevMonth">&lt;</button>
+            <span>{{ calYear }}년 {{ calMonth }}월</span>
+            <button @click="nextMonth">&gt;</button>
+          </div>
         </div>
       </div>
       <div class="calendar">
@@ -250,11 +257,17 @@
             'has-activity': cell.activity > 0,
             'today': cell.isToday,
             'is-sun': cell.dow === 0,
-            'is-sat': cell.dow === 6
+            'is-sat': cell.dow === 6,
+            'accuracy-high': cell.activity > 0 && cell.accuracyLevel === 'high',
+            'accuracy-mid': cell.activity > 0 && cell.accuracyLevel === 'mid',
+            'accuracy-low': cell.activity > 0 && cell.accuracyLevel === 'low'
           }]"
         >
           <span class="cal-date">{{ cell.date }}</span>
-          <span v-if="cell.activity > 0" class="cal-dot" :style="{ opacity: Math.min(cell.activity / 30, 1) }" />
+          <div v-if="cell.activity > 0" class="cal-activity">
+            <span class="cal-dot" />
+            <span class="cal-count">{{ cell.activity }}문제</span>
+          </div>
         </div>
       </div>
     </div>
@@ -402,7 +415,25 @@ const calYear = ref(today.getFullYear())
 const calMonth = ref(today.getMonth() + 1)
 const weekDays = ['일', '월', '화', '수', '목', '금', '토']
 
-const activities = {}
+const activities = computed(() => {
+  const map = {}
+  for (const h of (historyData.value || [])) {
+    const [y, m, d] = h.date.split('-')
+    const key = `${parseInt(y)}-${parseInt(m)}-${parseInt(d)}`
+    if (!map[key]) map[key] = { count: 0, totalAccuracy: 0, sessions: 0 }
+    map[key].count += h.problemCount || 0
+    map[key].totalAccuracy += h.accuracy || 0
+    map[key].sessions += 1
+  }
+  const result = {}
+  for (const [key, val] of Object.entries(map)) {
+    result[key] = {
+      count: val.count,
+      accuracy: val.sessions > 0 ? Math.round(val.totalAccuracy / val.sessions) : 0
+    }
+  }
+  return result
+})
 
 const calCells = computed(() => {
   const firstDay = new Date(calYear.value, calMonth.value - 1, 1).getDay()
@@ -418,7 +449,9 @@ const calCells = computed(() => {
     const key = `${calYear.value}-${calMonth.value}-${d}`
     const isToday = calYear.value === today.getFullYear() && calMonth.value === today.getMonth() + 1 && d === today.getDate()
     const dow = new Date(calYear.value, calMonth.value - 1, d).getDay()
-    cells.push({ date: d, inMonth: true, activity: activities[key] || 0, isToday, dow })
+    const act = activities.value[key]
+    const accuracyLevel = act ? (act.accuracy >= 80 ? 'high' : act.accuracy >= 50 ? 'mid' : 'low') : ''
+    cells.push({ date: d, inMonth: true, activity: act?.count || 0, accuracy: act?.accuracy || 0, accuracyLevel, isToday, dow })
   }
 
   return cells
@@ -767,9 +800,10 @@ function nextMonth() {
   &.today.is-sun .cal-date,
   &.today.is-sat .cal-date { color: white !important; }
 
-  &.has-activity {
-    background: #EFF6FF;
-  }
+  &.has-activity { background: #EFF6FF; }
+  &.accuracy-high { background: #F0FDF4; }
+  &.accuracy-mid  { background: #FFFBEB; }
+  &.accuracy-low  { background: #FFF5F5; }
 
   .cal-date {
     font-size: $font-size-xs;
@@ -777,12 +811,49 @@ function nextMonth() {
     color: $text-primary;
   }
 
-  .cal-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: $primary-light;
+  .cal-activity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
     margin-top: auto;
   }
+
+  .cal-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .cal-count {
+    font-size: 10px;
+    color: $text-muted;
+    white-space: nowrap;
+  }
+}
+
+.accuracy-high .cal-dot { background: #22C55E; }
+.accuracy-mid  .cal-dot { background: #F59E0B; }
+.accuracy-low  .cal-dot { background: #EF4444; }
+
+.cal-legend {
+  display: flex;
+  gap: 12px;
+  font-size: $font-size-xs;
+  color: $text-muted;
+  align-items: center;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+
+  &.high { background: #22C55E; }
+  &.mid  { background: #F59E0B; }
+  &.low  { background: #EF4444; }
 }
 </style>

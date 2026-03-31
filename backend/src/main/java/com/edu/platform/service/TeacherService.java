@@ -21,10 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -209,13 +211,37 @@ public class TeacherService {
         List<Student> students = studentMapper.findBySchoolIdAll(teacher.getSchoolId());
         long activeAssignments = assignmentMapper.countByTeacherId(teacherId);
 
+        // avgCompletionRate, incompleteCount: 과제별 학생 진행률 집계
+        List<Assignment> assignments = assignmentMapper.findByTeacherId(teacherId, 0, 100);
+        List<Map<String, Object>> allProgress = new ArrayList<>();
+        for (Assignment a : assignments) {
+            allProgress.addAll(assignmentMapper.getStudentProgress(a.getAssignmentId()));
+        }
+        double avgCompletionRate = 0;
+        long incompleteCount = 0;
+        if (!allProgress.isEmpty()) {
+            long completedSum = allProgress.stream()
+                    .mapToLong(p -> p.get("completed") instanceof Number ? ((Number) p.get("completed")).longValue() : 0)
+                    .sum();
+            avgCompletionRate = Math.round(completedSum * 100.0 / allProgress.size());
+            incompleteCount = allProgress.stream()
+                    .filter(p -> {
+                        Object c = p.get("completed");
+                        return c == null || (c instanceof Number && ((Number) c).intValue() == 0);
+                    })
+                    .map(p -> p.get("studentId"))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .count();
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("studentCount", students.size());
         result.put("studentChange", "");
         result.put("activeAssignments", activeAssignments);
-        result.put("avgCompletionRate", 0);
+        result.put("avgCompletionRate", avgCompletionRate);
         result.put("completionChange", "");
-        result.put("incompleteCount", 0);
+        result.put("incompleteCount", incompleteCount);
         return result;
     }
 
@@ -362,7 +388,11 @@ public class TeacherService {
             entry.put("name", user != null ? user.getName() : "Unknown");
             entry.put("grade", s.getGrade() != null ? s.getGrade() : "");
             entry.put("level", s.getStudentLevel() != null ? s.getStudentLevel() : "N/A");
-            entry.put("lastLogin", "");
+            String lastLogin = "접속 기록 없음";
+            if (user != null && user.getLastLoginAt() != null) {
+                lastLogin = user.getLastLoginAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            }
+            entry.put("lastLogin", lastLogin);
             return entry;
         }).collect(Collectors.toList());
     }

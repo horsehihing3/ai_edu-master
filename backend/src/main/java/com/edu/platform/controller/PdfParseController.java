@@ -26,7 +26,7 @@ public class PdfParseController {
 
     @PostMapping("/parse-pdf")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> parsePdf(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> parsePdf(
             @RequestBody Map<String, String> body) {
 
         String base64Data = body.get("base64Data");
@@ -44,7 +44,15 @@ public class PdfParseController {
             // 1. 텍스트 파싱
             List<Map<String, Object>> problems = callAnthropicApi(base64Data);
 
-            // 2. 그림 영역 추출 및 S3 업로드 (비동기 처리 - 실패해도 파싱 결과는 반환)
+            // 2. 원본 텍스트 추출
+            Map<String, String> rawTexts = new LinkedHashMap<>();
+            try {
+                rawTexts = extractRawTexts(base64Data);
+            } catch (Exception rawEx) {
+                log.warn("원본 텍스트 추출 실패 (파싱 결과는 유지): {}", rawEx.getMessage());
+            }
+
+            // 3. 그림 영역 추출 및 S3 업로드 (비동기 처리 - 실패해도 파싱 결과는 반환)
             try {
                 Map<String, String> imageUrls = pdfImageExtractService.extractDiagramImages(base64Data);
                 // 문제번호 기준으로 imageUrl 매핑
@@ -64,11 +72,124 @@ public class PdfParseController {
                 log.warn("이미지 추출 실패 (파싱 결과는 유지): {}", imgEx.getMessage());
             }
 
-            return ResponseEntity.ok(ApiResponse.success(problems));
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("problems", problems);
+            result.put("rawTexts", rawTexts);
+
+            return ResponseEntity.ok(ApiResponse.success(result));
         } catch (Exception e) {
             log.error("PDF 파싱 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("PDF 파싱 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-parsing")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyParsing(
+            @RequestBody Map<String, Object> body) {
+
+        if (anthropicApiKey == null || anthropicApiKey.isBlank()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Anthropic API 키가 설정되지 않았습니다."));
+        }
+
+        try {
+            List<Map<String, Object>> problems = (List<Map<String, Object>>) body.get("problems");
+            Map<String, String> rawTexts = (Map<String, String>) body.get("rawTexts");
+
+            if (problems == null || problems.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("problems가 필요합니다."));
+            }
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String prompt = """
+                    아래는 수학 PDF 문제지의 원본 텍스트와 AI가 파싱한 결과입니다.
+                    각 문제별로 원본과 파싱 결과를 비교하여 불일치 항목을 찾아주세요.
+
+                    특히 아래 항목을 중점 체크하세요:
+                    - 수학 기호 오류: √, ², ³, ≤, ≥, ∞ 등이 다른 문자로 바뀐 경우
+                    - 숫자/변수 혼동: 알파벳 변수(A,B,x,y)가 숫자로 바뀐 경우
+                    - 선택지 누락 또는 변형
+                    - 문제 텍스트 일부 누락
+
+                    [원본 텍스트]
+                    %s
+
+                    [파싱 결과]
+                    %s
+
+                    JSON 배열로만 응답하세요:
+                    [{"problemNo":"1","match":true,"issues":[]}, {"problemNo":"2","match":false,"issues":["구체적불일치내용"]}]
+                    """.formatted(
+                            mapper.writeValueAsString(rawTexts != null ? rawTexts : Map.of()),
+                            mapper.writeValueAsString(problems)
+                    );
+
+            Map<String, Object> requestBody = new LinkedHashMap<>();
+            requestBody.put("model", "claude-sonnet-4-20250514");
+            requestBody.put("max_tokens", 4096);
+
+            Map<String, Object> textContent = new LinkedHashMap<>();
+            textContent.put("type", "text");
+            textContent.put("text", prompt);
+
+            Map<String, Object> message = new LinkedHashMap<>();
+            message.put("role", "user");
+            message.put("content", List.of(textContent));
+
+            requestBody.put("messages", List.of(message));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("x-api-key", anthropicApiKey);
+            headers.set("anthropic-version", "2023-06-01");
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    "https://api.anthropic.com/v1/messages",
+                    HttpMethod.POST,
+                    entity,
+                    Map.class
+            );
+
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody == null) throw new RuntimeException("검증 API 응답이 비어있습니다.");
+
+            List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+            if (content == null || content.isEmpty()) throw new RuntimeException("검증 응답 content가 없습니다.");
+
+            String text = content.stream()
+                    .filter(c -> "text".equals(c.get("type")))
+                    .map(c -> (String) c.get("text"))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("검증 텍스트 응답이 없습니다."));
+
+            String cleaned = text.replaceAll("```json", "").replaceAll("```", "").trim();
+
+            List<Map<String, Object>> results = mapper.readValue(cleaned,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+
+            long matched = results.stream().filter(r -> Boolean.TRUE.equals(r.get("match"))).count();
+            long mismatched = results.size() - matched;
+
+            Map<String, Object> summary = new LinkedHashMap<>();
+            summary.put("total", results.size());
+            summary.put("matched", matched);
+            summary.put("mismatched", mismatched);
+
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("results", results);
+            result.put("summary", summary);
+
+            return ResponseEntity.ok(ApiResponse.success(result));
+
+        } catch (Exception e) {
+            log.error("파싱 검증 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("파싱 검증 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
 
@@ -190,6 +311,70 @@ public class PdfParseController {
         } catch (Exception e) {
             log.error("JSON 파싱 실패. AI 응답: {}", cleaned);
             throw new RuntimeException("AI 응답을 JSON으로 파싱할 수 없습니다.");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> extractRawTexts(String base64Data) {
+        String prompt = "이 PDF에서 각 문제의 원본 텍스트를 문제번호 기준으로 추출하세요. JSON 형식으로만 응답: {\"1\": \"원본텍스트\", \"2\": \"원본텍스트\", ...}";
+
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("model", "claude-sonnet-4-20250514");
+        requestBody.put("max_tokens", 4096);
+
+        Map<String, Object> documentContent = new LinkedHashMap<>();
+        documentContent.put("type", "document");
+        Map<String, Object> source = new LinkedHashMap<>();
+        source.put("type", "base64");
+        source.put("media_type", "application/pdf");
+        source.put("data", base64Data);
+        documentContent.put("source", source);
+
+        Map<String, Object> textContent = new LinkedHashMap<>();
+        textContent.put("type", "text");
+        textContent.put("text", prompt);
+
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("role", "user");
+        message.put("content", List.of(documentContent, textContent));
+
+        requestBody.put("messages", List.of(message));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-api-key", anthropicApiKey);
+        headers.set("anthropic-version", "2023-06-01");
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "https://api.anthropic.com/v1/messages",
+                HttpMethod.POST,
+                entity,
+                Map.class
+        );
+
+        Map<String, Object> responseBody = response.getBody();
+        if (responseBody == null) throw new RuntimeException("원본 텍스트 추출 API 응답이 비어있습니다.");
+
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+        if (content == null || content.isEmpty()) throw new RuntimeException("원본 텍스트 추출 응답이 없습니다.");
+
+        String text = content.stream()
+                .filter(c -> "text".equals(c.get("type")))
+                .map(c -> (String) c.get("text"))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("원본 텍스트 추출 텍스트 응답이 없습니다."));
+
+        String cleaned = text.replaceAll("```json", "").replaceAll("```", "").trim();
+
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        try {
+            return mapper.readValue(cleaned,
+                    mapper.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, String.class));
+        } catch (Exception e) {
+            log.error("원본 텍스트 JSON 파싱 실패. AI 응답: {}", cleaned);
+            throw new RuntimeException("원본 텍스트 응답을 JSON으로 파싱할 수 없습니다.");
         }
     }
 }
