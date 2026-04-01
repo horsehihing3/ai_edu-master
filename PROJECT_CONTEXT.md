@@ -9,9 +9,13 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 ## ⚡ 다음 세션 작업 (우선순위 순)
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
 - [ ] Anthropic API 크레딧 충전 후 — PDF AI 재검증 기능 테스트 (`/admin/verify-parsing`)
-- [ ] '이해했어요 / 아직 모르겠어요' 피드백 버튼 구현 (학습 데이터 수집용)
-- [ ] 회원 탈퇴 (사유 선택 + 확인 모달)
-- [ ] 어드민 비밀번호 초기화 이메일 발송 (`AdminService.java:109`)
+- [ ] 학생 초대 (교사-학생 매칭 방식 클라이언트 확정 후)
+- [ ] PG 연동 / 구독
+
+## ✅ 이번 세션 완료
+- [x] 어드민 비밀번호 초기화 이메일 발송 — EmailService.sendTempPasswordEmail() + MemberListPage API 연동
+- [x] 교사 리포트 CSV 내보내기 — GET /teacher/students/export, StudentListPage 버튼
+- [x] 등급별 분포 차트 — TeacherAnalyticsPage SVG 도넛 파이차트 (외부 라이브러리 없음)
 
 ---
 
