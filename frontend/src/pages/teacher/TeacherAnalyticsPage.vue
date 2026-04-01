@@ -23,13 +23,33 @@
       <!-- 레벨별 학생 분포 -->
       <div class="card">
         <div class="card__header"><h3>레벨별 학생 분포</h3></div>
-        <div class="level-bars">
-          <div v-for="l in levelDist" :key="l.level" class="level-bar-row">
-            <span class="level-label">{{ l.level }}레벨</span>
-            <div class="bar-track">
-              <div class="bar-fill" :style="{ width: l.pct + '%', background: l.color }" />
+        <div class="level-dist-wrap">
+          <!-- SVG 파이차트 -->
+          <div class="pie-wrap">
+            <svg viewBox="0 0 100 100" width="140" height="140">
+              <template v-for="(slice, i) in pieSlices" :key="i">
+                <path :d="slice.d" :fill="slice.color" />
+              </template>
+              <circle cx="50" cy="50" r="28" fill="white" />
+              <text x="50" y="47" text-anchor="middle" font-size="10" font-weight="700" fill="#1F2937">전체</text>
+              <text x="50" y="59" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2937">{{ totalStudentCount }}명</text>
+            </svg>
+            <div class="pie-legend">
+              <div v-for="l in levelDist" :key="l.level" class="pie-legend-item">
+                <span class="pie-dot" :style="{ background: l.color }" />
+                <span>{{ l.level }}레벨</span>
+              </div>
             </div>
-            <span class="bar-count">{{ l.count }}명 ({{ l.pct }}%)</span>
+          </div>
+          <!-- 바차트 -->
+          <div class="level-bars">
+            <div v-for="l in levelDist" :key="l.level" class="level-bar-row">
+              <span class="level-label">{{ l.level }}레벨</span>
+              <div class="bar-track">
+                <div class="bar-fill" :style="{ width: l.pct + '%', background: l.color }" />
+              </div>
+              <span class="bar-count">{{ l.count }}명 ({{ l.pct }}%)</span>
+            </div>
           </div>
         </div>
       </div>
@@ -99,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/utils/api'
 
 const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -115,6 +135,27 @@ const kpis = ref([
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>` }
 ])
 const levelDist = ref([])
+
+// [2026-04-01] SVG 파이차트 슬라이스 계산
+const totalStudentCount = computed(() => levelDist.value.reduce((sum, l) => sum + (l.count || 0), 0))
+const pieSlices = computed(() => {
+  const total = totalStudentCount.value
+  if (total === 0) return []
+  let startAngle = -Math.PI / 2
+  return levelDist.value.map(l => {
+    const angle = (l.count / total) * 2 * Math.PI
+    const endAngle = startAngle + angle
+    const x1 = 50 + 50 * Math.cos(startAngle)
+    const y1 = 50 + 50 * Math.sin(startAngle)
+    const x2 = 50 + 50 * Math.cos(endAngle)
+    const y2 = 50 + 50 * Math.sin(endAngle)
+    const largeArc = angle > Math.PI ? 1 : 0
+    const d = `M50,50 L${x1},${y1} A50,50 0 ${largeArc},1 ${x2},${y2} Z`
+    startAngle = endAngle
+    return { d, color: l.color }
+  })
+})
+
 const subjectStats = ref([])
 const weeklyData = ref([])
 const studentStats = ref([])
@@ -207,6 +248,43 @@ onMounted(async () => {
 .table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.level-dist-wrap {
+  display: flex;
+  align-items: center;
+  gap: $spacing-6;
+  padding: $spacing-2 0;
+
+  @media (max-width: $bp-tablet) { flex-direction: column; }
+}
+
+.pie-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-3;
+  flex-shrink: 0;
+}
+
+.pie-legend {
+  display: flex;
+  gap: $spacing-3;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-1;
+  font-size: $font-size-xs;
+  color: $text-secondary;
+}
+
+.pie-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .level-bars, .subject-bars {
