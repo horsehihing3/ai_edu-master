@@ -91,7 +91,7 @@ async function fetchMembers() {
     if (filterStatus.value) params.status = filterStatus.value
     const res = await api.get('/admin/users', { params })
     members.value = (res.data?.content || res.data || []).map(m => ({
-      id: m.userId, name: m.name, email: m.email, role: m.role,
+      id: m.userId, userId: m.userId, name: m.name, email: m.email, role: m.role,
       status: m.isActive ? 'ACTIVE' : 'INACTIVE', joinedAt: m.createdAt?.slice(0,10)
     }))
     totalPages.value = res.data?.totalPages || 1
@@ -108,8 +108,14 @@ function roleLabel(v) {
 }
 
 async function resetPassword(member) {
-  const ok = await dialog.confirm(`${member.name}의 비밀번호를 초기화하시겠습니까?`)
-  if (ok) success(`${member.name}의 비밀번호를 초기화했습니다.`)
+  const ok = await dialog.confirm(`${member.name}의 비밀번호를 초기화하시겠습니까?\n임시 비밀번호가 이메일로 발송됩니다.`)
+  if (!ok) return
+  try {
+    await api.post(`/admin/users/${member.userId}/password/reset`)
+    success(`${member.name}의 비밀번호를 초기화했습니다. 이메일로 임시 비밀번호가 발송됩니다.`)
+  } catch (e) {
+    error('비밀번호 초기화에 실패했습니다.')
+  }
 }
 
 function toggleStatus(member) {

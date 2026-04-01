@@ -41,6 +41,7 @@ public class AdminService {
     private final LearningSessionMapper learningSessionMapper;
     private final InquiryMapper inquiryMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public AdminDashboardDto getDashboard() {
@@ -101,13 +102,19 @@ public class AdminService {
 
     @Transactional
     public void resetUserPassword(Long userId) {
-        userMapper.findById(userId)
+        User user = userMapper.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         String tempPassword = UUID.randomUUID().toString().substring(0, 12);
         userMapper.updatePassword(userId, passwordEncoder.encode(tempPassword));
 
-        // TODO: 이메일로 임시 비밀번호 발송
+        // [2026-04-01] 임시 비밀번호 이메일 발송
+        try {
+            emailService.sendTempPasswordEmail(user.getEmail(), tempPassword, user.getName());
+        } catch (Exception e) {
+            log.warn("Failed to send temp password email to {}: {}", user.getEmail(), e.getMessage());
+            // 이메일 실패해도 비밀번호는 이미 변경됨 — 트랜잭션 롤백 불필요
+        }
         log.info("Password reset for user: {}", userId);
     }
 
