@@ -15,6 +15,8 @@ import com.edu.platform.service.ProblemService;
 import com.edu.platform.service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -70,6 +72,19 @@ public class TeacherController {
         Long userId = getUserId(userDetails);
         Teacher teacher = getTeacher(userId);
         return ResponseEntity.ok(ApiResponse.success(teacherService.getIncompleteStudents(teacher.getTeacherId(), size)));
+    }
+
+    // [2026-04-01] 학생 리포트 CSV 내보내기
+    @GetMapping("/students/export")
+    public ResponseEntity<byte[]> exportStudents(@AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getUserId(userDetails);
+        Teacher teacher = getTeacher(userId);
+        String csv = teacherService.exportStudentsCsv(teacher.getTeacherId());
+        byte[] bytes = csv.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"students_report.csv\"")
+                .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+                .body(bytes);
     }
 
     @GetMapping("/students")

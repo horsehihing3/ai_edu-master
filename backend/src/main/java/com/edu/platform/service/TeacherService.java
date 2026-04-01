@@ -43,6 +43,41 @@ public class TeacherService {
     private final LearningSessionMapper learningSessionMapper;
     private final NotificationMapper notificationMapper;
 
+    // [2026-04-01] 학생 리포트 CSV 내보내기
+    @Transactional(readOnly = true)
+    public String exportStudentsCsv(Long teacherId) {
+        Teacher teacher = teacherMapper.findById(teacherId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TEACHER_NOT_FOUND));
+
+        List<Map<String, Object>> students = studentMapper.getListWithStats(teacher.getSchoolId(), 0, Integer.MAX_VALUE);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\uFEFF"); // BOM for Excel UTF-8
+        sb.append("이름,이메일,학년,등급,총 과제,완료 과제,완료율(%),정답률(%),최근 학습일\n");
+
+        for (Map<String, Object> s : students) {
+            sb.append(esc(s.get("name"))).append(",");
+            sb.append(esc(s.get("email"))).append(",");
+            sb.append(esc(s.get("grade"))).append(",");
+            sb.append(esc(s.get("studentLevel"))).append(",");
+            sb.append(esc(s.get("totalAssignments"))).append(",");
+            sb.append(esc(s.get("completedAssignments"))).append(",");
+            sb.append(esc(s.get("completionRate"))).append(",");
+            sb.append(esc(s.get("accuracy"))).append(",");
+            sb.append(esc(s.get("lastStudy"))).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String esc(Object val) {
+        if (val == null) return "";
+        String s = val.toString();
+        if (s.contains(",") || s.contains("\"") || s.contains("\n")) {
+            return "\"" + s.replace("\"", "\"\"") + "\"";
+        }
+        return s;
+    }
+
     @Transactional(readOnly = true)
     public PageResponse<Map<String, Object>> getClassStudents(Long teacherId, int page, int size) {
         Teacher teacher = teacherMapper.findById(teacherId)

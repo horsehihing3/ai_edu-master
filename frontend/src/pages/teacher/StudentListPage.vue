@@ -1,6 +1,11 @@
 <template>
   <div class="student-list-page">
-    <div class="page-header"><h1>학생 관리</h1></div>
+    <div class="page-header">
+      <h1>학생 관리</h1>
+      <button class="btn btn-secondary btn-sm" :disabled="exporting" @click="exportCsv">
+        {{ exporting ? '내보내는 중...' : 'CSV 내보내기' }}
+      </button>
+    </div>
 
     <div class="filter-bar">
       <input v-model="search" class="form-control" placeholder="학생 이름 검색..." style="width:220px;" />
@@ -65,8 +70,27 @@ const columns = [
 ]
 
 const students = ref([])
+const exporting = ref(false)
 
 const filteredStudents = computed(() => students.value)
+
+// [2026-04-01] CSV 내보내기
+async function exportCsv() {
+  exporting.value = true
+  try {
+    const res = await api.get('/teacher/students/export', { responseType: 'blob' })
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv;charset=utf-8;' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `students_report_${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    alert('CSV 내보내기에 실패했습니다.')
+  } finally {
+    exporting.value = false
+  }
+}
 
 async function fetchStudents() {
   loading.value = true
@@ -92,6 +116,13 @@ onMounted(fetchStudents)
 </script>
 
 <style scoped lang="scss">
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-5;
+}
+
 .filter-bar {
   display: flex;
   gap: $spacing-3;
