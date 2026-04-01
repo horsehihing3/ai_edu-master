@@ -11,8 +11,10 @@ import com.edu.platform.dto.teacher.AssignmentListDto;
 import com.edu.platform.dto.teacher.UpdateAssignmentRequest;
 import com.edu.platform.exception.BusinessException;
 import com.edu.platform.exception.ErrorCode;
+import com.edu.platform.domain.Notification;
 import com.edu.platform.mapper.AssignmentMapper;
 import com.edu.platform.mapper.LearningSessionMapper;
+import com.edu.platform.mapper.NotificationMapper;
 import com.edu.platform.mapper.StudentMapper;
 import com.edu.platform.mapper.TeacherMapper;
 import com.edu.platform.mapper.UserMapper;
@@ -39,6 +41,7 @@ public class TeacherService {
     private final UserMapper userMapper;
     private final AssignmentMapper assignmentMapper;
     private final LearningSessionMapper learningSessionMapper;
+    private final NotificationMapper notificationMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<Map<String, Object>> getClassStudents(Long teacherId, int page, int size) {
@@ -79,10 +82,26 @@ public class TeacherService {
             }
         }
 
-        // 학생 배정
+        // 학생 배정 + 인앱 알림 발송 [2026-04-01]
         if (request.getStudentIds() != null) {
+            User teacherUser = userMapper.findById(teacher.getUserId())
+                    .orElse(null);
+            Long senderUserId = teacherUser != null ? teacherUser.getUserId() : null;
+
             for (Long studentId : request.getStudentIds()) {
                 assignmentMapper.insertTarget(assignment.getAssignmentId(), null, studentId);
+
+                Student student = studentMapper.findById(studentId).orElse(null);
+                if (student == null) continue;
+
+                notificationMapper.insert(Notification.builder()
+                        .userId(student.getUserId())
+                        .senderId(senderUserId)
+                        .notiType("ASSIGNMENT")
+                        .title("새 과제가 배정되었습니다")
+                        .content(assignment.getTitle())
+                        .linkUrl("/student/learn")
+                        .build());
             }
         }
 
@@ -328,8 +347,14 @@ public class TeacherService {
         int totalSolved  = sessions.stream().mapToInt(s -> s.getSolvedCount()  != null ? s.getSolvedCount()  : 0).sum();
         int totalCorrect = sessions.stream().mapToInt(s -> s.getCorrectCount() != null ? s.getCorrectCount() : 0).sum();
         long accuracy = totalSolved > 0 ? Math.round((double) totalCorrect / totalSolved * 100) : 0;
-        long completed = sessions.stream().filter(s -> "COMPLETED".equals(s.getStatus())).count();
-        long completionRate = !sessions.isEmpty() ? Math.round((double) completed / sessions.size() * 100) : 0;
+        // [2026-04-01] 과제 완료율 100% 초과 버그 수정 — 세션 수가 아닌 과제 수 기준으로 계산
+        // 동일 과제에 세션이 여러 개 있을 수 있으므로 assignment_id 단위로 중복 제거
+        long totalAssignments = assignmentMapper.findByStudentId(studentId).size();
+        long completedAssignments = sessions.stream()
+                .filter(s -> s.getAssignmentId() != null && "COMPLETED".equals(s.getStatus()))
+                .map(LearningSession::getAssignmentId)
+                .distinct().count();
+        long completionRate = totalAssignments > 0 ? Math.round((double) completedAssignments / totalAssignments * 100) : 0;
         long studyDays = sessions.stream()
                 .filter(s -> s.getStartedAt() != null)
                 .map(s -> s.getStartedAt().toLocalDate())

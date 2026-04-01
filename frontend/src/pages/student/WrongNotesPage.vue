@@ -52,7 +52,7 @@
             @click="toggleResolve(item)"
           >{{ item.isResolved ? '해결됨' : '미해결' }}</button>
           <button class="btn btn-secondary btn-sm" @click="deleteItem(item.id)">삭제</button>
-          <button class="video-link-btn" @click="goToVideo(item.problemId)">
+          <button v-if="item.hasVideo" class="video-link-btn" @click="goToVideo(item.problemId)">
             🎬 관련 영상 보기
           </button>
         </div>
@@ -119,7 +119,7 @@ watch(filterSubject, () => { filterUnit.value = '' })
 async function fetchWrongNotes() {
   try {
     const res = await api.get('/student/wrong-notes', { params: { page: 0, size: 50 } })
-    items.value = (res.data?.content || res.data || []).map(w => ({
+    const rawItems = (res.data?.content || res.data || []).map(w => ({
       id: w.wrongNoteId ?? w.id,
       problemId: w.problemId,
       subject: w.subject,
@@ -127,7 +127,25 @@ async function fetchWrongNotes() {
       level: w.level,
       questionText: w.questionText,
       isResolved: w.isResolved ?? false,
-      createdAt: w.createdAt
+      createdAt: w.createdAt,
+      hasVideo: false
+    }))
+
+    // [2026-04-01] 요건정의서: 관련 영상이 있는 문제에만 영상보기 버튼 노출
+    const uniqueProblemIds = [...new Set(rawItems.map(i => i.problemId).filter(Boolean))]
+    const results = await Promise.allSettled(
+      uniqueProblemIds.map(pid =>
+        api.get(`/videos/by-problem/${pid}`).then(r => ({ pid, hasVideo: !!(r.data?.videoId) }))
+      )
+    )
+    const videoMap = new Map()
+    results.forEach(r => {
+      if (r.status === 'fulfilled') videoMap.set(r.value.pid, r.value.hasVideo)
+    })
+
+    items.value = rawItems.map(item => ({
+      ...item,
+      hasVideo: videoMap.get(item.problemId) ?? false
     }))
   } catch {
     error('오답노트를 불러오지 못했습니다.')

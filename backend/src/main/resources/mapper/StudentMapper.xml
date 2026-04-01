@@ -92,6 +92,7 @@
                  JOIN users u ON s.user_id = u.user_id
                  LEFT JOIN assignment_targets at2 ON at2.student_id = s.student_id
                  LEFT JOIN learning_sessions ls ON ls.student_id = s.student_id
+                                               AND ls.assignment_id = at2.assignment_id
         WHERE s.school_id = #{schoolId}
         GROUP BY s.student_id
         ORDER BY u.name

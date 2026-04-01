@@ -102,6 +102,15 @@
         WHERE session_id = #{sessionId}
     </update>
 
+    <!-- [2026-04-01] 이해도 피드백 업데이트 -->
+    <update id="updateAttemptFeedback">
+        UPDATE problem_attempts
+        SET feedback_like = #{feedbackLike}
+        WHERE session_id = #{sessionId} AND problem_id = #{problemId}
+        ORDER BY attempted_at DESC
+        LIMIT 1
+    </update>
+
     <insert id="insertAttempt" useGeneratedKeys="true" keyProperty="attemptId">
         INSERT INTO problem_attempts (session_id, student_id, problem_id, submitted_answer,
             is_correct, time_spent_sec, is_bookmarked, requested_video, feedback_like, attempted_at)

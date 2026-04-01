@@ -119,6 +119,16 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.ANSWER_SUBMITTED, result));
     }
 
+    // [2026-04-01] 이해도 피드백 저장 (EASY=이해했어요, HARD=아직모르겠어요)
+    @PatchMapping("/sessions/{sessionId}/attempts/{problemId}/feedback")
+    public ResponseEntity<ApiResponse<Void>> updateFeedback(
+            @PathVariable Long sessionId,
+            @PathVariable Long problemId,
+            @RequestBody Map<String, String> body) {
+        studentService.updateAttemptFeedback(sessionId, problemId, body.get("feedbackLike"));
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
     @PutMapping("/sessions/{sessionId}/save")
     public ResponseEntity<ApiResponse<Void>> saveProgress(
             @PathVariable Long sessionId,

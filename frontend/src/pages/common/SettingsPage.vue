@@ -73,9 +73,32 @@
         <!-- 계정 탈퇴 -->
         <div v-if="activeTab === 'delete'" class="card danger-zone">
           <h3>계정 탈퇴</h3>
-          <p>계정을 탈퇴하면 모든 데이터가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</p>
+          <p class="danger-desc">탈퇴 후 모든 학습 데이터, 오답노트, 과제 이력이 삭제되며 <strong>되돌릴 수 없습니다.</strong></p>
+
+          <!-- 탈퇴 사유 선택 -->
+          <div class="withdraw-section">
+            <p class="withdraw-label">탈퇴 사유를 선택해주세요</p>
+            <div class="withdraw-reasons">
+              <label v-for="r in withdrawReasons" :key="r.value" class="reason-option">
+                <input type="radio" v-model="withdrawReason" :value="r.value" />
+                <span>{{ r.label }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 확인 체크박스 -->
+          <label class="withdraw-confirm-check">
+            <input type="checkbox" v-model="withdrawConfirmed" />
+            <span>위 내용을 확인했으며, 계정 탈퇴에 동의합니다.</span>
+          </label>
+
           <div class="form-actions">
-            <AppButton variant="danger" @click="deleteAccount">계정 탈퇴</AppButton>
+            <AppButton
+              variant="danger"
+              :disabled="!withdrawReason || !withdrawConfirmed"
+              :loading="saving"
+              @click="deleteAccount"
+            >탈퇴하기</AppButton>
           </div>
         </div>
       </div>
@@ -125,6 +148,17 @@ const profile = reactive({
 })
 
 const pw = reactive({ current: '', newPw: '', confirm: '' })
+
+// [2026-04-01] 회원 탈퇴
+const withdrawReason = ref('')
+const withdrawConfirmed = ref(false)
+const withdrawReasons = [
+  { value: 'NO_USE', label: '더 이상 서비스를 이용하지 않아요' },
+  { value: 'MOVE_SERVICE', label: '다른 서비스로 이동합니다' },
+  { value: 'PRIVACY', label: '개인정보 보호가 우려됩니다' },
+  { value: 'DISSATISFIED', label: '서비스에 불만족합니다' },
+  { value: 'ETC', label: '기타' }
+]
 
 const notifications = ref([
   { key: 'assignment', title: '과제 알림', desc: '새 과제가 배정될 때 알림을 받습니다.', enabled: true },
@@ -178,15 +212,22 @@ async function saveNotifications() {
   }
 }
 
+// [2026-04-01] 회원 탈퇴 — 사유 선택 + 확인 후 처리
 async function deleteAccount() {
-  const ok = await dialog.confirm('정말 계정을 탈퇴하시겠습니까?\n이 작업은 되돌릴 수 없습니다.', { type: 'danger', confirmText: '탈퇴하기' })
-  if (ok) {
-    try {
-      await api.delete('/settings/account')
-      logout()
-    } catch (e) {
-      error(e.message)
-    }
+  const ok = await dialog.confirm(
+    '정말 탈퇴하시겠습니까? 모든 데이터가 삭제되며 복구할 수 없습니다.',
+    { type: 'danger', confirmText: '최종 탈퇴' }
+  )
+  if (!ok) return
+  saving.value = true
+  try {
+    await api.delete('/settings/account', { data: { reason: withdrawReason.value } })
+    success('계정이 탈퇴되었습니다.')
+    await logout()
+  } catch (e) {
+    error('탈퇴 처리 중 오류가 발생했습니다.')
+  } finally {
+    saving.value = false
   }
 }
 </script>
@@ -340,12 +381,63 @@ async function deleteAccount() {
   border: 1px solid $danger;
 
   h3 { color: $danger; }
+}
 
-  p {
-    font-size: $font-size-sm;
-    color: $text-secondary;
-    margin-bottom: $spacing-5;
-    line-height: 1.6;
+.danger-desc {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-bottom: $spacing-5;
+  line-height: 1.6;
+}
+
+.withdraw-section {
+  margin-bottom: $spacing-5;
+}
+
+.withdraw-label {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: $spacing-3;
+}
+
+.withdraw-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.reason-option {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  cursor: pointer;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  transition: all $transition-fast;
+
+  &:has(input:checked) {
+    border-color: $danger;
+    background: #FEF2F2;
+    color: $danger;
   }
+
+  input[type="radio"] { accent-color: $danger; }
+}
+
+.withdraw-confirm-check {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  cursor: pointer;
+  margin-bottom: $spacing-5;
+  line-height: 1.5;
+
+  input[type="checkbox"] { margin-top: 2px; accent-color: $danger; flex-shrink: 0; }
 }
 </style>

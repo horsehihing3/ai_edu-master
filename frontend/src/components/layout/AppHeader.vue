@@ -35,7 +35,7 @@
                 v-for="n in notifications.slice(0, 5)"
                 :key="n.id"
                 :class="['notify-item', { unread: !n.read }]"
-                @click="markAsRead(n.id)"
+                @click="handleNotifyClick(n)"
               >
                 <p class="notify-item__msg">{{ n.message }}</p>
                 <span class="notify-item__time">{{ formatTime(n.createdAt) }}</span>
@@ -75,6 +75,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onClickOutside } from '@vueuse/core'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useUiStore } from '@/store/ui'
 import { useNotificationStore } from '@/store/notification'
@@ -84,6 +85,7 @@ const authStore = useAuthStore()
 const uiStore = useUiStore()
 const notifStore = useNotificationStore()
 const { logout } = useAuth()
+const router = useRouter()
 
 const user = computed(() => authStore.user)
 const userInitial = computed(() => user.value?.name?.charAt(0) || 'U')
@@ -107,7 +109,11 @@ onClickOutside(userMenuRef, () => { userMenuOpen.value = false })
 function toggleNotify() { notifyOpen.value = !notifyOpen.value }
 function toggleUserMenu() { userMenuOpen.value = !userMenuOpen.value }
 
-function markAsRead(id) { notifStore.markAsRead(id) }
+async function handleNotifyClick(n) {
+  await notifStore.markAsRead(n.id)
+  notifyOpen.value = false
+  if (n.linkUrl) router.push(n.linkUrl)
+}
 function markAllRead() { notifStore.markAllRead() }
 
 async function handleLogout() {
@@ -198,9 +204,9 @@ function formatTime(dateStr) {
 }
 
 .notify-dropdown {
-  position: absolute;
-  top: calc(100% + $spacing-2);
-  right: 0;
+  position: fixed;
+  top: 60px;
+  right: 16px;
   width: 320px;
   background: $bg-white;
   border: 1px solid $border;

@@ -36,7 +36,7 @@ function hideToast(id) {
 <style scoped lang="scss">
 .toast-container {
   position: fixed;
-  top: $spacing-5;
+  top: 72px;
   right: $spacing-5;
   z-index: 9999;
   display: flex;

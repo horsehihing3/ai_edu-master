@@ -8,9 +8,10 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 
 ## ⚡ 다음 세션 작업 (우선순위 순)
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
-- [ ] 배정 완료 시 학생 인앱 알림 구현
-- [ ] 과제 완료율 100% 초과 버그 수정 (학습 세션 중복 카운트 문제)
 - [ ] Anthropic API 크레딧 충전 후 — PDF AI 재검증 기능 테스트 (`/admin/verify-parsing`)
+- [ ] '이해했어요 / 아직 모르겠어요' 피드백 버튼 구현 (학습 데이터 수집용)
+- [ ] 회원 탈퇴 (사유 선택 + 확인 모달)
+- [ ] 어드민 비밀번호 초기화 이메일 발송 (`AdminService.java:109`)
 
 ---
 
@@ -141,7 +142,7 @@ POST /student/sessions/start
 | `AWS_REGION` | `ap-northeast-2` — Machine 레벨 영구 등록 완료 | S3 연동 완료 |
 | `AWS_ACCESS_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | S3 업로드 동작 |
 | `AWS_SECRET_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | S3 업로드 동작 |
-| `ANTHROPIC_API_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | ⚠️ 크레딧 부족 — 충전 필요 |
+| `ANTHROPIC_API_KEY` | Machine 레벨 영구 등록 완료 (2026-03-26) | ⚠️ $6 크레딧 소진 (2026-04-01 확인) — 충전 필요 |
 | `CLOUDFRONT_DOMAIN` | 미설정 | CDN 미사용 |
 | `UPLOAD_PATH` | 기본값(`uploads/`) | 로컬 업로드는 동작 |
 
@@ -206,6 +207,7 @@ POST /student/sessions/start
 - [x] **월별 학습 달력** — `ReportPage.vue`. `/student/history` 데이터 연동. 날짜별 풀이수 + 정답률 3단계 색상 (🟢 80%↑ / 🟡 50~79% / 🔴 49%↓) + 범례 표시 (2026-03-31)
 - [x] **학생 홈 실제 데이터 연동** — `getDashboardStats()`. streak(연속 학습일), todaySolved(오늘 풀이수), todayTime(오늘 학습 시간), todayAccuracy 하드코딩 제거 → 실제 세션 데이터 계산 (2026-03-31)
 - [x] **학습 이력 과목명** — `getStudentHistory()`. 하드코딩 "종합" → `assignmentMapper.findById()`로 과제 title 조회. 과제 없는 세션은 "종합" (2026-03-31)
+- [x] **영상 시청 이력 저장** — `video_watch_history` 테이블, `VideoWatchHistoryMapper`, `POST /videos/{id}/watch`, `GET /videos/history`. source: DIRECT(영상 상세), WRONG_NOTE(오답노트 바로보기) (2026-03-30)
 
 ### 교사
 - [x] 홈 대시보드, 학생 목록·상세·레벨 변경
@@ -289,7 +291,7 @@ PDF 업로드(base64)
 ### 환경변수 (로컬 실행 시 필요 — Windows Machine 레벨 등록 권장)
 | 변수 | 용도 |
 |------|------|
-| `ANTHROPIC_API_KEY` | Claude AI 파싱 / Vision ⚠️ 크레딧 충전 필요 |
+| `ANTHROPIC_API_KEY` | Claude AI 파싱 / Vision ⚠️ $6 소진 (2026-04-01) — 재충전 필요 |
 | `AWS_ACCESS_KEY` | S3 업로드 |
 | `AWS_SECRET_KEY` | S3 업로드 |
 
@@ -345,15 +347,13 @@ ADD COLUMN duplicate_problem_id BIGINT NULL DEFAULT NULL COMMENT '중복 문제 
 ### 학생 — 기타
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 영상 시청 이력 저장 | VideoController.java:45 | 전체 조회수 카운터만 존재. user_id+video_id 매핑 테이블 및 Controller/Service/Mapper 미구현 |
-| 오답노트 → 영상 이력 연동 | WrongNotesPage.vue:180-182 | goToVideo()가 라우팅만 함. 이력 저장 API 호출 없음 |
-| 과제 완료율 100% 초과 버그 | 학습 세션 중복 카운트 추정 | 세션 완료 로직 점검 필요 |
+| 과제 완료율 100% 초과 버그 | `StudentMapper.xml`, `TeacherService.java` | ✅ 수정 완료 (2026-04-01) — JOIN 조건 누락 및 세션 수 기준 분모 오류 수정 |
 
 ### 교사 — 과제
 | 기능 | 위치 | 비고 |
 |------|------|------|
 | 등급별 자동 분리 배정 | `TeacherService.java` | A문제→A학생 자동 분리 로직 |
-| 배정 완료 시 학생 인앱 알림 | `TeacherService.java:142` | 알림 로직 미구현 |
+| 배정 완료 시 학생 인앱 알림 | `TeacherService.java` | ✅ 구현 완료 (2026-04-01) — 과제 생성 시 배정 학생에게 ASSIGNMENT 타입 알림 INSERT |
 | 과제 복사(재사용) 버튼 | - | 신규 |
 | 미완료 학생 개별 독려 알림 | - | 과제 상세 화면 |
 

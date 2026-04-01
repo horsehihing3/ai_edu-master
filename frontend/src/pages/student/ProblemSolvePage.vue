@@ -127,6 +127,21 @@
             </button>
           </div>
 
+          <!-- [2026-04-01] 이해도 피드백 버튼 -->
+          <div class="understanding-feedback">
+            <span class="feedback-label">이 문제를 이해했나요?</span>
+            <div class="feedback-btns">
+              <button
+                :class="['feedback-btn', 'feedback-btn--yes', { active: feedbackLike === 'EASY' }]"
+                @click="sendFeedback('EASY')"
+              >👍 이해했어요</button>
+              <button
+                :class="['feedback-btn', 'feedback-btn--no', { active: feedbackLike === 'HARD' }]"
+                @click="sendFeedback('HARD')"
+              >🤔 아직 모르겠어요</button>
+            </div>
+          </div>
+
           <!-- [2026-03-30] 오답 시 연결 영상 표시 -->
           <div v-if="isWrong" class="video-section">
             <div v-if="relatedVideo" class="video-btn-wrap">
@@ -242,6 +257,8 @@ const elapsed = ref(0)
 // [2026-03-30] 오답 시 연결 영상 연동
 const relatedVideo = ref(undefined)   // undefined: 미조회, null: 없음, object: 있음
 const showVideoModal = ref(false)
+// [2026-04-01] 이해도 피드백 (EASY=이해했어요, HARD=아직모르겠어요)
+const feedbackLike = ref(null)
 let timer = null
 // [2026-03-21] 문제별 소요 시간 측정
 let problemStartTime = Date.now()
@@ -300,6 +317,16 @@ async function submit() {
   } catch {}
 }
 
+// [2026-04-01] 이해도 피드백 전송
+async function sendFeedback(value) {
+  feedbackLike.value = value
+  try {
+    await api.patch(`/student/sessions/${sessionId.value}/attempts/${currentP.value.id}/feedback`, {
+      feedbackLike: value
+    })
+  } catch {}
+}
+
 // [2026-03-30] 임시저장 — currentIndex를 서버에 저장
 async function saveProgress() {
   if (!sessionId.value) return
@@ -321,6 +348,7 @@ function nextProblem() {
   // [2026-03-30] 다음 문제로 넘어갈 때 영상 상태 초기화 + 임시저장
   relatedVideo.value = undefined
   showVideoModal.value = false
+  feedbackLike.value = null
   saveProgress()
 }
 
@@ -761,5 +789,46 @@ onBeforeUnmount(async () => {
 }
 .video-modal-body {
   padding: 16px;
+}
+
+// [2026-04-01] 이해도 피드백
+.understanding-feedback {
+  margin-top: $spacing-4;
+  padding-top: $spacing-4;
+  border-top: 1px solid $border;
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  flex-wrap: wrap;
+}
+
+.feedback-label {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.feedback-btns {
+  display: flex;
+  gap: $spacing-2;
+}
+
+.feedback-btn {
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid $border;
+  background: $bg-white;
+  transition: all $transition-fast;
+
+  &--yes {
+    &:hover, &.active { background: #DCFCE7; border-color: #86EFAC; color: #15803D; }
+  }
+  &--no {
+    &:hover, &.active { background: #FEF3C7; border-color: #FCD34D; color: #92400E; }
+  }
 }
 </style>

@@ -25,6 +25,9 @@ public interface LearningSessionMapper {
     void update(LearningSession session);
     void updateStatus(@Param("sessionId") Long sessionId, @Param("status") String status);
     void insertAttempt(ProblemAttempt attempt);
+    void updateAttemptFeedback(@Param("sessionId") Long sessionId,
+                               @Param("problemId") Long problemId,
+                               @Param("feedbackLike") String feedbackLike);
     Optional<ProblemAttempt> findAttempt(@Param("sessionId") Long sessionId,
                                           @Param("problemId") Long problemId);
     List<ProblemAttempt> findAttemptsBySession(@Param("sessionId") Long sessionId);

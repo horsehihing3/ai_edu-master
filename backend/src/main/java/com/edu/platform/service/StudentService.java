@@ -248,6 +248,14 @@ public class StudentService {
         );
     }
 
+    // [2026-04-01] 이해도 피드백 저장 (EASY=이해했어요, HARD=아직모르겠어요)
+    @Transactional
+    public void updateAttemptFeedback(Long sessionId, Long problemId, String feedbackLike) {
+        learningSessionMapper.findById(sessionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
+        learningSessionMapper.updateAttemptFeedback(sessionId, problemId, feedbackLike);
+    }
+
     @Transactional
     public void saveSessionProgress(Long sessionId, Integer currentIndex) {
         LearningSession session = learningSessionMapper.findById(sessionId)

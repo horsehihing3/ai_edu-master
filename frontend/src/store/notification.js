@@ -10,7 +10,16 @@ export const useNotificationStore = defineStore('notification', () => {
     try {
       const response = await api.get('/notifications')
       const data = response.data
-      notifications.value = Array.isArray(data) ? data : (data?.content || [])
+      const raw = Array.isArray(data) ? data : (data?.content || [])
+      // [2026-04-01] API 필드 정규화 (notificationId→id, isRead→read, title+content→message)
+      notifications.value = raw.map(n => ({
+        id: n.notificationId ?? n.id,
+        message: n.title ? `${n.title}: ${n.content}` : (n.content ?? n.message ?? ''),
+        linkUrl: n.linkUrl,
+        read: n.isRead ?? n.read ?? false,
+        createdAt: n.createdAt,
+        notiType: n.notiType
+      }))
     } catch (e) {
       console.error('알림 조회 실패', e)
     }

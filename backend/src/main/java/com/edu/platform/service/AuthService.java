@@ -53,12 +53,16 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
+        // [2026-04-01] 탈퇴 계정 로그인 차단 — authenticate() 전에 체크해야 500 방지
+        User user = userMapper.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        if (user.getIsActive() != null && !user.getIsActive()) {
+            throw new BusinessException(ErrorCode.USER_INACTIVE);
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-
-        User user = userMapper.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         userMapper.updateLastLogin(user.getUserId());
 
