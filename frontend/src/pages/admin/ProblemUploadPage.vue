@@ -76,15 +76,6 @@
         </div>
       </div>
 
-      <!-- AI 검증 브리핑 -->
-      <div v-if="verifying" class="verify-banner verify-loading">
-        🤖 AI가 원본과 파싱 결과를 비교 중입니다...
-      </div>
-      <div v-else-if="verifySummary" :class="['verify-banner', verifySummary.mismatched > 0 ? 'verify-warn' : 'verify-ok']">
-        <span v-if="verifySummary.mismatched === 0">✅ AI 검증 완료 — 전체 {{ verifySummary.total }}문제 이상 없음</span>
-        <span v-else>⚠️ AI 검증 완료 — {{ verifySummary.mismatched }}개 문제에서 불일치 감지 (아래 ⚠️ 표시 확인)</span>
-      </div>
-
       <!-- 2분할 비교 뷰 (PDF + 파싱 결과) -->
       <div v-if="isPdf && splitView" class="split-container" ref="splitContainerRef">
         <!-- 좌측: PDF 원본 -->
@@ -136,11 +127,8 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(p, i) in parsedProblems" :key="i" :class="{ 'row-error': p.status === 'error' }" :title="verifyResults[String(p.row)]?.issues?.join(', ') || ''">
-                  <td>
-                    {{ i + 1 }}
-                    <span v-if="verifyResults[String(p.row)]?.match === false" title="AI 검증 불일치">⚠️</span>
-                  </td>
+                <tr v-for="(p, i) in parsedProblems" :key="i" :class="{ 'row-error': p.status === 'error' }">
+                  <td>{{ i + 1 }}</td>
                   <td><input v-model="p.subject" class="cell-input" /></td>
                   <td>
                     <select v-model="p.level" class="cell-select" @change="validateRow(p)">
@@ -191,11 +179,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(p, i) in parsedProblems" :key="i" :class="{ 'row-error': p.status === 'error' }" :title="verifyResults[String(p.row)]?.issues?.join(', ') || ''">
-              <td>
-                {{ i + 1 }}
-                <span v-if="verifyResults[String(p.row)]?.match === false" title="AI 검증 불일치">⚠️</span>
-              </td>
+            <tr v-for="(p, i) in parsedProblems" :key="i" :class="{ 'row-error': p.status === 'error' }">
+              <td>{{ i + 1 }}</td>
               <td><input v-model="p.subject" class="cell-input" /></td>
               <td>
                 <select v-model="p.level" class="cell-select" @change="validateRow(p)">
@@ -263,10 +248,6 @@ const fileInputRef = ref(null)
 const parsingSteps = ['파일 읽기', '형식 검증', 'AI 문제 파싱', '레벨 자동 분류', '최종 검토']
 
 const parsedProblems = ref([])
-const rawTexts = ref({})
-const verifyResults = ref({})
-const verifying = ref(false)
-const verifySummary = ref(null)
 
 const okCount = computed(() => parsedProblems.value.filter(p => p.status === 'ok').length)
 const errCount = computed(() => parsedProblems.value.filter(p => p.status === 'error').length)
@@ -344,10 +325,6 @@ function resetUpload() {
   currentStep.value = 0
   parseError.value = ''
   splitView.value = false
-  rawTexts.value = {}
-  verifyResults.value = {}
-  verifySummary.value = null
-  verifying.value = false
   if (pdfObjectUrl.value) {
     URL.revokeObjectURL(pdfObjectUrl.value)
     pdfObjectUrl.value = null
@@ -421,7 +398,6 @@ async function startParsing(file) {
 
     if (ext === 'pdf') {
       splitView.value = true
-      verifyParsing() // 백그라운드로 자동 실행
     }
 
   } catch (e) {
@@ -464,7 +440,6 @@ async function parseWithAI(base64Data, fileName) {
   const res = await api.post('/admin/parse-pdf', { base64Data }, { timeout: 120000 }) // 2분
   const result = res.data?.data || res.data
   const parsed = result?.problems || (Array.isArray(result) ? result : null)
-  rawTexts.value = result?.rawTexts || {}
 
   if (!Array.isArray(parsed)) throw new Error('AI가 올바른 형식으로 응답하지 않았습니다.')
 
@@ -582,37 +557,6 @@ function loadScript(src) {
     s.onerror = () => reject(new Error(`스크립트 로드 실패: ${src}`))
     document.head.appendChild(s)
   })
-}
-
-// ──────────────────────────────────────────
-// AI 파싱 검증
-// ──────────────────────────────────────────
-async function verifyParsing() {
-  if (!rawTexts.value || Object.keys(rawTexts.value).length === 0) return
-  verifying.value = true
-  try {
-    const payload = {
-      problems: parsedProblems.value.map(p => ({
-        problemNo: String(p.row),
-        questionText: p.questionText,
-        options: p.options,
-        answer: p.answer
-      })),
-      rawTexts: rawTexts.value
-    }
-    const res = await api.post('/admin/verify-parsing', payload, { timeout: 60000 })
-    const data = res.data?.data
-    const map = {}
-    for (const r of (data?.results || [])) {
-      map[r.problemNo] = r
-    }
-    verifyResults.value = map
-    verifySummary.value = data?.summary || null
-  } catch (e) {
-    console.warn('AI 검증 실패:', e.message)
-  } finally {
-    verifying.value = false
-  }
 }
 
 // ──────────────────────────────────────────
@@ -993,14 +937,4 @@ async function confirmUpload() {
 .text-success { color: $success !important; }
 .text-danger { color: $danger !important; }
 
-.verify-banner {
-  padding: 12px 16px;
-  border-radius: $radius-md;
-  margin-bottom: 12px;
-  font-size: $font-size-sm;
-  font-weight: 500;
-}
-.verify-loading { background: #EFF6FF; color: #1D4ED8; }
-.verify-ok { background: #F0FDF4; color: #15803D; }
-.verify-warn { background: #FFFBEB; color: #B45309; }
 </style>

@@ -11,9 +11,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import com.edu.platform.service.PdfImageExtractService;
 
@@ -49,15 +46,7 @@ public class PdfParseController {
             // 1. 텍스트 파싱
             List<Map<String, Object>> problems = callAnthropicApi(base64Data);
 
-            // 2. 원본 텍스트 추출
-            Map<String, String> rawTexts = new LinkedHashMap<>();
-            try {
-                rawTexts = extractRawTexts(base64Data);
-            } catch (Exception rawEx) {
-                log.warn("원본 텍스트 추출 실패 (파싱 결과는 유지): {}", rawEx.getMessage());
-            }
-
-            // 3. 그림 영역 추출 및 S3 업로드 (비동기 처리 - 실패해도 파싱 결과는 반환)
+            // 2. 그림 영역 추출 및 S3 업로드 (비동기 처리 - 실패해도 파싱 결과는 반환)
             try {
                 Map<String, String> imageUrls = pdfImageExtractService.extractDiagramImages(base64Data);
                 // 문제번호 기준으로 imageUrl 매핑
@@ -79,126 +68,12 @@ public class PdfParseController {
 
             Map<String, Object> result = new LinkedHashMap<>();
             result.put("problems", problems);
-            result.put("rawTexts", rawTexts);
 
             return ResponseEntity.ok(ApiResponse.success(result));
         } catch (Exception e) {
             log.error("PDF 파싱 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("PDF 파싱 중 오류가 발생했습니다: " + e.getMessage()));
-        }
-    }
-
-    @PostMapping("/verify-parsing")
-    @PreAuthorize("hasRole('ADMIN')")
-    @SuppressWarnings("unchecked")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyParsing(
-            @RequestBody Map<String, Object> body) {
-
-        if (anthropicApiKey == null || anthropicApiKey.isBlank()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Anthropic API 키가 설정되지 않았습니다."));
-        }
-
-        try {
-            List<Map<String, Object>> problems = (List<Map<String, Object>>) body.get("problems");
-            Map<String, String> rawTexts = (Map<String, String>) body.get("rawTexts");
-
-            if (problems == null || problems.isEmpty()) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("problems가 필요합니다."));
-            }
-
-            // [2026-04-03] 재검증 프롬프트: rawTexts가 페이지별 텍스트(PyMuPDF)임을 반영
-            ObjectMapper mapper = new ObjectMapper();
-            String prompt = """
-                    아래는 수학 PDF 문제지의 원본 텍스트(PyMuPDF로 추출한 페이지별 텍스트)와
-                    AI가 파싱한 결과입니다. 원본 텍스트를 참고해 파싱 결과의 오류를 검출하세요.
-
-                    ※ 원본 텍스트는 페이지 단위이므로 문제 번호로 직접 대응되지 않을 수 있습니다.
-                    ※ 수학 기호(√, ², ³, 분수 등)는 원본 텍스트에서 깨질 수 있으니 맥락으로 판단하세요.
-
-                    중점 검출 항목:
-                    - 문제 텍스트나 선택지의 명백한 누락 또는 추가
-                    - 숫자/변수 혼동: 알파벳 변수(A,B,x,y)가 숫자로 바뀐 경우
-                    - 선택지 개수 불일치 (객관식인데 선택지가 5개 미만)
-                    - 문제 번호 순서 오류
-
-                    [원본 텍스트 (페이지별)]
-                    %s
-
-                    [파싱 결과]
-                    %s
-
-                    JSON 배열로만 응답하세요 (파싱된 문제 순서 기준):
-                    [{"problemNo":"1","match":true,"issues":[]}, {"problemNo":"2","match":false,"issues":["선택지 4개여야 하는데 3개만 파싱됨"]}]
-                    """.formatted(
-                            mapper.writeValueAsString(rawTexts != null ? rawTexts : Map.of()),
-                            mapper.writeValueAsString(problems)
-                    );
-
-            Map<String, Object> requestBody = new LinkedHashMap<>();
-            requestBody.put("model", "claude-sonnet-4-20250514");
-            requestBody.put("max_tokens", 4096);
-
-            Map<String, Object> textContent = new LinkedHashMap<>();
-            textContent.put("type", "text");
-            textContent.put("text", prompt);
-
-            Map<String, Object> message = new LinkedHashMap<>();
-            message.put("role", "user");
-            message.put("content", List.of(textContent));
-
-            requestBody.put("messages", List.of(message));
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("x-api-key", anthropicApiKey);
-            headers.set("anthropic-version", "2023-06-01");
-
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    "https://api.anthropic.com/v1/messages",
-                    HttpMethod.POST,
-                    entity,
-                    Map.class
-            );
-
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody == null) throw new RuntimeException("검증 API 응답이 비어있습니다.");
-
-            List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
-            if (content == null || content.isEmpty()) throw new RuntimeException("검증 응답 content가 없습니다.");
-
-            String text = content.stream()
-                    .filter(c -> "text".equals(c.get("type")))
-                    .map(c -> (String) c.get("text"))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("검증 텍스트 응답이 없습니다."));
-
-            String cleaned = text.replaceAll("```json", "").replaceAll("```", "").trim();
-
-            List<Map<String, Object>> results = mapper.readValue(cleaned,
-                    mapper.getTypeFactory().constructCollectionType(List.class, Map.class));
-
-            long matched = results.stream().filter(r -> Boolean.TRUE.equals(r.get("match"))).count();
-            long mismatched = results.size() - matched;
-
-            Map<String, Object> summary = new LinkedHashMap<>();
-            summary.put("total", results.size());
-            summary.put("matched", matched);
-            summary.put("mismatched", mismatched);
-
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("results", results);
-            result.put("summary", summary);
-
-            return ResponseEntity.ok(ApiResponse.success(result));
-
-        } catch (Exception e) {
-            log.error("파싱 검증 실패: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("파싱 검증 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
 
@@ -332,60 +207,4 @@ public class PdfParseController {
         }
     }
 
-    // [2026-04-03] extractRawTexts: Claude API → PyMuPDF 기반 Python 스크립트로 교체
-    //   이전: PDF base64를 Claude에 전송해 텍스트 추출 (Sonnet 1회 호출, 대용량 크레딧 소모)
-    //   이후: extract_text.py (PyMuPDF)로 로컬 추출 → 크레딧 1회 절약
-    private static final String TEXT_SCRIPT_PATH = "scripts/extract_text.py";
-
-    @SuppressWarnings("unchecked")
-    private Map<String, String> extractRawTexts(String base64Data) {
-        Path scriptPath = Paths.get(TEXT_SCRIPT_PATH);
-        if (!Files.exists(scriptPath)) {
-            scriptPath = Paths.get(System.getProperty("user.dir"), TEXT_SCRIPT_PATH);
-        }
-        if (!Files.exists(scriptPath)) {
-            throw new RuntimeException("extract_text.py를 찾을 수 없습니다: " + scriptPath.toAbsolutePath());
-        }
-
-        Path tempFile = null;
-        try {
-            tempFile = Files.createTempFile("pdf_txt_", ".txt");
-            Files.writeString(tempFile, base64Data);
-
-            ProcessBuilder pb = new ProcessBuilder(
-                    "python", scriptPath.toAbsolutePath().toString(),
-                    tempFile.toAbsolutePath().toString()
-            );
-            pb.redirectErrorStream(false);
-            Process process = pb.start();
-
-            String stdout = new String(process.getInputStream().readAllBytes());
-            String stderr = new String(process.getErrorStream().readAllBytes());
-            int exitCode = process.waitFor();
-
-            if (!stderr.isBlank()) {
-                log.warn("extract_text.py stderr: {}", stderr.trim());
-            }
-            if (exitCode != 0) {
-                throw new RuntimeException("extract_text.py 실패 (exit=" + exitCode + "): " + stderr);
-            }
-
-            ObjectMapper mapper = new ObjectMapper();
-            Object parsed = mapper.readValue(stdout.trim(), Object.class);
-            if (parsed instanceof Map && ((Map<?, ?>) parsed).containsKey("error")) {
-                throw new RuntimeException("extract_text.py 오류: " + ((Map<?, ?>) parsed).get("error"));
-            }
-
-            return mapper.readValue(stdout.trim(),
-                    mapper.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, String.class));
-
-        } catch (Exception e) {
-            log.error("PyMuPDF 텍스트 추출 실패: {}", e.getMessage());
-            throw new RuntimeException("원본 텍스트 추출 실패: " + e.getMessage());
-        } finally {
-            if (tempFile != null) {
-                try { Files.deleteIfExists(tempFile); } catch (Exception ignored) {}
-            }
-        }
-    }
 }
