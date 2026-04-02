@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class ClassService {
 
     private static final String INVITE_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 혼동 문자(0,1,I,O) 제외
-    private static final int INVITE_CODE_LENGTH = 6;
+    private static final int INVITE_CODE_LENGTH = 8;
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final ClassMapper classMapper;

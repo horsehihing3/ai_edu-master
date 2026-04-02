@@ -161,8 +161,8 @@
               <input
                 v-model="joinModal.code"
                 class="form-input invite-input"
-                placeholder="예: AB3DEF"
-                maxlength="6"
+                placeholder="예: AB3DEF7G"
+                maxlength="8"
                 @keyup.enter="submitJoin"
                 @input="joinModal.code = joinModal.code.toUpperCase()"
               />
@@ -171,7 +171,7 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary btn-md" @click="closeJoinModal">취소</button>
-            <button class="btn btn-primary btn-md" :disabled="joinModal.code.length < 4 || joinModal.loading" @click="submitJoin">
+            <button class="btn btn-primary btn-md" :disabled="joinModal.code.length < 6 || joinModal.loading" @click="submitJoin">
               {{ joinModal.loading ? '가입 중...' : '가입하기' }}
             </button>
           </div>
