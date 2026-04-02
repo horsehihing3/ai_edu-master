@@ -476,6 +476,90 @@
       </div>
     </section>
 
+    <!-- ===== S10: 가격 플랜 ===== -->
+    <section class="s-pricing" id="pricing">
+      <div class="lp-container">
+        <div class="section-hd">
+          <span class="section-hd__tag">요금 안내</span>
+          <h2>합리적인 가격으로<br />시작하세요</h2>
+          <p>모든 플랜은 월 단위 구독이며, 언제든 해지할 수 있습니다</p>
+        </div>
+
+        <div class="s-pricing__grid">
+
+          <!-- 베이직 -->
+          <div class="price-card">
+            <div class="price-card__header">
+              <p class="price-card__name">베이직</p>
+              <div class="price-card__price">
+                <span class="price-card__amount">9,900</span>
+                <span class="price-card__unit">원 / 월</span>
+              </div>
+              <p class="price-card__desc">학습을 시작하는 학생에게</p>
+            </div>
+            <ul class="price-card__features">
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 문제 풀기 (무제한)</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> AI 진단 테스트</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 오답노트 자동 저장</li>
+              <li class="off"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 풀이 동영상</li>
+              <li class="off"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 학습 리포트</li>
+              <li class="off"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> AI 힌트</li>
+            </ul>
+            <RouterLink to="/register" class="price-card__btn">시작하기</RouterLink>
+          </div>
+
+          <!-- 스탠다드 (추천) -->
+          <div class="price-card price-card--featured">
+            <div class="price-card__badge">가장 인기</div>
+            <div class="price-card__header">
+              <p class="price-card__name">스탠다드</p>
+              <div class="price-card__price">
+                <span class="price-card__amount">19,900</span>
+                <span class="price-card__unit">원 / 월</span>
+              </div>
+              <p class="price-card__desc">성적 향상을 원하는 학생에게</p>
+            </div>
+            <ul class="price-card__features">
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 문제 풀기 (무제한)</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> AI 진단 테스트</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 오답노트 자동 저장</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 풀이 동영상</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 학습 리포트</li>
+              <li class="off"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> AI 힌트</li>
+            </ul>
+            <RouterLink to="/register" class="price-card__btn price-card__btn--featured">시작하기</RouterLink>
+          </div>
+
+          <!-- 프리미엄 -->
+          <div class="price-card">
+            <div class="price-card__header">
+              <p class="price-card__name">프리미엄</p>
+              <div class="price-card__price">
+                <span class="price-card__amount">29,900</span>
+                <span class="price-card__unit">원 / 월</span>
+              </div>
+              <p class="price-card__desc">최고의 결과를 원하는 학생에게</p>
+            </div>
+            <ul class="price-card__features">
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 문제 풀기 (무제한)</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> AI 진단 테스트</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 오답노트 자동 저장</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 풀이 동영상</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 학습 리포트</li>
+              <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> AI 힌트</li>
+            </ul>
+            <RouterLink to="/register" class="price-card__btn">시작하기</RouterLink>
+          </div>
+
+        </div>
+
+        <p class="s-pricing__note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          모든 플랜은 회원가입 후 <strong>10일 무료 체험</strong> 가능합니다. 신용카드 없이 시작하세요.
+        </p>
+      </div>
+    </section>
+
     <!-- ===== CTA ===== -->
     <section class="s-cta">
       <div class="s-cta__bg" />
@@ -2117,6 +2201,159 @@ const faqs = [
     border-radius: $radius-sm;
     display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: $font-size-sm;
+  }
+}
+
+// ── S10: 가격 플랜 ────────────────────────────────────
+.s-pricing {
+  padding: 100px 0;
+  background: #f8fafc;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    align-items: stretch;
+    margin-bottom: 36px;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+      max-width: 440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  &__note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: $font-size-sm;
+    color: #64748b;
+    svg { color: #3b82f6; flex-shrink: 0; }
+  }
+}
+
+.price-card {
+  position: relative;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+
+  &:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.10);
+    transform: translateY(-4px);
+  }
+
+  &--featured {
+    border-color: #3b82f6;
+    background: linear-gradient(160deg, #eff6ff 0%, #ffffff 50%);
+    box-shadow: 0 8px 32px rgba(59,130,246,0.18);
+    transform: translateY(-8px);
+
+    &:hover { transform: translateY(-12px); }
+  }
+
+  &__badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 18px;
+    border-radius: 999px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  &__header {
+    margin-bottom: 28px;
+  }
+
+  &__name {
+    font-size: $font-size-lg;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 12px;
+  }
+
+  &__price {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  &__amount {
+    font-size: 40px;
+    font-weight: 900;
+    color: #1e293b;
+    line-height: 1;
+  }
+
+  &__unit {
+    font-size: $font-size-sm;
+    color: #64748b;
+  }
+
+  &__desc {
+    font-size: $font-size-sm;
+    color: #64748b;
+  }
+
+  &__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px;
+    flex: 1;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: $font-size-sm;
+      padding: 9px 0;
+      border-bottom: 1px solid #f1f5f9;
+
+      &:last-child { border-bottom: none; }
+
+      &.on  { color: #1e293b; svg { color: #10b981; } }
+      &.off { color: #cbd5e1; svg { color: #cbd5e1; } text-decoration: line-through; }
+    }
+  }
+
+  &__btn {
+    display: block;
+    text-align: center;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: $font-size-base;
+    transition: all 0.2s;
+    background: #f1f5f9;
+    color: #475569;
+    text-decoration: none;
+
+    &:hover { background: #e2e8f0; }
+
+    &--featured {
+      background: linear-gradient(90deg, #3b82f6, #6366f1);
+      color: white;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+
+      &:hover {
+        box-shadow: 0 6px 20px rgba(59,130,246,0.45);
+        transform: translateY(-1px);
+      }
+    }
   }
 }
 

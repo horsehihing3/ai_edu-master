@@ -16,6 +16,10 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 - [x] 어드민 비밀번호 초기화 이메일 발송 — EmailService.sendTempPasswordEmail() + MemberListPage API 연동
 - [x] 교사 리포트 CSV 내보내기 — GET /teacher/students/export, StudentListPage 버튼
 - [x] 등급별 분포 차트 — TeacherAnalyticsPage SVG 도넛 파이차트 (외부 라이브러리 없음)
+- [x] 랜딩 페이지 가격 플랜 섹션 추가 — 베이직/스탠다드/프리미엄 3가지 플랜, PublicHeader 요금 안내 메뉴 추가
+- [x] 회원가입 버그 수정 — 존재하지 않는 /auth/send-verification 호출 제거, 1단계 직접 가입 방식으로 변경
+- [x] 어드민 Analytics 실데이터 연동 확인 — DAU/레벨분포/취약단원 3개 API 모두 정상 작동 확인 (기개발)
+- [x] passage(보기) 박스 감지 개선 — Python 3단계 필터(텍스트밀도 30%→20%, 가로형박스, 윤곽선형태), 클러스터 근접거리 15→8pt, Claude 프롬프트 보기 추출 규칙 강화
 
 ---
 
@@ -173,7 +177,7 @@ POST /student/sessions/start
 | `student_id` vs `user_id` 혼동 | `users.user_id` ≠ `students.student_id` | `learning_sessions`은 `students.student_id` 기준. 예: student_a = user_id:6, student_id:1 |
 | YouTube embed 재생 안 됨 | `watch?v=` URL을 `<video>` 태그로 재생 시도 | embed URL + `<iframe>` 사용. `videoType === 'YOUTUBE'\|'VIMEO'`로 분기 (`ProblemSolvePage.vue`, `VideoDetailPage.vue`) |
 | 학생 이름이 해시값으로 표시됨 | DB name 컬럼에 인코딩된 값 저장됨 | `UPDATE users SET name = 'A학생' WHERE email = 'student_a@test.com'` 등 직접 수정 완료 (2026-03-31) |
-| 과제 완료율 180% 초과 표시 | 학습 세션 중복 카운트 | 미수정 — 추후 세션 완료 로직 점검 필요 |
+| 과제 완료율 180% 초과 표시 | 학습 세션 중복 카운트 | 수정 완료 — `getStudentProgress` MAX(session_id) 서브쿼리, `getListWithStats` COUNT(DISTINCT), `getStudentStats()` distinct() 모두 적용됨 (2026-04-02 확인) |
 
 ---
 

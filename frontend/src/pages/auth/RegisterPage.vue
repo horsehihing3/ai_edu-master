@@ -15,16 +15,8 @@
       >교사</button>
     </div>
 
-    <!-- 단계 표시 -->
-    <div class="step-indicator">
-      <div v-for="i in 2" :key="i" :class="['step', { active: step >= i, done: step > i }]">
-        <span class="step-num">{{ i }}</span>
-        <span class="step-label">{{ i === 1 ? '기본 정보' : '이메일 인증' }}</span>
-      </div>
-    </div>
-
-    <!-- Step 1: 기본 정보 -->
-    <form v-if="step === 1" @submit.prevent="goStep2">
+    <!-- 회원가입 폼 -->
+    <form @submit.prevent="handleRegister">
       <AppInput v-model="form.name" label="이름" placeholder="이름을 입력하세요" :error="errors.name" required />
       <AppInput v-model="form.email" label="이메일" type="email" placeholder="이메일을 입력하세요" :error="errors.email" required />
       <AppInput v-model="form.password" label="비밀번호" type="password" placeholder="8자 이상 입력하세요" :error="errors.password" required />
@@ -47,24 +39,8 @@
         <span>이용약관 및 개인정보처리방침에 동의합니다 <span style="color:#EF4444">*</span></span>
       </label>
 
-      <AppButton type="submit" block>다음 단계</AppButton>
+      <AppButton type="submit" :loading="submitting" block>가입하기</AppButton>
     </form>
-
-    <!-- Step 2: 이메일 인증 -->
-    <div v-if="step === 2" class="verify-step">
-      <div class="verify-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-      </div>
-      <h3>이메일을 확인해주세요</h3>
-      <p><strong>{{ form.email }}</strong>로 인증 코드를 발송했습니다.</p>
-
-      <div class="verify-input">
-        <AppInput v-model="verifyCode" label="인증 코드" placeholder="6자리 코드를 입력하세요" :error="verifyError" />
-        <AppButton :loading="verifying" block @click="handleVerify">인증 완료</AppButton>
-      </div>
-
-      <button class="resend-btn" @click="resendCode">인증 코드 재발송</button>
-    </div>
 
     <p class="login-link">
       이미 계정이 있으신가요?
@@ -87,10 +63,7 @@ const route = useRoute()
 const { success, error } = useToast()
 
 const role = ref(route.query.role === 'TEACHER' ? 'TEACHER' : 'STUDENT')
-const step = ref(1)
-const verifyCode = ref('')
-const verifyError = ref('')
-const verifying = ref(false)
+const submitting = ref(false)
 
 const form = reactive({
   name: '', email: '', password: '', confirmPassword: '',
@@ -118,40 +91,23 @@ function validate() {
   return ok
 }
 
-async function goStep2() {
+// [2026-04-02] 2단계 이메일 인증 → 1단계 직접 가입으로 변경 (백엔드 미지원)
+async function handleRegister() {
   if (!validate()) return
-  try {
-    await api.post('/auth/send-verification', { email: form.email })
-    step.value = 2
-  } catch (e) {
-    error(e.message || '오류가 발생했습니다.')
-  }
-}
-
-async function handleVerify() {
-  if (!verifyCode.value) { verifyError.value = '인증 코드를 입력하세요.'; return }
-  verifying.value = true
+  submitting.value = true
   try {
     await api.post('/auth/register', {
-      ...form,
-      role: role.value,
-      verificationCode: verifyCode.value
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: role.value
     })
-    success('회원가입이 완료되었습니다!')
+    success('회원가입이 완료되었습니다! 로그인해주세요.')
     router.push('/login')
   } catch (e) {
-    verifyError.value = e.message || '인증 코드가 올바르지 않습니다.'
+    error(e.message || '회원가입에 실패했습니다.')
   } finally {
-    verifying.value = false
-  }
-}
-
-async function resendCode() {
-  try {
-    await api.post('/auth/send-verification', { email: form.email })
-    success('인증 코드를 재발송했습니다.')
-  } catch (e) {
-    error('재발송에 실패했습니다.')
+    submitting.value = false
   }
 }
 </script>
@@ -200,85 +156,6 @@ async function resendCode() {
   }
 }
 
-.step-indicator {
-  display: flex;
-  align-items: center;
-  margin-bottom: $spacing-6;
-  gap: $spacing-4;
-
-  .step {
-    display: flex;
-    align-items: center;
-    gap: $spacing-2;
-
-    .step-num {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: $border;
-      color: $text-muted;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: $font-size-sm;
-      font-weight: 700;
-    }
-
-    .step-label {
-      font-size: $font-size-sm;
-      color: $text-muted;
-    }
-
-    &.active .step-num {
-      background: $primary-light;
-      color: white;
-    }
-
-    &.active .step-label {
-      color: $primary;
-      font-weight: 600;
-    }
-
-    &.done .step-num {
-      background: $success;
-      color: white;
-    }
-  }
-}
-
-.verify-step {
-  text-align: center;
-  padding: $spacing-4 0;
-
-  .verify-icon {
-    margin-bottom: $spacing-5;
-  }
-
-  h3 {
-    font-size: $font-size-xl;
-    font-weight: 700;
-    margin-bottom: $spacing-2;
-  }
-
-  p {
-    font-size: $font-size-sm;
-    color: $text-secondary;
-    margin-bottom: $spacing-6;
-  }
-}
-
-.verify-input {
-  text-align: left;
-}
-
-.resend-btn {
-  margin-top: $spacing-4;
-  font-size: $font-size-sm;
-  color: $primary-light;
-  cursor: pointer;
-
-  &:hover { text-decoration: underline; }
-}
 
 .login-link {
   margin-top: $spacing-6;

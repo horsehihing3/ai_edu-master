@@ -7,10 +7,11 @@ import io
 import os
 
 # 벡터 드로잉 클러스터링 파라미터
-_DRAW_PROXIMITY_PT = 15    # 이 거리(pt) 이내 드로잉은 같은 그림으로 묶음
+_DRAW_PROXIMITY_PT = 8     # [2026-04-02] 15→8: 보기 박스와 인접 도형이 잘못 합쳐지는 현상 방지
 _DRAW_MIN_AREA_PT  = 4000  # 클러스터 최소 면적(pt²) — 선·밑줄 등 잡요소 제거
 _DRAW_MIN_DIM_PT   = 40    # 클러스터 최소 가로/세로(pt) — 얇은 테두리 제거
 _DRAW_OVERLAP_THR  = 0.30  # 래스터 이미지와 이 비율 이상 겹치면 중복으로 간주
+_TEXT_DENSITY_THR  = 0.20  # [2026-04-02] 0.30→0.20: 텍스트 밀도 임계값 강화 (보기 박스 오분류 감소)
 
 
 def _cluster_drawings(drawings):
@@ -212,8 +213,7 @@ def extract_images_from_pdf(pdf_base64: str) -> list:
 
                 x0, y0, x1, y1 = cluster["x0"], cluster["y0"], cluster["x1"], cluster["y1"]
 
-                # 텍스트 밀도 체크 — 보기 텍스트 박스(테두리만 있는 박스) 제외
-                # 클러스터 bbox 안에 텍스트가 30% 이상 차지하면 도형이 아닌 텍스트 박스로 판단 → skip
+                # ── 보기 박스 판단 (텍스트 밀도 + 윤곽선 형태 이중 체크) ──────
                 clip_rect = fitz.Rect(x0, y0, x1, y1)
                 text_blocks = page.get_text("blocks", clip=clip_rect)
                 cluster_area = (x1 - x0) * (y1 - y0)
@@ -221,8 +221,35 @@ def extract_images_from_pdf(pdf_base64: str) -> list:
                     (b[2] - b[0]) * (b[3] - b[1])
                     for b in text_blocks if len(b) > 6 and b[6] == 0  # type 0 = text block
                 )
-                if cluster_area > 0 and text_area / cluster_area > 0.30:
+                text_density = text_area / cluster_area if cluster_area > 0 else 0
+
+                # 1) 텍스트 밀도 임계값 (강화: 20%)
+                if text_density > _TEXT_DENSITY_THR:
                     continue  # 텍스트 박스(보기 테두리)로 판단 → 이미지 캡처 생략
+
+                # 2) 가로로 넓고 텍스트가 조금이라도 있으면 보기 박스로 추가 판단
+                #    (가로/세로 비율 > 2.0 이고 텍스트 밀도 > 5%: 수식/조건이 드문드문 있는 보기)
+                cluster_w = x1 - x0
+                cluster_h = y1 - y0
+                aspect_ratio = cluster_w / cluster_h if cluster_h > 0 else 0
+                if aspect_ratio > 2.0 and text_density > 0.05:
+                    continue  # 가로형 텍스트 박스(보기 테두리) → 이미지 캡처 생략
+
+                # 3) 채움 없는 사각형 윤곽선만으로 구성된 클러스터 → 보기 박스 테두리
+                #    (fill=None이고 stroke만 있는 rect형 path가 대부분이면 보기)
+                cluster_drawings_in_bbox = [
+                    d for d in page.get_drawings()
+                    if d.get("rect") and
+                    d["rect"].x0 >= x0 - 5 and d["rect"].y0 >= y0 - 5 and
+                    d["rect"].x1 <= x1 + 5 and d["rect"].y1 <= y1 + 5
+                ]
+                if cluster_drawings_in_bbox:
+                    unfilled = sum(
+                        1 for d in cluster_drawings_in_bbox
+                        if not d.get("fill") and d.get("type") in ("re", "qu")
+                    )
+                    if unfilled / len(cluster_drawings_in_bbox) > 0.7:
+                        continue  # 채움 없는 사각형 테두리만으로 구성 → 보기 박스
 
                 # 5% 여백 추가
                 margin_x = (x1 - x0) * 0.05

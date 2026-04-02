@@ -144,7 +144,8 @@ const navMenus = [
     anchor: '/#guide',
     children: [
       { label: '이용 가이드', anchor: '/#guide' },
-      { label: 'FAQ', anchor: '/#faq' }
+      { label: 'FAQ', anchor: '/#faq' },
+      { label: '요금 안내', anchor: '/#pricing' }
     ]
   },
   {
