@@ -138,6 +138,22 @@
       </AppTable>
     </div>
 
+    <!-- [2026-04-03] 내 학급 목록 -->
+    <div v-if="myClasses.length" class="card">
+      <div class="card__header">
+        <h3>내 학급</h3>
+      </div>
+      <div class="my-classes">
+        <div v-for="cls in myClasses" :key="cls.classId" class="my-class-item">
+          <div class="my-class-item__info">
+            <span class="my-class-name">{{ cls.className }}</span>
+            <span class="my-class-meta">{{ gradeLabel(cls.grade) }} · {{ cls.teacherName }} 선생님 · {{ cls.studentCount }}명</span>
+          </div>
+          <span class="level-tag">{{ levelLabel(cls.levelFilter) }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- [2026-04-03] 학급 가입 배너 -->
     <div class="join-class-banner">
       <div class="join-class-banner__text">
@@ -156,7 +172,7 @@
             <button class="modal-close" @click="closeJoinModal">✕</button>
           </div>
           <div class="modal-body">
-            <p class="join-desc">선생님께 받은 6자리 초대코드를 입력하세요.</p>
+            <p class="join-desc">선생님께 받은 8자리 초대코드를 입력하세요.</p>
             <div class="form-group">
               <input
                 v-model="joinModal.code"
@@ -196,6 +212,7 @@ const loading = ref(false)
 const stats = ref({ totalSolved: 0, accuracy: 0, streak: 0, todaySolved: 0, todayTime: 0, todayAccuracy: 0 })
 const assignments = ref([])
 const recentHistory = ref([])
+const myClasses = ref([])
 
 const historyColumns = [
   { key: 'date', label: '날짜' },
@@ -210,6 +227,13 @@ const today = computed(() => {
   const d = new Date()
   return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${['일','월','화','수','목','금','토'][d.getDay()]}요일`
 })
+
+function gradeLabel(g) {
+  return { GRADE_1: '1학년', GRADE_2: '2학년', GRADE_3: '3학년' }[g] || g || ''
+}
+function levelLabel(l) {
+  return { ALL: '전체', A: 'A 심화', B: 'B 표준', C: 'C 기초' }[l] || l || ''
+}
 
 function formatDate(dateStr) {
   const d = new Date(dateStr)
@@ -234,6 +258,8 @@ async function submitJoin() {
     const data = res.data?.data || res.data
     closeJoinModal()
     alert(`'${data?.className || '학급'}'에 가입되었습니다!`)
+    const classesRes = await api.get('/student/classes')
+    myClasses.value = classesRes.data?.data || classesRes.data || []
   } catch (e) {
     const msg = e.response?.data?.message
     joinModal.error = msg || '유효하지 않은 초대코드이거나 이미 가입된 학급입니다.'
@@ -245,11 +271,12 @@ async function submitJoin() {
 onMounted(async () => {
   loading.value = true
   try {
-    const [statsRes, assignRes, historyRes, aiRes] = await Promise.all([
+    const [statsRes, assignRes, historyRes, aiRes, classesRes] = await Promise.all([
       api.get('/student/dashboard/stats'),
       api.get('/student/assignments', { params: { size: 3 } }),
       api.get('/student/history', { params: { size: 5 } }),
-      api.get('/student/ai-comment')
+      api.get('/student/ai-comment'),
+      api.get('/student/classes')
     ])
     const s = statsRes.data || {}
     stats.value = {
@@ -266,6 +293,7 @@ onMounted(async () => {
       date: h.date?.slice(0,10), subject: h.subject, problemCount: h.problemCount, accuracy: h.accuracy
     }))
     aiComment.value = aiRes.data?.comment || ''
+    myClasses.value = classesRes.data?.data || classesRes.data || []
   } catch {} finally { loading.value = false }
 })
 </script>
@@ -496,6 +524,51 @@ onMounted(async () => {
   border-radius: $radius-sm;
   font-size: $font-size-xs;
   font-weight: 700;
+}
+
+// ── 내 학급 목록 ────────────────────────────────
+.my-classes {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.my-class-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-4;
+  padding: $spacing-3 $spacing-4;
+  background: $bg-light;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+.my-class-name {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.my-class-meta {
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.level-tag {
+  font-size: $font-size-xs;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: $radius-full;
+  background: $primary-bg;
+  color: $primary;
+  white-space: nowrap;
 }
 
 // ── 학급 가입 배너 ──────────────────────────────

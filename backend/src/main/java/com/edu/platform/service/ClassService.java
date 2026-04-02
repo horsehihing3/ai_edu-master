@@ -83,6 +83,10 @@ public class ClassService {
         );
     }
 
+    public List<Map<String, Object>> getMyClasses(Long studentId) {
+        return classMapper.findClassesByStudentId(studentId);
+    }
+
     private String generateUniqueInviteCode() {
         for (int attempt = 0; attempt < 10; attempt++) {
             StringBuilder sb = new StringBuilder(INVITE_CODE_LENGTH);

@@ -22,4 +22,5 @@ public interface ClassMapper {
     void addMember(@Param("classId") Long classId, @Param("studentId") Long studentId);
     void removeMember(@Param("classId") Long classId, @Param("studentId") Long studentId);
     int countMemberByStudentId(@Param("classId") Long classId, @Param("studentId") Long studentId);
+    List<Map<String, Object>> findClassesByStudentId(@Param("studentId") Long studentId);
 }

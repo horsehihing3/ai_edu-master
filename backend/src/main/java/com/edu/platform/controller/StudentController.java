@@ -230,6 +230,16 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.success(feedbackService.getStudentFeedback(assignmentId, student.getStudentId())));
     }
 
+    // [2026-04-03] 학생 본인이 소속된 학급 목록 조회
+    @GetMapping("/classes")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyClasses(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getUserId(userDetails);
+        Student student = getStudent(userId);
+        return ResponseEntity.ok(ApiResponse.success(
+                classService.getMyClasses(student.getStudentId())));
+    }
+
     // [2026-04-03] 초대코드로 학급 가입
     @PostMapping("/classes/join")
     public ResponseEntity<ApiResponse<Map<String, Object>>> joinClass(
