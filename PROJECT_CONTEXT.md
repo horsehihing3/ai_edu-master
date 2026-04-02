@@ -8,11 +8,12 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 
 ## ⚡ 다음 세션 작업 (우선순위 순)
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
-- [ ] Anthropic API 크레딧 충전 후 — PDF AI 재검증 기능 테스트 (`/admin/verify-parsing`)
-- [ ] 학생 초대 (교사-학생 매칭 방식 클라이언트 확정 후)
 - [ ] PG 연동 / 구독
 
 ## ✅ 이번 세션 완료
+- [x] 학급 초대코드 가입 기능 — POST /student/classes/join, ClassManagePage 코드 표시+복사, StudentHomePage 가입 모달, DB 마이그레이션(classes.invite_code), SecureRandom 6자리 코드 자동생성
+- [x] PDF 재검증 기능 제거 — /admin/verify-parsing 엔드포인트 삭제, ProblemUploadPage UI 정리, extractRawTexts() Claude API 호출 제거 (크레딧 절약)
+- [x] PyMuPDF 텍스트 추출 스크립트 — backend/scripts/extract_text.py 추가
 - [x] 어드민 비밀번호 초기화 이메일 발송 — EmailService.sendTempPasswordEmail() + MemberListPage API 연동
 - [x] 교사 리포트 CSV 내보내기 — GET /teacher/students/export, StudentListPage 버튼
 - [x] 등급별 분포 차트 — TeacherAnalyticsPage SVG 도넛 파이차트 (외부 라이브러리 없음)
