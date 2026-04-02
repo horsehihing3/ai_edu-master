@@ -27,6 +27,7 @@
         <h3>일일 활성 사용자 (최근 7일)</h3>
         <div class="bar-chart">
           <div v-for="d in dauData" :key="d.date" class="bar-item">
+            <span class="bar-value">{{ d.value || '' }}</span>
             <div class="bar-col">
               <div class="bar" :style="{ height: (d.value / maxDau * 100) + '%', background: '#3B82F6' }" />
             </div>
@@ -181,13 +182,20 @@ onMounted(async () => {
   height: 160px;
 }
 
+.bar-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #3B82F6;
+  min-height: 28px;
+}
+
 .bar-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   height: 100%;
-  gap: $spacing-2;
+  gap: $spacing-1;
 
   .bar-col {
     flex: 1;

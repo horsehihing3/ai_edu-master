@@ -33,4 +33,12 @@ public interface LearningSessionMapper {
     List<ProblemAttempt> findAttemptsBySession(@Param("sessionId") Long sessionId);
     long countCorrectAttemptsByStudentId(@Param("studentId") Long studentId, @Param("isCorrect") boolean isCorrect);
     List<Map<String, Object>> getDailySessionCounts(@Param("days") int days);
+
+    // [2026-04-02] 대시보드 KPI 실데이터
+    long countDauToday();
+    long countDauYesterday();
+    long countMauThisMonth();
+    long countMauLastMonth();
+    long sumDailySolvedToday();
+    long sumDailySolvedYesterday();
 }

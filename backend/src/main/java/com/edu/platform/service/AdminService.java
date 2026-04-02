@@ -51,13 +51,18 @@ public class AdminService {
         long totalProblems = problemMapper.count();
         long activeUsers = userMapper.countByIsActive(true);
 
+        // [2026-04-02] DAU/MAU/DailySolved 실데이터 연동
+        long dau = learningSessionMapper.countDauToday();
+        long mau = learningSessionMapper.countMauThisMonth();
+        long dailySolved = learningSessionMapper.sumDailySolvedToday();
+
         return AdminDashboardDto.builder()
                 .totalStudents(totalStudents)
                 .totalTeachers(totalTeachers)
                 .totalSchools(totalSchools)
-                .dau(0L)
-                .mau(0L)
-                .dailySolvedCount(0L)
+                .dau(dau)
+                .mau(mau)
+                .dailySolvedCount(dailySolved)
                 .totalProblems(totalProblems)
                 .activeUsers(activeUsers)
                 .averageAccuracy(0.0)
@@ -136,16 +141,31 @@ public class AdminService {
     @Transactional(readOnly = true)
     public Map<String, Object> getDashboardStats() {
         AdminDashboardDto dto = getDashboard();
+
+        // [2026-04-02] 전일/전월 대비 trend 계산
+        long dauYesterday = learningSessionMapper.countDauYesterday();
+        long mauLastMonth = learningSessionMapper.countMauLastMonth();
+        long solvedYesterday = learningSessionMapper.sumDailySolvedYesterday();
+
+        int dauTrend = calcTrend(dto.getDau(), dauYesterday);
+        int mauTrend = calcTrend(dto.getMau(), mauLastMonth);
+        int solvedTrend = calcTrend(dto.getDailySolvedCount(), solvedYesterday);
+
         Map<String, Object> result = new HashMap<>();
         result.put("dau", dto.getDau());
-        result.put("dauTrend", 0);
+        result.put("dauTrend", dauTrend);
         result.put("mau", dto.getMau());
-        result.put("mauTrend", 0);
+        result.put("mauTrend", mauTrend);
         result.put("dailySolved", dto.getDailySolvedCount());
-        result.put("solvedTrend", 0);
+        result.put("solvedTrend", solvedTrend);
         result.put("activeSubscribers", dto.getActiveUsers());
         result.put("subscriberTrend", 0);
         return result;
+    }
+
+    private int calcTrend(long current, long previous) {
+        if (previous == 0) return current > 0 ? 100 : 0;
+        return (int) Math.round((current - previous) * 100.0 / previous);
     }
 
     @Transactional(readOnly = true)

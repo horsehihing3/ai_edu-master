@@ -135,13 +135,55 @@
         WHERE student_id = #{studentId} AND is_correct = #{isCorrect}
     </select>
 
+    <!-- [2026-04-02] 막대그래프 DAU: 로그인 기준으로 변경 (세션 재사용 시 과소집계 방지) -->
     <select id="getDailySessionCounts" resultType="map">
-        SELECT DATE_FORMAT(MIN(started_at), '%m/%d') AS date,
-               COUNT(DISTINCT student_id) AS `count`
-        FROM learning_sessions
-        WHERE started_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
-        GROUP BY DATE(started_at)
-        ORDER BY DATE(started_at) ASC
+        SELECT DATE_FORMAT(login_date, '%m/%d') AS date,
+               COUNT(*) AS `count`
+        FROM (
+            SELECT DATE(last_login_at) AS login_date
+            FROM users
+            WHERE last_login_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+              AND is_active = 1
+        ) t
+        GROUP BY login_date
+        ORDER BY login_date ASC
+    </select>
+
+    <!-- [2026-04-02] 대시보드 KPI 실데이터 쿼리 — DAU/MAU는 로그인 기준 -->
+    <select id="countDauToday" resultType="long">
+        SELECT COUNT(*) FROM users
+        WHERE DATE(last_login_at) = CURDATE()
+          AND is_active = 1
+    </select>
+
+    <select id="countDauYesterday" resultType="long">
+        SELECT COUNT(*) FROM users
+        WHERE DATE(last_login_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+          AND is_active = 1
+    </select>
+
+    <select id="countMauThisMonth" resultType="long">
+        SELECT COUNT(*) FROM users
+        WHERE DATE(last_login_at) >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+          AND is_active = 1
+    </select>
+
+    <select id="countMauLastMonth" resultType="long">
+        SELECT COUNT(*) FROM users
+        WHERE DATE(last_login_at) >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
+          AND DATE(last_login_at) &lt; DATE_FORMAT(CURDATE(), '%Y-%m-01')
+          AND is_active = 1
+    </select>
+
+    <!-- 일일 풀이 수: problem_attempts 기준 (세션 재사용 시에도 정확) -->
+    <select id="sumDailySolvedToday" resultType="long">
+        SELECT COUNT(*) FROM problem_attempts
+        WHERE DATE(attempted_at) = CURDATE()
+    </select>
+
+    <select id="sumDailySolvedYesterday" resultType="long">
+        SELECT COUNT(*) FROM problem_attempts
+        WHERE DATE(attempted_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
     </select>
 
 </mapper>
