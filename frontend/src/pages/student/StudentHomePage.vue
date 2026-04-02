@@ -137,11 +137,52 @@
         </template>
       </AppTable>
     </div>
+
+    <!-- [2026-04-03] 학급 가입 배너 -->
+    <div class="join-class-banner">
+      <div class="join-class-banner__text">
+        <strong>학급 초대코드가 있으신가요?</strong>
+        <span>선생님께 받은 초대코드를 입력하면 학급에 바로 가입할 수 있어요.</span>
+      </div>
+      <button class="btn btn-primary btn-md" @click="joinModal.open = true">학급 가입하기</button>
+    </div>
+
+    <!-- 학급 가입 모달 -->
+    <Teleport to="body">
+      <div v-if="joinModal.open" class="modal-backdrop" @click.self="closeJoinModal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <h2>학급 가입</h2>
+            <button class="modal-close" @click="closeJoinModal">✕</button>
+          </div>
+          <div class="modal-body">
+            <p class="join-desc">선생님께 받은 6자리 초대코드를 입력하세요.</p>
+            <div class="form-group">
+              <input
+                v-model="joinModal.code"
+                class="form-input invite-input"
+                placeholder="예: AB3DEF"
+                maxlength="6"
+                @keyup.enter="submitJoin"
+                @input="joinModal.code = joinModal.code.toUpperCase()"
+              />
+              <p v-if="joinModal.error" class="join-error">{{ joinModal.error }}</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary btn-md" @click="closeJoinModal">취소</button>
+            <button class="btn btn-primary btn-md" :disabled="joinModal.code.length < 4 || joinModal.loading" @click="submitJoin">
+              {{ joinModal.loading ? '가입 중...' : '가입하기' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import AppBadge from '@/components/common/AppBadge.vue'
 import AppEmpty from '@/components/common/AppEmpty.vue'
@@ -173,6 +214,32 @@ const today = computed(() => {
 function formatDate(dateStr) {
   const d = new Date(dateStr)
   return `${d.getMonth()+1}월 ${d.getDate()}일`
+}
+
+// ── 학급 가입 모달 ────────────────────────────────
+const joinModal = reactive({ open: false, code: '', loading: false, error: '' })
+
+function closeJoinModal() {
+  joinModal.open = false
+  joinModal.code = ''
+  joinModal.error = ''
+}
+
+async function submitJoin() {
+  if (joinModal.code.length < 4 || joinModal.loading) return
+  joinModal.loading = true
+  joinModal.error = ''
+  try {
+    const res = await api.post('/student/classes/join', { inviteCode: joinModal.code })
+    const data = res.data?.data || res.data
+    closeJoinModal()
+    alert(`'${data?.className || '학급'}'에 가입되었습니다!`)
+  } catch (e) {
+    const msg = e.response?.data?.message
+    joinModal.error = msg || '유효하지 않은 초대코드이거나 이미 가입된 학급입니다.'
+  } finally {
+    joinModal.loading = false
+  }
 }
 
 onMounted(async () => {
@@ -429,5 +496,139 @@ onMounted(async () => {
   border-radius: $radius-sm;
   font-size: $font-size-xs;
   font-weight: 700;
+}
+
+// ── 학급 가입 배너 ──────────────────────────────
+.join-class-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-4;
+  padding: $spacing-5 $spacing-6;
+  background: $primary-bg;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: $radius-lg;
+
+  @media (max-width: $bp-mobile) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-1;
+
+    strong {
+      font-size: $font-size-base;
+      color: $primary;
+    }
+
+    span {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+}
+
+// ── 학급 가입 모달 ──────────────────────────────
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-4;
+}
+
+.modal-box {
+  background: $bg-white;
+  border-radius: $radius-xl;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-5 $spacing-6;
+  border-bottom: 1px solid $border;
+
+  h2 { font-size: $font-size-lg; font-weight: 700; }
+}
+
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: $radius-md;
+  font-size: 16px;
+  color: $text-muted;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background $transition-fast;
+
+  &:hover { background: $bg-light; color: $text-primary; }
+}
+
+.modal-body {
+  padding: $spacing-5 $spacing-6;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-6;
+  border-top: 1px solid $border;
+}
+
+.join-desc {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.form-input {
+  height: 40px;
+  padding: 0 $spacing-3;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  background: $bg-white;
+  color: $text-primary;
+  outline: none;
+  width: 100%;
+
+  &:focus { border-color: $primary; }
+}
+
+.invite-input {
+  font-family: 'Courier New', monospace;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.join-error {
+  font-size: $font-size-xs;
+  color: $danger;
+  margin-top: $spacing-1;
 }
 </style>

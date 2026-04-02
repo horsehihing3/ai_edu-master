@@ -8,6 +8,8 @@ import com.edu.platform.dto.student.ProblemSubmitRequest;
 import com.edu.platform.dto.student.SaveProgressRequest;
 import com.edu.platform.dto.student.SessionProgressDto;
 import com.edu.platform.dto.student.StudentHomeDto;
+import com.edu.platform.dto.teacher.ClassDto;
+import com.edu.platform.service.ClassService;
 import com.edu.platform.exception.BusinessException;
 import com.edu.platform.exception.ErrorCode;
 import com.edu.platform.mapper.StudentMapper;
@@ -30,6 +32,7 @@ import java.util.Map;
 public class StudentController {
 
     private final StudentService studentService;
+    private final ClassService classService;
     private final FeedbackService feedbackService;
     private final UserMapper userMapper;
     private final StudentMapper studentMapper;
@@ -225,6 +228,16 @@ public class StudentController {
         Long userId = getUserId(userDetails);
         Student student = getStudent(userId);
         return ResponseEntity.ok(ApiResponse.success(feedbackService.getStudentFeedback(assignmentId, student.getStudentId())));
+    }
+
+    // [2026-04-03] 초대코드로 학급 가입
+    @PostMapping("/classes/join")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> joinClass(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody ClassDto.JoinRequest request) {
+        Long userId = getUserId(userDetails);
+        return ResponseEntity.ok(ApiResponse.success(
+                classService.joinByCode(userId, request.getInviteCode())));
     }
 
     private Long getUserId(UserDetails userDetails) {

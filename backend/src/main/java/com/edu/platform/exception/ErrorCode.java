@@ -34,6 +34,10 @@ public enum ErrorCode {
     // 선생님 관련
     TEACHER_NOT_FOUND(HttpStatus.NOT_FOUND, "선생님 정보를 찾을 수 없습니다."),
 
+    // 학급 관련
+    INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "유효하지 않은 초대코드입니다."),
+    ALREADY_CLASS_MEMBER(HttpStatus.CONFLICT, "이미 가입된 학급입니다."),
+
     // 과제 관련
     ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "과제를 찾을 수 없습니다."),
     ASSIGNMENT_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "이미 완료된 과제입니다."),

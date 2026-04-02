@@ -10,6 +10,7 @@
         <result property="className"    column="class_name"/>
         <result property="grade"        column="grade"/>
         <result property="levelFilter"  column="level_filter"/>
+        <result property="inviteCode"   column="invite_code"/>
         <result property="isActive"     column="is_active"/>
         <result property="createdAt"    column="created_at"/>
         <result property="updatedAt"    column="updated_at"/>
@@ -29,9 +30,13 @@
         SELECT COUNT(*) FROM class_members WHERE class_id = #{classId}
     </select>
 
+    <select id="findByInviteCode" resultMap="SchoolClassResultMap">
+        SELECT * FROM classes WHERE invite_code = #{inviteCode} AND is_active = 1
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="classId">
-        INSERT INTO classes (school_id, teacher_id, class_name, grade, level_filter, is_active, created_at, updated_at)
-        VALUES (#{schoolId}, #{teacherId}, #{className}, #{grade}, #{levelFilter}, 1, NOW(), NOW())
+        INSERT INTO classes (school_id, teacher_id, class_name, grade, level_filter, invite_code, is_active, created_at, updated_at)
+        VALUES (#{schoolId}, #{teacherId}, #{className}, #{grade}, #{levelFilter}, #{inviteCode}, 1, NOW(), NOW())
     </insert>
 
     <update id="update">

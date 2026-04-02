@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface ClassMapper {
     List<SchoolClass> findByTeacherId(@Param("teacherId") Long teacherId);
     Optional<SchoolClass> findById(@Param("classId") Long classId);
+    Optional<SchoolClass> findByInviteCode(@Param("inviteCode") String inviteCode);
     int countMembers(@Param("classId") Long classId);
     void insert(SchoolClass schoolClass);
     void update(SchoolClass schoolClass);

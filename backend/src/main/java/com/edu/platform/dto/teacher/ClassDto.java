@@ -13,8 +13,15 @@ public class ClassDto {
         private String className;
         private String grade;
         private String levelFilter;
+        private String inviteCode;
         private int studentCount;
         private LocalDateTime createdAt;
+    }
+
+    @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class JoinRequest {
+        @NotBlank(message = "초대코드를 입력해주세요.")
+        private String inviteCode;
     }
 
     @Getter @NoArgsConstructor @AllArgsConstructor

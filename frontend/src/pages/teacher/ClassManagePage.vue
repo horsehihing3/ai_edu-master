@@ -33,6 +33,16 @@
             <button class="btn btn-secondary btn-sm" @click="deleteClass(cls)">삭제</button>
           </div>
         </div>
+        <!-- [2026-04-03] 초대코드 표시 -->
+        <div class="class-card__invite">
+          <span class="invite-label">초대코드</span>
+          <span class="invite-code">{{ cls.inviteCode || '—' }}</span>
+          <button class="invite-copy-btn" :title="'코드 복사'" @click.stop="copyCode(cls.inviteCode)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
         <div class="class-card__body" @click="openMembersModal(cls)">
           <div class="student-count">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -174,6 +184,17 @@ const dialog = useDialog()
 const classes = ref([])
 const loading = ref(false)
 let allStudents = []
+
+// ── 초대코드 복사 ─────────────────────────────────
+async function copyCode(code) {
+  if (!code) return
+  try {
+    await navigator.clipboard.writeText(code)
+    success(`초대코드 ${code} 복사됨`)
+  } catch {
+    error('복사에 실패했습니다.')
+  }
+}
 
 // ── 헬퍼 ────────────────────────────────────────
 function gradeLabel(g) {
@@ -367,6 +388,48 @@ loadClasses()
 }
 
 .card-actions { display: flex; gap: $spacing-2; flex-shrink: 0; }
+
+// ── 초대코드 ──────────────────────────────────
+.class-card__invite {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-5;
+  background: $bg-light;
+  border-bottom: 1px solid $border;
+}
+
+.invite-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  flex-shrink: 0;
+}
+
+.invite-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: $font-size-sm;
+  letter-spacing: 0.15em;
+  color: $primary;
+  flex: 1;
+}
+
+.invite-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background: $bg-white;
+  color: $text-muted;
+  cursor: pointer;
+  transition: all $transition-fast;
+  flex-shrink: 0;
+
+  &:hover { border-color: $primary; color: $primary; background: $primary-bg; }
+}
 
 .class-card__body {
   display: flex;
