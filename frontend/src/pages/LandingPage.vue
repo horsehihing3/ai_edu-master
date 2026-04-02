@@ -33,7 +33,7 @@
             10일 무료 체험
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </RouterLink>
-          <a href="#features" class="btn-hero-outline">서비스 소개 보기</a>
+          <RouterLink to="/login" class="btn-hero-outline">로그인</RouterLink>
         </div>
 
         <!-- 플로팅 뱃지 -->
@@ -77,6 +77,18 @@
         <span class="section-hd__tag">주요 기능</span>
         <h2>AI EDU만의 특별한 기능</h2>
         <p>학생 성장을 위해 설계된 맞춤형 학습 시스템</p>
+      </div>
+
+      <!-- [2026-04-02] 학생용/선생님용 탭 -->
+      <div class="s-features__tabs lp-container">
+        <button :class="['feat-tab', { active: featTab === 'student' }]" @click="switchFeatTab('student')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          학생용
+        </button>
+        <button :class="['feat-tab', { active: featTab === 'teacher' }]" @click="switchFeatTab('teacher')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          선생님용
+        </button>
       </div>
 
       <!-- 커버플로우 -->
@@ -582,7 +594,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import PublicHeader from '@/components/layout/PublicHeader.vue'
 import PublicFooter from '@/components/layout/PublicFooter.vue'
@@ -623,6 +635,12 @@ onMounted(async () => {
 
 const openFaq = ref(null)
 const guideTab = ref('student')
+const featTab = ref('student')
+
+function switchFeatTab(tab) {
+  featTab.value = tab
+  carouselIndex.value = 0
+}
 
 // 커버플로우
 const carouselIndex = ref(0)
@@ -708,7 +726,8 @@ function startCountUp() {
   })
 }
 
-const features = [
+// [2026-04-02] 학생용/선생님용 탭별 기능 데이터
+const studentFeatures = [
   {
     title: '정밀 진단 테스트',
     desc: 'AI가 학생의 수준을 정밀 분석하여 A/B/C 레벨을 배정합니다. 취약 단원을 파악해 집중 학습 커리큘럼을 제안합니다.',
@@ -725,16 +744,46 @@ const features = [
     icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`
   },
   {
+    title: '오답노트 자동 저장',
+    desc: '틀린 문제는 자동으로 오답노트에 저장됩니다. 취약 유형을 분석하고 반복 학습으로 완벽하게 극복합니다.',
+    icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`
+  },
+  {
     title: '학습 리포트',
     desc: '주별·월별 학습량, 정답률, 취약 단원을 분석한 리포트를 제공합니다. 학부모도 언제든지 확인할 수 있습니다.',
     icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
-  },
-  {
-    title: '과제 관리',
-    desc: '선생님이 학생에게 맞춤 과제를 출제합니다. 제출 현황과 정답률을 실시간으로 확인하고 피드백을 줄 수 있습니다.',
-    icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>`
   }
 ]
+
+const teacherFeatures = [
+  {
+    title: '과제 출제 · 배정',
+    desc: '50,000+ 기출문제 DB에서 단원·난이도별로 문제를 선택해 학생 개인 또는 학급 전체에 과제를 배정합니다.',
+    icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>`
+  },
+  {
+    title: '학생 진도 실시간 확인',
+    desc: '학생별 과제 제출 현황, 정답률, 학습 시간을 실시간으로 파악합니다. 미제출 학생에게 바로 알림을 전송할 수 있습니다.',
+    icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+  },
+  {
+    title: '학급별 성취도 리포트',
+    desc: '반 전체의 평균 정답률, 취약 단원, 상위/하위 학생 분포를 한눈에 파악합니다. 데이터 기반 수업 계획이 가능합니다.',
+    icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
+  },
+  {
+    title: 'AI 취약점 분석',
+    desc: '학생마다 취약한 단원과 유형을 AI가 자동 분석합니다. 맞춤 문제를 추천받아 개인 맞춤 과제를 빠르게 구성할 수 있습니다.',
+    icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`
+  },
+  {
+    title: '1:1 문의 관리',
+    desc: '학생·학부모의 문의를 한 곳에서 관리합니다. 답변 완료 여부를 추적하고 알림을 통해 빠른 소통이 가능합니다.',
+    icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
+  }
+]
+
+const features = computed(() => featTab.value === 'student' ? studentFeatures : teacherFeatures)
 
 const levels = [
   {
@@ -1377,12 +1426,21 @@ const faqs = [
     z-index: 0;
   }
 
-  // 섹션 헤더·스테이지·도트 모두 오버레이 위로
+  // 섹션 헤더·탭·스테이지·도트 모두 오버레이 위로
   .section-hd,
+  &__tabs,
   &__stage,
   &__dots {
     position: relative;
     z-index: 1;
+  }
+
+  // [2026-04-02] 학생용/선생님용 탭
+  &__tabs {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-3;
+    margin-top: $spacing-8;
   }
 
   // 헤더 텍스트 색상 오버라이드
@@ -2008,6 +2066,36 @@ const faqs = [
   .lp-container {
     position: relative;
     z-index: 1;
+  }
+}
+
+// [2026-04-02] 기능 소개 탭 (다크 배경용)
+.feat-tab {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-6;
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: $radius-full;
+  transition: all 0.2s;
+
+  svg { opacity: 0.6; transition: opacity 0.2s; }
+
+  &.active {
+    background: $primary;
+    color: white;
+    border-color: $primary;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.45);
+
+    svg { opacity: 1; }
+  }
+  &:hover:not(.active) {
+    color: rgba(255,255,255,0.8);
+    border-color: rgba(255,255,255,0.3);
+    svg { opacity: 0.8; }
   }
 }
 

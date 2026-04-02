@@ -23,6 +23,7 @@
       </div>
       <div class="pub-footer__bottom">
         <p>고객센터: 1670-0000 (평일 09:00~18:00) | contact@aiedu.com</p>
+        <p class="pub-footer__biz">사업자등록번호: 000-00-00000 | 대표자: (클라이언트 제공 필요) | 주소: (클라이언트 제공 필요)</p>
         <p class="pub-footer__copy">© 2026 AI EDU. All rights reserved.</p>
       </div>
     </div>
@@ -53,6 +54,13 @@ const footerLinks = [
     items: [
       { label: '회원가입', to: '/register' },
       { label: '로그인', to: '/login' }
+    ]
+  },
+  {
+    title: '약관 및 정책',
+    items: [
+      { label: '이용약관', to: '/terms' },
+      { label: '개인정보처리방침', to: '/privacy' }
     ]
   }
 ]
@@ -113,10 +121,10 @@ const footerLinks = [
 
   &__links {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: $spacing-6;
 
-    @media (max-width: $bp-mobile) { grid-template-columns: 1fr 1fr; }
+    @media (max-width: $bp-tablet) { grid-template-columns: repeat(2, 1fr); }
   }
 
   &__col {
@@ -151,6 +159,12 @@ const footerLinks = [
       color: rgba(255,255,255,0.25);
       margin-bottom: $spacing-2;
     }
+  }
+
+  &__biz {
+    font-size: 10px !important;
+    color: rgba(255,255,255,0.18) !important;
+    margin-bottom: $spacing-1 !important;
   }
 
   &__copy { color: rgba(255,255,255,0.15) !important; }

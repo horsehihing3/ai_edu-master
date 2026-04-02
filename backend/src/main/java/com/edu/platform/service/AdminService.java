@@ -211,6 +211,28 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
+    public List<Map<String, Object>> getSolvedData(int days) {
+        List<Map<String, Object>> dbData = learningSessionMapper.getDailySolvedCounts(days);
+        Map<String, Long> dateCountMap = new HashMap<>();
+        for (Map<String, Object> row : dbData) {
+            String date = (String) row.get("date");
+            Object countObj = row.get("count");
+            long count = countObj instanceof Number ? ((Number) countObj).longValue() : 0L;
+            if (date != null) dateCountMap.put(date, count);
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd");
+        for (int i = days - 1; i >= 0; i--) {
+            String dateStr = LocalDate.now().minusDays(i).format(fmt);
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("date", dateStr);
+            entry.put("value", dateCountMap.getOrDefault(dateStr, 0L));
+            result.add(entry);
+        }
+        return result;
+    }
+
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getWeakUnitStats() {
         return problemMapper.getWeakUnitStats().stream().map(r -> {
             Map<String, Object> entry = new HashMap<>();

@@ -53,10 +53,23 @@ const DashboardAnnouncementPage = () => import('@/pages/common/DashboardAnnounce
 const SettingsPage = () => import('@/pages/common/SettingsPage.vue')
 const NotFoundPage = () => import('@/pages/NotFoundPage.vue')
 
+const TermsPage = () => import('@/pages/common/TermsPage.vue')
+const PrivacyPage = () => import('@/pages/common/PrivacyPage.vue')
+
 const routes = [
   {
     path: '/',
     component: LandingPage,
+    meta: { public: true }
+  },
+  {
+    path: '/terms',
+    component: TermsPage,
+    meta: { public: true }
+  },
+  {
+    path: '/privacy',
+    component: PrivacyPage,
     meta: { public: true }
   },
   {

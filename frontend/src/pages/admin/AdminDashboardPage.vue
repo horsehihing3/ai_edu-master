@@ -37,6 +37,22 @@
       </div>
 
       <div class="card">
+        <h3>일일 풀이 수 (최근 7일)</h3>
+        <div class="bar-chart">
+          <div v-for="d in solvedData" :key="d.date" class="bar-item">
+            <span class="bar-value">{{ d.value || '' }}</span>
+            <div class="bar-col">
+              <div class="bar" :style="{ height: (d.value / maxSolved * 100) + '%', background: '#10B981' }" />
+            </div>
+            <span class="bar-label">{{ d.date }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 레벨별 분포 + 문의 -->
+    <div class="chart-grid">
+      <div class="card">
         <h3>레벨별 학생 분포</h3>
         <div class="pie-list">
           <div v-for="l in levelDist" :key="l.level" class="pie-item">
@@ -87,10 +103,12 @@ const kpiBgs   = ['#DBEAFE','#D1FAE5','#FEF3C7','#EDE9FE']
 
 const kpis = ref([])
 const dauData = ref([])
+const solvedData = ref([])
 const levelDist = ref([])
 const recentInquiries = ref([])
 
 const maxDau = computed(() => dauData.value.length ? Math.max(...dauData.value.map(d => d.value)) : 1)
+const maxSolved = computed(() => solvedData.value.length ? Math.max(...solvedData.value.map(d => d.value)) : 1)
 
 const inquiryColumns = [
   { key: 'id', label: 'No' },
@@ -102,9 +120,10 @@ const inquiryColumns = [
 
 onMounted(async () => {
   try {
-    const [statsRes, dauRes, levelRes, inquiryRes] = await Promise.all([
+    const [statsRes, dauRes, solvedRes, levelRes, inquiryRes] = await Promise.all([
       api.get('/admin/dashboard/stats'),
       api.get('/admin/dashboard/dau'),
+      api.get('/admin/dashboard/solved'),
       api.get('/admin/dashboard/level-dist'),
       api.get('/admin/inquiries?size=5&sort=createdAt,desc')
     ])
@@ -116,6 +135,7 @@ onMounted(async () => {
       { label: '활성 구독자', value: (s.activeSubscribers || 0).toLocaleString(), trend: s.subscriberTrend || 0, color: kpiColors[3], bg: kpiBgs[3], icon: kpiIcons[3] }
     ]
     dauData.value = (dauRes.data || []).map(d => ({ date: d.date, value: d.value }))
+    solvedData.value = (solvedRes.data || []).map(d => ({ date: d.date, value: d.value }))
     levelDist.value = (levelRes.data || []).map((l, i) => ({
       level: l.level, count: l.count, pct: l.pct,
       color: ['#3B82F6','#10B981','#F59E0B'][i] || '#6B7280'

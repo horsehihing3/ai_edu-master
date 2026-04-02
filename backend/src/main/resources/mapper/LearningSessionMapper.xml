@@ -186,4 +186,17 @@
         WHERE DATE(attempted_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
     </select>
 
+    <!-- [2026-04-02] 최근 N일 일별 풀이 수 막대그래프용 -->
+    <select id="getDailySolvedCounts" resultType="map">
+        SELECT DATE_FORMAT(solved_date, '%m/%d') AS date,
+               COUNT(*) AS `count`
+        FROM (
+            SELECT DATE(attempted_at) AS solved_date
+            FROM problem_attempts
+            WHERE attempted_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        ) t
+        GROUP BY solved_date
+        ORDER BY solved_date ASC
+    </select>
+
 </mapper>

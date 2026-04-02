@@ -158,6 +158,11 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(adminService.getLevelDistribution()));
     }
 
+    @GetMapping("/dashboard/solved")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getDashboardSolved() {
+        return ResponseEntity.ok(ApiResponse.success(adminService.getSolvedData(7)));
+    }
+
     @GetMapping("/inquiries")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAdminInquiries(
             @RequestParam(required = false) String status,
