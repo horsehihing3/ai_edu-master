@@ -20,6 +20,9 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 - [x] 회원가입 버그 수정 — 존재하지 않는 /auth/send-verification 호출 제거, 1단계 직접 가입 방식으로 변경
 - [x] 어드민 Analytics 실데이터 연동 확인 — DAU/레벨분포/취약단원 3개 API 모두 정상 작동 확인 (기개발)
 - [x] passage(보기) 박스 감지 개선 — Python 3단계 필터(텍스트밀도 30%→20%, 가로형박스, 윤곽선형태), 클러스터 근접거리 15→8pt, Claude 프롬프트 보기 추출 규칙 강화
+- [x] 어드민 대시보드 일일 풀이 수 차트 — GET /admin/dashboard/solved, AdminService.getSolvedData, AdminDashboardPage 막대차트 2열 그리드
+- [x] 랜딩 기능 소개 탭 분리 — 학생용/선생님용 탭 버튼, 히어로 "서비스 소개 보기" → "로그인" 버튼 변경
+- [x] 이용약관·개인정보처리방침 페이지 — TermsPage.vue, PrivacyPage.vue 플레이스홀더, /terms·/privacy 라우트, 푸터 링크
 
 ---
 
