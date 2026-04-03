@@ -213,6 +213,26 @@ public class TeacherService {
         return assignmentMapper.getStudentProgress(assignmentId);
     }
 
+    // [2026-04-03] 미완료 학생 독려 알림 발송
+    @Transactional
+    public int nudgeIncompleteStudents(Long assignmentId, Long senderUserId) {
+        Assignment assignment = assignmentMapper.findById(assignmentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
+        List<Long> userIds = assignmentMapper.findIncompleteStudentUserIds(assignmentId);
+        for (Long userId : userIds) {
+            Notification noti = new Notification();
+            noti.setUserId(userId);
+            noti.setSenderId(senderUserId);
+            noti.setNotiType("ASSIGNMENT");
+            noti.setTitle("과제 제출 독려");
+            noti.setContent("아직 완료하지 않은 과제가 있어요: " + assignment.getTitle());
+            noti.setLinkUrl("/student/learn");
+            noti.setIsRead(false);
+            notificationMapper.insert(noti);
+        }
+        return userIds.size();
+    }
+
     @Transactional(readOnly = true)
     public Map<String, Object> getStudentProgress(Long studentId, Long teacherId) {
         Student student = studentMapper.findById(studentId)

@@ -87,7 +87,16 @@
 
         <!-- 학생별 현황 (클릭 가능) -->
         <div class="card">
-          <h3>학생별 현황</h3>
+          <div class="card__header">
+            <h3>학생별 현황</h3>
+            <button
+              class="btn btn-secondary btn-sm"
+              :disabled="nudging || !hasIncomplete"
+              @click="sendNudge"
+            >
+              {{ nudging ? '발송 중...' : '미완료 학생 독려 알림' }}
+            </button>
+          </div>
           <div class="student-list">
             <div
               v-for="s in studentProgress" :key="s.studentId"
@@ -265,7 +274,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppBreadcrumb from '@/components/common/AppBreadcrumb.vue'
 import AppBadge from '@/components/common/AppBadge.vue'
@@ -290,6 +299,21 @@ const attempts = ref([])
 const overallFeedback = ref(null)
 const overallComment = ref('')
 const overallDrawingUrl = ref(null)
+
+// [2026-04-03] 독려 알림
+const nudging = ref(false)
+const hasIncomplete = computed(() => studentProgress.value.some(s => s.status !== 'done'))
+
+async function sendNudge() {
+  nudging.value = true
+  try {
+    const res = await api.post(`/teacher/assignments/${assignmentId}/nudge`)
+    const count = res.data?.sentCount ?? 0
+    success(`${count}명의 학생에게 독려 알림을 보냈습니다.`)
+  } catch { error('알림 발송에 실패했습니다.') } finally {
+    nudging.value = false
+  }
+}
 
 // [2026-03-23] 과제 수정/삭제
 const editModalOpen = ref(false)

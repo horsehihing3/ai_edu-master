@@ -192,6 +192,17 @@ public class TeacherController {
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.ASSIGNMENT_UPDATED));
     }
 
+    // [2026-04-03] 미완료 학생 독려 알림
+    @PostMapping("/assignments/{assignmentId}/nudge")
+    @PreAuthorize("hasAnyRole('TEACHER','SUPER_USER')")
+    public ResponseEntity<ApiResponse<Map<String, Integer>>> nudgeStudents(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long assignmentId) {
+        Long userId = getUserId(userDetails);
+        int count = teacherService.nudgeIncompleteStudents(assignmentId, userId);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("sentCount", count)));
+    }
+
     @DeleteMapping("/assignments/{assignmentId}")
     @PreAuthorize("hasAnyRole('TEACHER','SUPER_USER')")
     public ResponseEntity<ApiResponse<Void>> deleteAssignment(

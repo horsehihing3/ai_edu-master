@@ -11,11 +11,9 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 
 ### 🔴 필수 (Mandatory) — 미구현
 - [ ] **학급별 리포트 조회** — 교사 분석 화면에서 학급 선택 → 학급 단위 성적 현황
-- [ ] **미완료 학생 독려 알림** — 과제 상세 화면에서 미완료 학생에게 개별 인앱 알림 발송 버튼
 - [ ] **이메일 인증** — 회원가입 시 이메일 토큰 발송/검증 (`AuthService.java:279` TODO 구현)
 - [ ] **소셜 로그인 (Google/Kakao)** — `LoginPage.vue` UI 완성, OAuth2 백엔드 연동 (`application.yml` 주석 해제)
 - [ ] **문제 직접 입력 에디터** — 어드민 문제 DB에서 PDF 없이 텍스트 직접 입력/등록
-- [ ] **공지사항 배너 (학생 홈)** — `StudentHomePage.vue` 최신 공지 1~2개 인라인 배너 표시
 - [ ] **매칭 해제 및 재배정** — 교사-학생 연결 해제 + 다른 교사에게 재배정 (현재 학급 제거만 가능)
 - [ ] **SSO 연동** — 라이브 강의 시스템과 Single Sign-On 연동
 
@@ -28,6 +26,8 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
 
 ## ✅ 이번 세션 완료
+- [x] **공지사항 배너 (학생 홈)** — `StudentHomePage.vue` 환영 배너 아래 최신 공지 2개 인라인 배너 표시. 중요 공지 노란색 강조, `GET /announcements?size=2` 병렬 호출 (2026-04-03)
+- [x] **미완료 학생 독려 알림** — `AssignmentDetailPage.vue` 학생별 현황 헤더에 독려 알림 버튼 추가. `POST /teacher/assignments/{id}/nudge`, `AssignmentMapper.findIncompleteStudentUserIds()`, `TeacherService.nudgeIncompleteStudents()` 구현. noti_type ENUM 제약(`ASSIGNMENT`) 대응. 테스트 완료 (2026-04-03)
 - [x] **등급별 자동 분리 배정** — `AssignmentCreatePage.vue` autoAssign 토글 + levelGroups 계산 + 미리보기 모달, `TeacherService.createAssignment()` 등급별 자동 분리 로직 + `createSingleAssignment()` private 메서드, `ProblemMapper.findById()` 주입. `@click.stop` → `@click.prevent` 체크박스 선택 동기화 버그 수정 (2026-04-03)
 - [x] **등급 변화 타임라인** — `ReportPage.vue` 학생 리포트 등급(A/B/C) 타임라인 UI, `StudentMapper.getLevelHistoryByStudentId()` 진단 이력 조회 (2026-04-03)
 - [x] **단원별 취약 분석** — 학생 리포트 단원별 정답률 바차트, `StudentMapper.getWeakUnitsByStudentId()` problem_attempts 집계 (2026-04-03)

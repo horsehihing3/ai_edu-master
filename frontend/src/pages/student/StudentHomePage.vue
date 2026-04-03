@@ -14,6 +14,23 @@
       </div>
     </div>
 
+    <!-- [2026-04-03] 공지사항 배너 -->
+    <div v-if="notices.length" class="notice-list">
+      <div
+        v-for="n in notices"
+        :key="n.announcementId"
+        class="notice-item"
+        :class="{ 'notice-item--important': n.isImportant }"
+      >
+        <span class="notice-icon">
+          <svg v-if="n.isImportant" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
+        <span class="notice-title">{{ n.title }}</span>
+        <span class="notice-date">{{ n.createdAt?.slice(0, 10) }}</span>
+      </div>
+    </div>
+
     <!-- 학습 현황 카드 -->
     <div class="stats-grid">
       <div class="stat-card" style="border-top: 4px solid #3B82F6; background: #DBEAFE;">
@@ -215,6 +232,7 @@ const stats = ref({ totalSolved: 0, accuracy: 0, streak: 0, todaySolved: 0, toda
 const assignments = ref([])
 const recentHistory = ref([])
 const myClasses = ref([])
+const notices = ref([])
 
 const historyColumns = [
   { key: 'date', label: '날짜' },
@@ -291,12 +309,13 @@ async function submitJoin() {
 onMounted(async () => {
   loading.value = true
   try {
-    const [statsRes, assignRes, historyRes, aiRes, classesRes] = await Promise.all([
+    const [statsRes, assignRes, historyRes, aiRes, classesRes, noticesRes] = await Promise.all([
       api.get('/student/dashboard/stats'),
       api.get('/student/assignments', { params: { size: 3 } }),
       api.get('/student/history', { params: { size: 5 } }),
       api.get('/student/ai-comment'),
-      api.get('/student/classes')
+      api.get('/student/classes'),
+      api.get('/announcements', { params: { size: 2 } }).catch(() => null)
     ])
     const s = statsRes.data || {}
     stats.value = {
@@ -314,6 +333,8 @@ onMounted(async () => {
     }))
     aiComment.value = aiRes.data?.comment || ''
     myClasses.value = classesRes.data?.data || classesRes.data || []
+    const noticeContent = noticesRes?.data?.data?.content || noticesRes?.data?.data || noticesRes?.data?.content || []
+    notices.value = Array.isArray(noticeContent) ? noticeContent : []
   } catch {} finally { loading.value = false }
 })
 </script>
@@ -544,6 +565,54 @@ onMounted(async () => {
   border-radius: $radius-sm;
   font-size: $font-size-xs;
   font-weight: 700;
+}
+
+// ── 공지사항 배너 ────────────────────────────────
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.notice-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-4;
+  background: $bg-light;
+  border: 1px solid $border;
+  border-left: 4px solid $border;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+
+  &--important {
+    background: #FFFBEB;
+    border-color: #FCD34D;
+    border-left-color: #F59E0B;
+
+    .notice-icon { color: #D97706; }
+    .notice-title { font-weight: 600; color: $text-primary; }
+  }
+}
+
+.notice-icon {
+  flex-shrink: 0;
+  color: $text-muted;
+  display: flex;
+}
+
+.notice-title {
+  flex: 1;
+  color: $text-secondary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notice-date {
+  flex-shrink: 0;
+  font-size: $font-size-xs;
+  color: $text-muted;
 }
 
 // ── 내 학급 목록 ────────────────────────────────

@@ -114,6 +114,20 @@
         ORDER BY u.name
     </select>
 
+    <!-- [2026-04-03] 독려 알림 — 미완료 학생 user_id 목록 -->
+    <select id="findIncompleteStudentUserIds" resultType="long">
+        SELECT s.user_id
+        FROM assignment_targets at
+        JOIN students s ON at.student_id = s.student_id
+        WHERE at.assignment_id = #{assignmentId}
+          AND NOT EXISTS (
+              SELECT 1 FROM learning_sessions ls
+              WHERE ls.assignment_id = at.assignment_id
+                AND ls.student_id   = at.student_id
+                AND ls.status       = 'COMPLETED'
+          )
+    </select>
+
     <select id="getListWithStats" resultType="map">
         SELECT a.assignment_id                                                         AS assignmentId,
                a.title,

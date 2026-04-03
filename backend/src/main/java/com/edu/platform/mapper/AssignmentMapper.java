@@ -40,4 +40,7 @@ public interface AssignmentMapper {
     long countSubmittedSessions(@Param("assignmentId") Long assignmentId);
     void deleteProblemsByAssignmentId(@Param("assignmentId") Long assignmentId);
     void deleteTargetsByAssignmentId(@Param("assignmentId") Long assignmentId);
+
+    // [2026-04-03] 독려 알림용 — 미완료 학생의 user_id 목록
+    List<Long> findIncompleteStudentUserIds(@Param("assignmentId") Long assignmentId);
 }
