@@ -14,6 +14,7 @@ import com.edu.platform.exception.ErrorCode;
 import com.edu.platform.domain.Notification;
 import com.edu.platform.mapper.AssignmentMapper;
 import com.edu.platform.mapper.LearningSessionMapper;
+import com.edu.platform.mapper.ClassMapper;
 import com.edu.platform.mapper.NotificationMapper;
 import com.edu.platform.mapper.StudentMapper;
 import com.edu.platform.mapper.TeacherMapper;
@@ -26,9 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,6 +45,7 @@ public class TeacherService {
     private final AssignmentMapper assignmentMapper;
     private final LearningSessionMapper learningSessionMapper;
     private final NotificationMapper notificationMapper;
+    private final ClassMapper classMapper;
 
     // [2026-04-01] 학생 리포트 CSV 내보내기
     @Transactional(readOnly = true)
@@ -117,26 +121,28 @@ public class TeacherService {
             }
         }
 
-        // 학생 배정 + 인앱 알림 발송 [2026-04-01]
+        User teacherUser = userMapper.findById(teacher.getUserId()).orElse(null);
+        Long senderUserId = teacherUser != null ? teacherUser.getUserId() : null;
+        Set<Long> assignedStudentIds = new HashSet<>();
+
+        // [2026-04-03] 학급 배정 — classIds를 학생 개별 타겟으로 확장
+        if (request.getClassIds() != null && !request.getClassIds().isEmpty()) {
+            for (Long classId : request.getClassIds()) {
+                List<Long> classStudentIds = classMapper.findStudentIdsByClassId(classId);
+                for (Long studentId : classStudentIds) {
+                    if (!assignedStudentIds.add(studentId)) continue; // 중복 학생 방지
+                    assignmentMapper.insertTarget(assignment.getAssignmentId(), classId, studentId);
+                    sendAssignmentNotification(assignment, studentId, senderUserId);
+                }
+            }
+        }
+
+        // 개별 학생 배정 + 인앱 알림 발송 [2026-04-01]
         if (request.getStudentIds() != null) {
-            User teacherUser = userMapper.findById(teacher.getUserId())
-                    .orElse(null);
-            Long senderUserId = teacherUser != null ? teacherUser.getUserId() : null;
-
             for (Long studentId : request.getStudentIds()) {
+                if (!assignedStudentIds.add(studentId)) continue; // 학급+개인 중복 방지
                 assignmentMapper.insertTarget(assignment.getAssignmentId(), null, studentId);
-
-                Student student = studentMapper.findById(studentId).orElse(null);
-                if (student == null) continue;
-
-                notificationMapper.insert(Notification.builder()
-                        .userId(student.getUserId())
-                        .senderId(senderUserId)
-                        .notiType("ASSIGNMENT")
-                        .title("새 과제가 배정되었습니다")
-                        .content(assignment.getTitle())
-                        .linkUrl("/student/learn")
-                        .build());
+                sendAssignmentNotification(assignment, studentId, senderUserId);
             }
         }
 
@@ -219,6 +225,20 @@ public class TeacherService {
             assignmentMapper.delete(assignmentId);
             log.info("Assignment hard-deleted: {}", assignmentId);
         }
+    }
+
+    // [2026-04-03] 학생 개인에게 과제 배정 알림 발송 헬퍼
+    private void sendAssignmentNotification(Assignment assignment, Long studentId, Long senderUserId) {
+        Student student = studentMapper.findById(studentId).orElse(null);
+        if (student == null) return;
+        notificationMapper.insert(Notification.builder()
+                .userId(student.getUserId())
+                .senderId(senderUserId)
+                .notiType("ASSIGNMENT")
+                .title("새 과제가 배정되었습니다")
+                .content(assignment.getTitle())
+                .linkUrl("/student/learn")
+                .build());
     }
 
     @Transactional

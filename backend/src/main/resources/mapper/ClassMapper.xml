@@ -85,6 +85,11 @@
         WHERE class_id = #{classId} AND student_id = #{studentId}
     </select>
 
+    <!-- [2026-04-03] 학급 배정 시 소속 학생 ID 목록 -->
+    <select id="findStudentIdsByClassId" resultType="long">
+        SELECT student_id FROM class_members WHERE class_id = #{classId}
+    </select>
+
     <!-- [2026-04-03] 학생이 소속된 학급 목록 -->
     <select id="findClassesByStudentId" resultType="map">
         SELECT

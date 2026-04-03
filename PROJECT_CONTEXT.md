@@ -11,6 +11,7 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 - [ ] PG 연동 / 구독
 
 ## ✅ 이번 세션 완료
+- [x] **학급별 과제 배정 흐름 구현** — AssignmentCreatePage 학급별/개인별 탭 UI, ClassMapper.findStudentIdsByClassId(), TeacherService.createAssignment() classIds 처리(학급→학생 전개+중복방지+알림), assignment_targets.class_id 저장. 시나리오 테스트 완료 (2026-04-03)
 - [x] 학급 초대코드 가입 기능 (완료) — 8자리 SecureRandom 코드, POST /student/classes/join, ClassManagePage 코드 표시+복사, StudentHomePage 가입 모달 + 내 학급 목록, DB 마이그레이션(classes.invite_code VARCHAR(8)), GET /student/classes API
 - [x] 초대코드 방식 확정 — 요건정의서 v6 검토 결과 초대코드(방법2) 메인으로 확정. 이메일 초대·CSV 일괄등록은 나중으로 보류
 - [x] PDF 재검증 기능 제거 — /admin/verify-parsing 엔드포인트 삭제, ProblemUploadPage UI 정리, extractRawTexts() Claude API 호출 제거 (크레딧 절약)

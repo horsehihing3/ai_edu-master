@@ -56,21 +56,59 @@
       <div class="create-side" ref="sideRef">
         <div class="card">
           <h3 class="section-title">배정 대상</h3>
-          <p class="hint">과제를 받을 학생을 선택하세요</p>
-          <div class="student-select-list">
-            <label v-for="s in students" :key="s.id" class="student-select-item">
-              <input type="checkbox" :value="s.id" v-model="form.targetStudents" />
-              <div class="avatar-sm">{{ s.name.charAt(0) }}</div>
-              <div>
-                <p>{{ s.name }}</p>
-                <AppBadge :type="s.level" />
-              </div>
-            </label>
+
+          <!-- [2026-04-03] 학급별/개인별 탭 -->
+          <div class="target-mode-tabs">
+            <button :class="['mode-tab', { active: targetMode === 'class' }]" @click="targetMode = 'class'">
+              학급별
+            </button>
+            <button :class="['mode-tab', { active: targetMode === 'individual' }]" @click="targetMode = 'individual'">
+              개인별
+            </button>
           </div>
-          <div class="selected-summary">
-            <span>{{ form.targetStudents.length }}명 선택됨</span>
-            <button class="btn btn-ghost btn-sm" @click="selectAll">전체 선택</button>
-          </div>
+
+          <!-- 학급별 선택 -->
+          <template v-if="targetMode === 'class'">
+            <p class="hint">과제를 배정할 학급을 선택하세요</p>
+            <div v-if="classes.length === 0" class="problem-empty-hint">
+              등록된 학급이 없습니다.<br>학급 관리 페이지에서 먼저 학급을 만들어 주세요.
+            </div>
+            <div v-else class="class-select-list">
+              <label v-for="c in classes" :key="c.id" :class="['class-select-item', { selected: form.targetClasses.includes(c.id) }]">
+                <input type="checkbox" :value="c.id" v-model="form.targetClasses" />
+                <div class="class-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="class-info">
+                  <p class="class-name">{{ c.name }}</p>
+                  <span class="class-meta">{{ c.grade }} · {{ c.memberCount }}명</span>
+                </div>
+              </label>
+            </div>
+            <div class="selected-summary">
+              <span>{{ form.targetClasses.length }}개 학급 선택 (약 {{ selectedClassMemberCount }}명)</span>
+              <button class="btn btn-ghost btn-sm" @click="selectAllClasses">전체 선택</button>
+            </div>
+          </template>
+
+          <!-- 개인별 선택 -->
+          <template v-else>
+            <p class="hint">과제를 받을 학생을 선택하세요</p>
+            <div class="student-select-list">
+              <label v-for="s in students" :key="s.id" class="student-select-item">
+                <input type="checkbox" :value="s.id" v-model="form.targetStudents" />
+                <div class="avatar-sm">{{ s.name.charAt(0) }}</div>
+                <div>
+                  <p>{{ s.name }}</p>
+                  <AppBadge :type="s.level" />
+                </div>
+              </label>
+            </div>
+            <div class="selected-summary">
+              <span>{{ form.targetStudents.length }}명 선택됨</span>
+              <button class="btn btn-ghost btn-sm" @click="selectAll">전체 선택</button>
+            </div>
+          </template>
         </div>
 
         <div class="card">
@@ -79,7 +117,15 @@
             <div class="summary-item"><span>과제 제목</span><strong>{{ form.title || '-' }}</strong></div>
             <div class="summary-item"><span>과목</span><strong>{{ form.subject || '-' }}</strong></div>
             <div class="summary-item"><span>문제 수</span><strong>{{ selectedProblems.length }}문제</strong></div>
-            <div class="summary-item"><span>대상 학생</span><strong>{{ form.targetStudents.length }}명</strong></div>
+            <div class="summary-item">
+              <span>배정 방식</span>
+              <strong>{{ targetMode === 'class' ? '학급별' : '개인별' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>대상</span>
+              <strong v-if="targetMode === 'class'">{{ form.targetClasses.length }}개 학급</strong>
+              <strong v-else>{{ form.targetStudents.length }}명</strong>
+            </div>
             <div class="summary-item"><span>마감일</span><strong>{{ form.dueDate || '-' }}</strong></div>
           </div>
           <div class="create-btns">
@@ -162,11 +208,15 @@ const saving = ref(false)
 const problemSearch = ref('')
 const sideRef = ref(null)
 
+// [2026-04-03] 배정 모드: 학급별 / 개인별
+const targetMode = ref('class')
+
 const form = reactive({
   title: '',
   subject: '',
   dueDate: '',
-  targetStudents: []
+  targetStudents: [],
+  targetClasses: []
 })
 
 const errors = reactive({ title: '' })
@@ -176,6 +226,7 @@ const subjectOptions = ref([])
 const problems = ref([])
 const selectedProblems = ref([])
 const students = ref([])
+const classes = ref([]) // [2026-04-03] 학급 목록
 
 // 순서 편집 모달
 const orderModalOpen = ref(false)
@@ -225,6 +276,29 @@ async function fetchStudents() {
   }
 }
 
+// [2026-04-03] 학급 목록 조회
+async function fetchClasses() {
+  try {
+    const res = await api.get('/teacher/classes')
+    const list = res.data?.data || res.data || []
+    classes.value = list.map(c => ({
+      id: c.classId,
+      name: c.className,
+      grade: c.grade ? c.grade.replace('GRADE_', '중') + '학년' : '-',
+      memberCount: c.studentCount || 0
+    }))
+  } catch (e) {
+    error('학급 목록을 불러오지 못했습니다.')
+  }
+}
+
+// [2026-04-03] 선택된 학급의 총 예상 학생 수
+const selectedClassMemberCount = computed(() => {
+  return classes.value
+    .filter(c => form.targetClasses.includes(c.id))
+    .reduce((sum, c) => sum + c.memberCount, 0)
+})
+
 watch(() => form.subject, () => {
   selectedProblems.value = []
 })
@@ -232,6 +306,7 @@ watch(() => form.subject, () => {
 onMounted(async () => {
   fetchSubjects()
   fetchProblems()
+  fetchClasses() // [2026-04-03]
   await fetchStudents()
 })
 
@@ -261,6 +336,11 @@ function toggleProblem(p) {
 
 function selectAll() {
   form.targetStudents = students.value.map(s => s.id)
+}
+
+// [2026-04-03]
+function selectAllClasses() {
+  form.targetClasses = classes.value.map(c => c.id)
 }
 
 // 순서 편집
@@ -309,25 +389,39 @@ function applyOrder() {
   orderModalOpen.value = false
 }
 
+// [2026-04-03] 학급별/개인별 분기 처리
 async function saveAssignment() {
   errors.title = ''
   if (!form.title) { errors.title = '과제 제목을 입력하세요.'; return }
   if (!selectedProblems.value.length) { error('문제를 1개 이상 선택하세요.'); return }
-  if (!form.targetStudents.length) { error('대상 학생을 선택하세요.'); return }
+
+  if (targetMode.value === 'class' && !form.targetClasses.length) {
+    error('배정할 학급을 선택하세요.'); return
+  }
+  if (targetMode.value === 'individual' && !form.targetStudents.length) {
+    error('대상 학생을 선택하세요.'); return
+  }
 
   saving.value = true
   try {
     const payload = {
       title: form.title,
       description: '',
-      targetType: 'INDIVIDUAL',
       targetLevel: 'ALL',
       problemIds: selectedProblems.value.map(p => p.id),
-      studentIds: form.targetStudents,
       dueDate: form.dueDate ? form.dueDate + 'T23:59:59' : null,
       notifyEmail: false,
       isAutoAssign: false
     }
+
+    if (targetMode.value === 'class') {
+      payload.targetType = 'CLASS'
+      payload.classIds = form.targetClasses
+    } else {
+      payload.targetType = 'INDIVIDUAL'
+      payload.studentIds = form.targetStudents
+    }
+
     await api.post('/teacher/assignments', payload)
     success('과제를 생성했습니다.')
     router.push('/teacher/assignments')
@@ -443,6 +537,73 @@ async function saveAssignment() {
     font-size: $font-size-sm;
     color: $text-primary;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+}
+
+// [2026-04-03] 학급별/개인별 탭
+.target-mode-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: $spacing-4;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.mode-tab {
+  flex: 1;
+  padding: $spacing-2 $spacing-4;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  background: white;
+  border: none;
+  cursor: pointer;
+  color: $text-secondary;
+  transition: all $transition-fast;
+
+  &.active {
+    background: $primary;
+    color: white;
+  }
+
+  &:not(.active):hover {
+    background: $bg-light;
+  }
+}
+
+.class-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  margin-bottom: $spacing-4;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.class-select-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  cursor: pointer;
+  border: 1.5px solid $border;
+  transition: all $transition-fast;
+
+  &:hover { background: $bg-light; border-color: $primary-light; }
+  &.selected { background: $primary-bg; border-color: $primary-light; }
+
+  .class-icon {
+    width: 36px; height: 36px; border-radius: $radius-md;
+    background: $primary-bg; color: $primary;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .class-info {
+    flex: 1;
+    .class-name { font-size: $font-size-sm; font-weight: 600; margin-bottom: 2px; }
+    .class-meta { font-size: $font-size-xs; color: $text-muted; }
   }
 }
 
