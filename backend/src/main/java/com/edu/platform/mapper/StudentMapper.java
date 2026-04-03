@@ -26,4 +26,9 @@ public interface StudentMapper {
                                                @Param("offset") int offset,
                                                @Param("limit") int limit);
     long countBySchoolIdForStats(@Param("schoolId") Long schoolId);
+    // [2026-04-03] 리포트 강화
+    List<Map<String, Object>> getWeakUnitsByStudentId(@Param("studentId") Long studentId);
+    List<Map<String, Object>> getLevelHistoryByStudentId(@Param("studentId") Long studentId);
+    int getStudyDaysByStudentId(@Param("studentId") Long studentId);
+    List<Map<String, Object>> getLevelDataByStudentId(@Param("studentId") Long studentId);
 }

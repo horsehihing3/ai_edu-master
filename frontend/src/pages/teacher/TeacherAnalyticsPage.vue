@@ -81,6 +81,34 @@
         </div>
       </div>
 
+      <!-- [2026-04-03] 취약 단원별 학생 분석 -->
+      <div class="card card--full">
+        <div class="card__header"><h3>취약 단원별 분석</h3></div>
+        <div v-if="!unitWeakStats.length" class="unit-empty">
+          <p>단원 데이터가 없습니다. 문제에 단원 코드가 등록되면 표시됩니다.</p>
+        </div>
+        <div v-else>
+          <div class="unit-weak-grid">
+            <div v-for="(u, i) in unitWeakStats" :key="i" class="unit-weak-card">
+              <div class="unit-weak-card__header">
+                <div>
+                  <span class="uwc-subject">{{ u.subject }}</span>
+                  <p class="uwc-name">{{ u.unitName }}</p>
+                </div>
+                <span :class="['uwc-rate', u.avgAccuracy < 50 ? 'danger' : 'warning']">
+                  {{ u.avgAccuracy }}%
+                </span>
+              </div>
+              <div class="uwc-bar-track">
+                <div class="uwc-bar-fill"
+                  :style="{ width: u.avgAccuracy + '%', background: u.avgAccuracy < 50 ? '#EF4444' : '#F59E0B' }" />
+              </div>
+              <p class="uwc-meta">{{ u.studentCount }}명 학습</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 학생별 학습 현황 -->
       <div class="card card--full">
         <div class="card__header"><h3>학생별 학습 현황</h3></div>
@@ -159,6 +187,8 @@ const pieSlices = computed(() => {
 const subjectStats = ref([])
 const weeklyData = ref([])
 const studentStats = ref([])
+// [2026-04-03] 단원별 취약 분석
+const unitWeakStats = ref([])
 
 onMounted(async () => {
   try {
@@ -182,6 +212,7 @@ onMounted(async () => {
       name: s.name, level: s.level, weekStudy: s.weekStudy || 0,
       assignRate: s.assignRate || 0, correctRate: s.correctRate || 0, lastAccess: s.lastAccess || '-'
     }))
+    unitWeakStats.value = d.unitWeakStats || []
   } catch {}
 })
 </script>
@@ -427,4 +458,73 @@ onMounted(async () => {
 }
 
 .muted { color: $text-muted; }
+
+// ── [2026-04-03] 취약 단원별 분석 ──────────────────
+.unit-empty {
+  padding: $spacing-6;
+  text-align: center;
+  color: $text-muted;
+  font-size: $font-size-sm;
+}
+
+.unit-weak-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $spacing-4;
+  padding: $spacing-2 0;
+}
+
+.unit-weak-card {
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $spacing-4;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: $spacing-3;
+  }
+}
+
+.uwc-subject {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.uwc-name {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.uwc-rate {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  flex-shrink: 0;
+
+  &.danger  { color: #EF4444; }
+  &.warning { color: #F59E0B; }
+}
+
+.uwc-bar-track {
+  height: 6px;
+  background: $bg-light;
+  border-radius: $radius-full;
+  overflow: hidden;
+  margin-bottom: $spacing-2;
+}
+
+.uwc-bar-fill {
+  height: 100%;
+  border-radius: $radius-full;
+  transition: width .4s ease;
+}
+
+.uwc-meta {
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
 </style>

@@ -37,7 +37,7 @@
               :class="['problem-select-item', { selected: isSelected(p.id) }]"
               @click="toggleProblem(p)"
             >
-              <input type="checkbox" :checked="isSelected(p.id)" @click.stop />
+              <input type="checkbox" :checked="isSelected(p.id)" @click.prevent />
               <span v-if="isSelected(p.id)" class="order-num">{{ getOrder(p.id) }}</span>
               <div class="problem-info">
                 <div class="meta">
@@ -111,6 +111,32 @@
           </template>
         </div>
 
+        <!-- [2026-04-03] 등급별 자동 배정 옵션 -->
+        <div class="card">
+          <h3 class="section-title">배정 방식</h3>
+          <label class="auto-assign-toggle">
+            <div class="toggle-switch" :class="{ on: autoAssign }" @click="autoAssign = !autoAssign">
+              <div class="toggle-knob" />
+            </div>
+            <div class="toggle-label">
+              <p>등급별 자동 분리 배정</p>
+              <span>A문제→A학생, B문제→B학생, C문제→C학생으로 자동 분리</span>
+            </div>
+          </label>
+          <div v-if="autoAssign && levelGroups.length" class="level-preview">
+            <div v-for="g in levelGroups" :key="g.level" class="level-preview-row">
+              <AppBadge :type="g.level" />
+              <span>{{ g.count }}문제</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <span class="muted">{{ g.level }}등급 학생에게 배정</span>
+            </div>
+            <p v-if="noLevelProblems > 0" class="level-preview-warn">
+              ⚠ 등급 미지정 문제 {{ noLevelProblems }}개는 배정에서 제외됩니다.
+            </p>
+          </div>
+          <p v-else-if="autoAssign" class="hint">문제를 선택하면 등급별 분리 현황이 표시됩니다.</p>
+        </div>
+
         <div class="card">
           <h3 class="section-title">요약</h3>
           <div class="summary-list">
@@ -119,7 +145,7 @@
             <div class="summary-item"><span>문제 수</span><strong>{{ selectedProblems.length }}문제</strong></div>
             <div class="summary-item">
               <span>배정 방식</span>
-              <strong>{{ targetMode === 'class' ? '학급별' : '개인별' }}</strong>
+              <strong>{{ targetMode === 'class' ? '학급별' : '개인별' }} {{ autoAssign ? '· 등급 자동 분리' : '' }}</strong>
             </div>
             <div class="summary-item">
               <span>대상</span>
@@ -129,7 +155,7 @@
             <div class="summary-item"><span>마감일</span><strong>{{ form.dueDate || '-' }}</strong></div>
           </div>
           <div class="create-btns">
-            <AppButton :loading="saving" block @click="saveAssignment">과제 생성</AppButton>
+            <AppButton :loading="saving" block @click="autoAssign ? openPreview() : saveAssignment()">과제 생성</AppButton>
             <AppButton variant="secondary" block @click="$router.back()">취소</AppButton>
           </div>
         </div>
@@ -189,6 +215,46 @@
         </div>
       </div>
     </Teleport>
+    <!-- [2026-04-03] 등급별 자동 배정 미리보기 모달 -->
+    <Teleport to="body">
+      <div v-if="previewModalOpen" class="modal-overlay" @click.self="previewModalOpen = false">
+        <div class="modal-box preview-modal">
+          <div class="modal-box__header">
+            <h2>등급별 자동 배정 미리보기</h2>
+            <button class="btn-close" @click="previewModalOpen = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="preview-body">
+            <p class="preview-desc">선택한 문제가 등급별로 분리되어 각각 별도 과제로 생성됩니다.</p>
+            <div v-if="levelGroups.length" class="preview-level-list">
+              <div v-for="g in levelGroups" :key="g.level" class="preview-level-row">
+                <div class="preview-level-badge">
+                  <AppBadge :type="g.level" />
+                </div>
+                <div class="preview-level-info">
+                  <p><strong>"{{ form.title }} ({{ g.level }}레벨)"</strong></p>
+                  <span>문제 {{ g.count }}개 → {{ g.level }}등급 학생에게 배정</span>
+                </div>
+              </div>
+            </div>
+            <p v-if="noLevelProblems > 0" class="preview-warn">
+              ⚠ 등급 미지정 문제 {{ noLevelProblems }}개는 배정에서 제외됩니다.
+            </p>
+            <div class="preview-target-info">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>{{ targetMode === 'class' ? form.targetClasses.length + '개 학급 내 등급별 학생' : form.targetStudents.length + '명 중 등급별 학생' }}에게 각 과제가 배정됩니다.</span>
+            </div>
+          </div>
+          <div class="modal-box__footer">
+            <button class="btn btn-secondary" @click="previewModalOpen = false">취소</button>
+            <button class="btn btn-primary" :disabled="saving" @click="saveAssignment">
+              {{ saving ? '생성 중...' : '과제 생성' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -210,6 +276,9 @@ const sideRef = ref(null)
 
 // [2026-04-03] 배정 모드: 학급별 / 개인별
 const targetMode = ref('class')
+// [2026-04-03] 등급별 자동 배정
+const autoAssign = ref(false)
+const previewModalOpen = ref(false)
 
 const form = reactive({
   title: '',
@@ -290,6 +359,32 @@ async function fetchClasses() {
   } catch (e) {
     error('학급 목록을 불러오지 못했습니다.')
   }
+}
+
+// [2026-04-03] 선택한 문제의 등급별 그룹 (자동 배정 미리보기용)
+const levelGroups = computed(() => {
+  const map = {}
+  for (const p of selectedProblems.value) {
+    if (!p.level) continue
+    if (!map[p.level]) map[p.level] = 0
+    map[p.level]++
+  }
+  return ['A', 'B', 'C']
+    .filter(lv => map[lv] > 0)
+    .map(lv => ({ level: lv, count: map[lv] }))
+})
+
+const noLevelProblems = computed(() =>
+  selectedProblems.value.filter(p => !p.level).length
+)
+
+function openPreview() {
+  errors.title = ''
+  if (!form.title) { errors.title = '과제 제목을 입력하세요.'; return }
+  if (!selectedProblems.value.length) { error('문제를 1개 이상 선택하세요.'); return }
+  if (targetMode.value === 'class' && !form.targetClasses.length) { error('배정할 학급을 선택하세요.'); return }
+  if (targetMode.value === 'individual' && !form.targetStudents.length) { error('대상 학생을 선택하세요.'); return }
+  previewModalOpen.value = true
 }
 
 // [2026-04-03] 선택된 학급의 총 예상 학생 수
@@ -407,11 +502,10 @@ async function saveAssignment() {
     const payload = {
       title: form.title,
       description: '',
-      targetLevel: 'ALL',
       problemIds: selectedProblems.value.map(p => p.id),
       dueDate: form.dueDate ? form.dueDate + 'T23:59:59' : null,
       notifyEmail: false,
-      isAutoAssign: false
+      isAutoAssign: autoAssign.value
     }
 
     if (targetMode.value === 'class') {
@@ -423,7 +517,8 @@ async function saveAssignment() {
     }
 
     await api.post('/teacher/assignments', payload)
-    success('과제를 생성했습니다.')
+    previewModalOpen.value = false
+    success(autoAssign.value ? '등급별 과제가 자동 생성됐습니다.' : '과제를 생성했습니다.')
     router.push('/teacher/assignments')
   } catch (e) {
     error('과제 생성에 실패했습니다.')
@@ -695,6 +790,131 @@ async function saveAssignment() {
 }
 
 .required { color: $danger; }
+
+// ── [2026-04-03] 등급별 자동 배정 ─────────────────
+.auto-assign-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-4;
+  cursor: pointer;
+  padding: $spacing-3 0;
+}
+
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: $border;
+  position: relative;
+  flex-shrink: 0;
+  transition: background $transition-fast;
+  cursor: pointer;
+
+  &.on { background: $primary; }
+}
+
+.toggle-knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left $transition-fast;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+
+  .toggle-switch.on & { left: 23px; }
+}
+
+.toggle-label {
+  p { font-size: $font-size-sm; font-weight: 600; color: $text-primary; margin-bottom: 2px; }
+  span { font-size: $font-size-xs; color: $text-muted; }
+}
+
+.level-preview {
+  margin-top: $spacing-4;
+  padding: $spacing-4;
+  background: $bg-light;
+  border-radius: $radius-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.level-preview-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+
+  .muted { color: $text-muted; }
+}
+
+.level-preview-warn {
+  font-size: $font-size-xs;
+  color: #F59E0B;
+  padding-top: $spacing-2;
+  border-top: 1px solid $border;
+}
+
+// ── [2026-04-03] 미리보기 모달 ───────────────────
+.preview-modal {
+  width: 480px;
+}
+
+.preview-body {
+  padding: 0 $spacing-6 $spacing-6;
+}
+
+.preview-desc {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-bottom: $spacing-5;
+}
+
+.preview-level-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  margin-bottom: $spacing-5;
+}
+
+.preview-level-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-4;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background: $bg-light;
+}
+
+.preview-level-badge { flex-shrink: 0; }
+
+.preview-level-info {
+  flex: 1;
+  p { font-size: $font-size-sm; margin-bottom: 2px; }
+  span { font-size: $font-size-xs; color: $text-muted; }
+}
+
+.preview-warn {
+  font-size: $font-size-xs;
+  color: #F59E0B;
+  margin-bottom: $spacing-4;
+}
+
+.preview-target-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-xs;
+  color: $text-muted;
+  padding: $spacing-3 $spacing-4;
+  background: $bg-light;
+  border-radius: $radius-md;
+}
 
 // 순서 편집 모달
 .modal-overlay {

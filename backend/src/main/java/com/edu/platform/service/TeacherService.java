@@ -16,6 +16,7 @@ import com.edu.platform.mapper.AssignmentMapper;
 import com.edu.platform.mapper.LearningSessionMapper;
 import com.edu.platform.mapper.ClassMapper;
 import com.edu.platform.mapper.NotificationMapper;
+import com.edu.platform.mapper.ProblemMapper;
 import com.edu.platform.mapper.StudentMapper;
 import com.edu.platform.mapper.TeacherMapper;
 import com.edu.platform.mapper.UserMapper;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +48,7 @@ public class TeacherService {
     private final LearningSessionMapper learningSessionMapper;
     private final NotificationMapper notificationMapper;
     private final ClassMapper classMapper;
+    private final ProblemMapper problemMapper;
 
     // [2026-04-01] 학생 리포트 CSV 내보내기
     @Transactional(readOnly = true)
@@ -100,13 +103,42 @@ public class TeacherService {
         Teacher teacher = teacherMapper.findById(teacherId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TEACHER_NOT_FOUND));
 
+        // [2026-04-03] 등급별 자동 분리 배정
+        if (Boolean.TRUE.equals(request.getIsAutoAssign()) && request.getProblemIds() != null && !request.getProblemIds().isEmpty()) {
+            // 문제를 등급별로 그룹핑
+            Map<String, List<Long>> levelGroups = new LinkedHashMap<>();
+            for (Long problemId : request.getProblemIds()) {
+                problemMapper.findById(problemId).ifPresent(p -> {
+                    String lv = p.getLevel() != null ? p.getLevel() : "ALL";
+                    levelGroups.computeIfAbsent(lv, k -> new ArrayList<>()).add(problemId);
+                });
+            }
+            Long firstId = null;
+            for (Map.Entry<String, List<Long>> entry : levelGroups.entrySet()) {
+                String lv = entry.getKey();
+                String label = "A".equals(lv) ? "A레벨" : "B".equals(lv) ? "B레벨" : "C".equals(lv) ? "C레벨" : "";
+                String title = request.getTitle() + (label.isEmpty() ? "" : " (" + label + ")");
+                Long id = createSingleAssignment(teacher, request, title, entry.getValue(), lv);
+                if (firstId == null) firstId = id;
+            }
+            return firstId != null ? firstId : -1L;
+        }
+
+        // 기존 일반 배정
+        return createSingleAssignment(teacher, request, request.getTitle(), request.getProblemIds(), null);
+    }
+
+    // [2026-04-03] 단일 과제 생성 내부 메서드 (등급별 자동 배정 분리)
+    private Long createSingleAssignment(Teacher teacher, AssignmentCreateRequest request,
+                                        String title, List<Long> problemIds, String autoLevel) {
         Assignment assignment = Assignment.builder()
-                .teacherId(teacherId)
+                .teacherId(teacher.getTeacherId())
                 .schoolId(teacher.getSchoolId())
-                .title(request.getTitle())
+                .title(title)
                 .description(request.getDescription())
                 .targetType(request.getTargetType() != null ? request.getTargetType().name() : null)
-                .targetLevel(request.getTargetLevel() != null ? request.getTargetLevel().name() : null)
+                .targetLevel(autoLevel != null ? autoLevel
+                        : (request.getTargetLevel() != null ? request.getTargetLevel().name() : null))
                 .dueDate(request.getDueDate())
                 .notifyEmail(request.getNotifyEmail() != null ? request.getNotifyEmail() : false)
                 .isAutoAssign(request.getIsAutoAssign() != null ? request.getIsAutoAssign() : false)
@@ -114,10 +146,9 @@ public class TeacherService {
 
         assignmentMapper.insert(assignment);
 
-        // 문제 배정
-        if (request.getProblemIds() != null) {
-            for (int i = 0; i < request.getProblemIds().size(); i++) {
-                assignmentMapper.insertProblem(assignment.getAssignmentId(), request.getProblemIds().get(i), i + 1);
+        if (problemIds != null) {
+            for (int i = 0; i < problemIds.size(); i++) {
+                assignmentMapper.insertProblem(assignment.getAssignmentId(), problemIds.get(i), i + 1);
             }
         }
 
@@ -125,28 +156,37 @@ public class TeacherService {
         Long senderUserId = teacherUser != null ? teacherUser.getUserId() : null;
         Set<Long> assignedStudentIds = new HashSet<>();
 
-        // [2026-04-03] 학급 배정 — classIds를 학생 개별 타겟으로 확장
+        // 학급 배정
         if (request.getClassIds() != null && !request.getClassIds().isEmpty()) {
             for (Long classId : request.getClassIds()) {
                 List<Long> classStudentIds = classMapper.findStudentIdsByClassId(classId);
                 for (Long studentId : classStudentIds) {
-                    if (!assignedStudentIds.add(studentId)) continue; // 중복 학생 방지
+                    // 등급별 자동 배정 시 해당 등급 학생만 배정
+                    if (autoLevel != null && !"ALL".equals(autoLevel)) {
+                        Student s = studentMapper.findById(studentId).orElse(null);
+                        if (s == null || !autoLevel.equals(s.getStudentLevel())) continue;
+                    }
+                    if (!assignedStudentIds.add(studentId)) continue;
                     assignmentMapper.insertTarget(assignment.getAssignmentId(), classId, studentId);
                     sendAssignmentNotification(assignment, studentId, senderUserId);
                 }
             }
         }
 
-        // 개별 학생 배정 + 인앱 알림 발송 [2026-04-01]
+        // 개별 학생 배정
         if (request.getStudentIds() != null) {
             for (Long studentId : request.getStudentIds()) {
-                if (!assignedStudentIds.add(studentId)) continue; // 학급+개인 중복 방지
+                if (autoLevel != null && !"ALL".equals(autoLevel)) {
+                    Student s = studentMapper.findById(studentId).orElse(null);
+                    if (s == null || !autoLevel.equals(s.getStudentLevel())) continue;
+                }
+                if (!assignedStudentIds.add(studentId)) continue;
                 assignmentMapper.insertTarget(assignment.getAssignmentId(), null, studentId);
                 sendAssignmentNotification(assignment, studentId, senderUserId);
             }
         }
 
-        log.info("Assignment created: {} by teacher: {}", assignment.getAssignmentId(), teacherId);
+        log.info("Assignment created: {} (level={}) by teacher: {}", assignment.getAssignmentId(), autoLevel, teacher.getTeacherId());
         return assignment.getAssignmentId();
     }
 
@@ -340,10 +380,11 @@ public class TeacherService {
         Map<String, Object> lb = new HashMap<>(); lb.put("level", "B"); lb.put("count", levelB); lb.put("pct", pctB); levelDist.add(lb);
         Map<String, Object> lc = new HashMap<>(); lc.put("level", "C"); lc.put("count", levelC); lc.put("pct", pctC); levelDist.add(lc);
 
-        // 과목별 정답률 / 주간 참여율 / 학생별 통계
-        List<Map<String, Object>> subjectStats  = teacherMapper.getSubjectStats(schoolId);
-        List<Map<String, Object>> weeklyData    = teacherMapper.getWeeklyParticipation(schoolId);
-        List<Map<String, Object>> studentStats  = teacherMapper.getStudentStats(schoolId);
+        // 과목별 정답률 / 주간 참여율 / 학생별 통계 / 단원별 취약 분석
+        List<Map<String, Object>> subjectStats   = teacherMapper.getSubjectStats(schoolId);
+        List<Map<String, Object>> weeklyData     = teacherMapper.getWeeklyParticipation(schoolId);
+        List<Map<String, Object>> studentStats   = teacherMapper.getStudentStats(schoolId);
+        List<Map<String, Object>> unitWeakStats  = teacherMapper.getUnitWeakStats(schoolId);
 
         // KPI 집계
         double avgWeekStudy = studentStats.stream()
@@ -365,6 +406,7 @@ public class TeacherService {
         result.put("subjectStats", subjectStats);
         result.put("weeklyData", weeklyData);
         result.put("studentStats", studentStats);
+        result.put("unitWeakStats", unitWeakStats);
         return result;
     }
 

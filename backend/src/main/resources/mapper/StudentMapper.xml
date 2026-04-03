@@ -110,4 +110,55 @@
         ORDER BY student_level
     </select>
 
+    <!-- [2026-04-03] 단원별 취약 분석 (학생 개인) -->
+    <select id="getWeakUnitsByStudentId" resultType="map">
+        SELECT COALESCE(sc.code_name, '기타') AS unitName,
+               COALESCE(sub.code_name, '기타') AS subject,
+               ROUND(
+                   SUM(CASE WHEN pa.is_correct = TRUE THEN 1 ELSE 0 END) * 100.0
+                   / NULLIF(COUNT(*), 0)
+               ) AS accuracy,
+               COUNT(*) AS totalAttempts
+        FROM problem_attempts pa
+        JOIN problems p ON pa.problem_id = p.problem_id
+        LEFT JOIN system_codes sc  ON p.unit_code_id    = sc.code_id
+        LEFT JOIN system_codes sub ON p.subject_code_id = sub.code_id
+        WHERE pa.student_id = #{studentId}
+        GROUP BY p.unit_code_id, sc.code_name, p.subject_code_id, sub.code_name
+        HAVING COUNT(*) >= 3
+        ORDER BY accuracy ASC
+        LIMIT 5
+    </select>
+
+    <!-- [2026-04-03] 등급 변화 이력 (진단 테스트 완료 기준) -->
+    <select id="getLevelHistoryByStudentId" resultType="map">
+        SELECT determined_level                              AS level,
+               DATE_FORMAT(completed_at, '%Y-%m-%d')        AS date,
+               ROUND(score_rate)                            AS scoreRate
+        FROM diagnosis_tests
+        WHERE student_id  = #{studentId}
+          AND status       = 'COMPLETED'
+          AND determined_level IS NOT NULL
+        ORDER BY completed_at ASC
+    </select>
+
+    <!-- [2026-04-03] 학습일 수 (완료 세션 기준) -->
+    <select id="getStudyDaysByStudentId" resultType="int">
+        SELECT COUNT(DISTINCT DATE(started_at))
+        FROM learning_sessions
+        WHERE student_id = #{studentId}
+          AND status = 'COMPLETED'
+    </select>
+
+    <!-- [2026-04-03] 레벨별 풀이 수 (학생 개인) -->
+    <select id="getLevelDataByStudentId" resultType="map">
+        SELECT p.level        AS level,
+               COUNT(*)       AS `count`
+        FROM problem_attempts pa
+        JOIN problems p ON pa.problem_id = p.problem_id
+        WHERE pa.student_id = #{studentId}
+        GROUP BY p.level
+        ORDER BY p.level
+    </select>
+
 </mapper>

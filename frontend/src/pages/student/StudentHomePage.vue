@@ -74,7 +74,7 @@
               </div>
               <span class="progress-text">{{ a.progress }}%</span>
             </div>
-            <RouterLink :to="`/student/learn/${a.sessionId}`" class="btn btn-primary btn-sm">풀기</RouterLink>
+            <button class="btn btn-primary btn-sm" @click="startAssignment(a)">풀기</button>
           </div>
         </div>
         <AppEmpty v-else message="진행 중인 과제가 없습니다." />
@@ -199,12 +199,14 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import AppBadge from '@/components/common/AppBadge.vue'
 import AppEmpty from '@/components/common/AppEmpty.vue'
 import AppTable from '@/components/common/AppTable.vue'
 import api from '@/utils/api'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 const loading = ref(false)
@@ -238,6 +240,24 @@ function levelLabel(l) {
 function formatDate(dateStr) {
   const d = new Date(dateStr)
   return `${d.getMonth()+1}월 ${d.getDate()}일`
+}
+
+// ── 과제 풀기 시작 ────────────────────────────────
+async function startAssignment(a) {
+  if (a.sessionId) {
+    router.push(`/student/learn/${a.sessionId}`)
+    return
+  }
+  try {
+    const res = await api.post('/student/sessions/start', { assignmentId: a.id })
+    const { sessionId, resumed, currentIndex } = res.data || {}
+    if (!sessionId) return
+    if (resumed) {
+      router.push(`/student/learn/${sessionId}?currentIndex=${currentIndex}`)
+    } else {
+      router.push(`/student/learn/${sessionId}`)
+    }
+  } catch {}
 }
 
 // ── 학급 가입 모달 ────────────────────────────────
@@ -286,7 +306,7 @@ onMounted(async () => {
     assignments.value = (assignRes.data?.content || assignRes.data || [])
       .filter(a => (a.status || 'pending').toLowerCase() !== 'done')
       .map(a => ({
-        id: a.assignmentId, sessionId: a.sessionId || a.assignmentId, subject: a.subject,
+        id: a.assignmentId, sessionId: a.sessionId || null, subject: a.subject,
         title: a.title, dueDate: a.dueDate, progress: a.progress || 0
       }))
     recentHistory.value = (historyRes.data?.content || historyRes.data || []).map(h => ({

@@ -540,18 +540,40 @@ public class StudentService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.STUDENT_NOT_FOUND));
 
         List<LearningSession> sessions = learningSessionMapper.findAllByStudentId(studentId);
-        int totalSolved = sessions.stream().mapToInt(s -> s.getSolvedCount() != null ? s.getSolvedCount() : 0).sum();
+        int totalSolved  = sessions.stream().mapToInt(s -> s.getSolvedCount()  != null ? s.getSolvedCount()  : 0).sum();
         int totalCorrect = sessions.stream().mapToInt(s -> s.getCorrectCount() != null ? s.getCorrectCount() : 0).sum();
-        double accuracy = totalSolved > 0 ? (double) totalCorrect / totalSolved * 100 : 0;
+        double accuracy  = totalSolved > 0 ? (double) totalCorrect / totalSolved * 100 : 0;
 
-        return Map.of(
-                "studentId", studentId,
-                "studentLevel", student.getStudentLevel() != null ? student.getStudentLevel() : "N/A",
-                "totalSolved", totalSolved,
-                "totalCorrect", totalCorrect,
-                "accuracy", accuracy,
-                "completedSessions", sessions.stream()
-                        .filter(s -> "COMPLETED".equals(s.getStatus())).count()
-        );
+        // [2026-04-03] 리포트 강화 — studyDays / levelData / weakUnits / levelHistory
+        int studyDays = studentMapper.getStudyDaysByStudentId(studentId);
+
+        List<Map<String, Object>> rawLevelData = studentMapper.getLevelDataByStudentId(studentId);
+        int totalLevelSolved = rawLevelData.stream()
+                .mapToInt(l -> l.get("count") instanceof Number ? ((Number) l.get("count")).intValue() : 0).sum();
+        List<Map<String, Object>> levelData = rawLevelData.stream().map(l -> {
+            int cnt = l.get("count") instanceof Number ? ((Number) l.get("count")).intValue() : 0;
+            int pct = totalLevelSolved > 0 ? (int) Math.round(cnt * 100.0 / totalLevelSolved) : 0;
+            Map<String, Object> m = new HashMap<>();
+            m.put("level", l.get("level"));
+            m.put("count", cnt);
+            m.put("pct", pct);
+            return m;
+        }).collect(Collectors.toList());
+
+        List<Map<String, Object>> weakUnits    = studentMapper.getWeakUnitsByStudentId(studentId);
+        List<Map<String, Object>> levelHistory = studentMapper.getLevelHistoryByStudentId(studentId);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("studentId",        studentId);
+        result.put("studentLevel",     student.getStudentLevel() != null ? student.getStudentLevel() : "N/A");
+        result.put("totalSolved",      totalSolved);
+        result.put("totalCorrect",     totalCorrect);
+        result.put("accuracy",         Math.round(accuracy));
+        result.put("studyDays",        studyDays);
+        result.put("completedSessions", sessions.stream().filter(s -> "COMPLETED".equals(s.getStatus())).count());
+        result.put("levelData",        levelData);
+        result.put("weakUnits",        weakUnits);
+        result.put("levelHistory",     levelHistory);
+        return result;
     }
 }

@@ -63,6 +63,28 @@
         ORDER BY MIN(ls.started_at) ASC
     </select>
 
+    <!-- [2026-04-03] 단원별 취약 분석 (교사 소속 학교 전체) -->
+    <select id="getUnitWeakStats" resultType="map">
+        SELECT COALESCE(sc.code_name, '기타')  AS unitName,
+               COALESCE(sub.code_name, '기타') AS subject,
+               ROUND(
+                   SUM(CASE WHEN pa.is_correct = TRUE THEN 1 ELSE 0 END) * 100.0
+                   / NULLIF(COUNT(*), 0)
+               ) AS avgAccuracy,
+               COUNT(DISTINCT pa.student_id)   AS studentCount
+        FROM problem_attempts pa
+        JOIN problems p   ON pa.problem_id   = p.problem_id
+        LEFT JOIN system_codes sc  ON p.unit_code_id    = sc.code_id
+        LEFT JOIN system_codes sub ON p.subject_code_id = sub.code_id
+        JOIN students s   ON pa.student_id   = s.student_id
+        WHERE s.school_id = #{schoolId}
+          AND p.unit_code_id IS NOT NULL
+        GROUP BY p.unit_code_id, sc.code_name, p.subject_code_id, sub.code_name
+        HAVING COUNT(*) >= 5
+        ORDER BY avgAccuracy ASC
+        LIMIT 10
+    </select>
+
     <select id="getStudentStats" resultType="map">
         SELECT u.name AS name,
                st.student_level AS level,

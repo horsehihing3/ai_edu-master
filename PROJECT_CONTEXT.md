@@ -7,10 +7,32 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 ---
 
 ## ⚡ 다음 세션 작업 (우선순위 순)
+> 요건정의서 v6-1 기준 필수(Mandatory) 미구현 항목 우선 정렬
+
+### 🔴 필수 (Mandatory) — 미구현
+- [ ] **학급별 리포트 조회** — 교사 분석 화면에서 학급 선택 → 학급 단위 성적 현황
+- [ ] **미완료 학생 독려 알림** — 과제 상세 화면에서 미완료 학생에게 개별 인앱 알림 발송 버튼
+- [ ] **이메일 인증** — 회원가입 시 이메일 토큰 발송/검증 (`AuthService.java:279` TODO 구현)
+- [ ] **소셜 로그인 (Google/Kakao)** — `LoginPage.vue` UI 완성, OAuth2 백엔드 연동 (`application.yml` 주석 해제)
+- [ ] **문제 직접 입력 에디터** — 어드민 문제 DB에서 PDF 없이 텍스트 직접 입력/등록
+- [ ] **공지사항 배너 (학생 홈)** — `StudentHomePage.vue` 최신 공지 1~2개 인라인 배너 표시
+- [ ] **매칭 해제 및 재배정** — 교사-학생 연결 해제 + 다른 교사에게 재배정 (현재 학급 제거만 가능)
+- [ ] **SSO 연동** — 라이브 강의 시스템과 Single Sign-On 연동
+
+### 🟡 협의(Optional) — 미구현
+- [ ] **PG 연동 / 구독** — 결제 게이트웨이 연동, 구독 플랜 결제 흐름
+- [ ] **구독/이용권 현황 (학생용)** — 학생 마이페이지에서 현재 플랜·결제일·만료일 표시
+- [ ] **DRM / 콘텐츠 보안** — 화면캡처 방지, Signed URL 기반 보안 강화
+
+### 🔵 지속 개선
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
-- [ ] PG 연동 / 구독
 
 ## ✅ 이번 세션 완료
+- [x] **등급별 자동 분리 배정** — `AssignmentCreatePage.vue` autoAssign 토글 + levelGroups 계산 + 미리보기 모달, `TeacherService.createAssignment()` 등급별 자동 분리 로직 + `createSingleAssignment()` private 메서드, `ProblemMapper.findById()` 주입. `@click.stop` → `@click.prevent` 체크박스 선택 동기화 버그 수정 (2026-04-03)
+- [x] **등급 변화 타임라인** — `ReportPage.vue` 학생 리포트 등급(A/B/C) 타임라인 UI, `StudentMapper.getLevelHistoryByStudentId()` 진단 이력 조회 (2026-04-03)
+- [x] **단원별 취약 분석** — 학생 리포트 단원별 정답률 바차트, `StudentMapper.getWeakUnitsByStudentId()` problem_attempts 집계 (2026-04-03)
+- [x] **취약 단원별 학생 분석** — `TeacherAnalyticsPage.vue` 단원별 취약 카드 그리드, `TeacherMapper.getUnitWeakStats()` 학교 단위 집계 (2026-04-03)
+- [x] **홈 화면 풀기 버튼 버그 수정** — `StudentHomePage.vue` 세션 없는 pending 과제의 "풀기" 버튼이 assignmentId를 sessionId로 잘못 사용하던 문제 수정 → `/student/sessions/start` API 호출로 변경 (2026-04-03)
 - [x] **학급별 과제 배정 흐름 구현** — AssignmentCreatePage 학급별/개인별 탭 UI, ClassMapper.findStudentIdsByClassId(), TeacherService.createAssignment() classIds 처리(학급→학생 전개+중복방지+알림), assignment_targets.class_id 저장. 시나리오 테스트 완료 (2026-04-03)
 - [x] 학급 초대코드 가입 기능 (완료) — 8자리 SecureRandom 코드, POST /student/classes/join, ClassManagePage 코드 표시+복사, StudentHomePage 가입 모달 + 내 학급 목록, DB 마이그레이션(classes.invite_code VARCHAR(8)), GET /student/classes API
 - [x] 초대코드 방식 확정 — 요건정의서 v6 검토 결과 초대코드(방법2) 메인으로 확정. 이메일 초대·CSV 일괄등록은 나중으로 보류
@@ -209,8 +231,9 @@ POST /student/sessions/start
 - [x] 알림 설정 저장 — `users` 테이블 noti 컬럼 3개 추가 (`database/notification_settings.sql`)
 
 ### 학생
-- [x] 홈 대시보드, 진단 테스트 (20문항 → A/B/C 등급 배정)
+- [x] 홈 대시보드, 진단 테스트 (20문항 → A/B/C 등급 배정), **재진단 기능** (DiagnosisPage.vue — intro/test/result 3단계, 재시도 가능)
 - [x] 학습 세션 시작/진행/완료, 문항별 답 제출
+- [x] **해설 보기** — 오답 판정 시 해설 자동 표시, 토글 버튼. KaTeX 수식 렌더링 (`ProblemSolvePage.vue`)
 - [x] 오답노트 (자동저장·목록·삭제·해결토글·재도전·영상바로보기)
 - [x] KaTeX 수식 렌더링 (MathText.vue)
 - [x] 학습 리포트 차트 (정답률 추이·일별 풀이량·월별 비교)
@@ -226,14 +249,22 @@ POST /student/sessions/start
 ### 교사
 - [x] 홈 대시보드, 학생 목록·상세·레벨 변경
 - [x] 과제 생성·목록·상세·제출 현황·피드백 작성
-- [x] 학습 현황 분석, 미완료 학생 목록
+- [x] 학습 현황 분석, 미완료 학생 목록 (등급별 분포 도넛 차트, CSV 내보내기 포함)
 - [x] 문제은행 탐색 (`/teacher/problems` — 필터·검색·모달·과제담기)
-- [x] 학급 관리 (`/teacher/classes` — CRUD·학생 추가/제거)
+- [x] 학급 관리 (`/teacher/classes` — CRUD·학생 추가/제거·초대코드 표시·복사)
+- [x] **학급별 과제 배정** — AssignmentCreatePage 학급별/개인별 탭 UI, 학급→학생 전개+중복방지+알림 (2026-04-03)
 - [x] 과제 수정 (제목·설명·마감일) — AssignmentDetailPage.vue 수정 모달
 - [x] 과제 삭제 — 제출 이력 없음 시 하드 삭제 / 있음 시 소프트 삭제(is_deleted=1). 학생·교사 목록 자동 제외
 - [x] **교사 홈 통계 실제 계산** — `getTeacherDashboardStats()`. avgCompletionRate·incompleteCount 하드코딩 0 제거 → `getStudentProgress()`로 과제별 완료 현황 집계 (2026-03-31)
 - [x] **미완료 학생 마지막 접속 시간** — `getIncompleteStudents()`. 빈 문자열 → `user.getLastLoginAt()` `yyyy-MM-dd HH:mm` 포맷. null 시 "접속 기록 없음" (2026-03-31)
 - [x] **로그인 시 last_login_at 갱신** — `AuthService.login()`. `userMapper.updateLastLogin()` 호출 확인 완료 (기존 구현)
+
+### 설정 / 마이페이지
+- [x] **회원 탈퇴** — `SettingsPage.vue` 계정 탈퇴 탭, 사유 선택, 확인 체크박스, DELETE `/settings/account` (2026-04-01 확인)
+
+### 랜딩 페이지
+- [x] **히어로 배너 슬라이드** — `LandingPage.vue` carouselIndex, 좌우 화살표, 터치 스와이프, 자동 슬라이드 구현
+- [x] **사용자별 베네핏 소개 섹션** — 학생용/선생님용 탭 전환, 각 기능 리스트 표시
 
 ### 공통 — 레이아웃
 - [x] 모바일 하단 탭바 (학생) — `BottomNavBar.vue`, 360~767px, 홈/문제풀기/동영상/오답노트/설정 5개 탭, 활성탭 강조, 사이드바 자동 닫기 (2026-03-30)
@@ -244,7 +275,7 @@ POST /student/sessions/start
 - [x] 동영상 관리, 결제 관리, 통계, 코드 관리, 문의 관리
 - [x] PDF 문제지 업로드 → Claude AI 파싱 (`POST /admin/parse-pdf`) — 자동 파싱
 - [x] **PDF 2분할 비교 뷰** — `ProblemUploadPage.vue`. PDF 업로드 시 원본 PDF(좌) + 파싱 결과 테이블(우) 나란히 표시. 드래그 스플리터로 비율 조절. 토글 버튼으로 단일/분할 뷰 전환 (2026-03-31)
-- [x] **PDF AI 재검증 기능** — `POST /admin/verify-parsing`. 파싱 완료 후 자동으로 원본 텍스트와 파싱 결과 비교. 불일치 항목 ⚠️ 표시 + 상단 브리핑 배너. ⚠️ Anthropic 크레딧 충전 후 테스트 필요 (2026-03-31)
+- ~~**PDF AI 재검증 기능**~~ — `/admin/verify-parsing` 엔드포인트 **제거됨** (2026-04-03, 크레딧 절약). 재검증 필요 시 재구현 필요
 - [x] S3 이미지 자동 추출 — PyMuPDF(Python) + Claude Vision 하이브리드. bbox union 크롭 방식으로 다중 조각 정확 추출 (`PdfImageExtractService.java`, `scripts/extract_images.py`)
 - [x] 문제 수정 모달에 `questionImgUrl` 필드 및 이미지 미리보기 추가 (`ProblemDBPage.vue`)
 - [x] **중복 문제 감지** — 배치 업로드 시 공백 제거 후 앞 50글자 비교로 중복 감지 → `duplicate_problem_id` 저장. 목록에 🔴 중복 뱃지, 수정 모달에 "N번 문제와 중복" 경고 배너 (2026-03-26)
@@ -340,66 +371,70 @@ ADD COLUMN duplicate_problem_id BIGINT NULL DEFAULT NULL COMMENT '중복 문제 
 ---
 
 ## 미구현 기능 (TODO)
+> 요건정의서 v6-1 기준 — Mandatory(필수) / Optional(협의) 구분
 
-### 관리자 — 문제 관리
+### 인증 — 필수
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| PDF AI 재검증 실제 테스트 | `ProblemUploadPage.vue` + `PdfParseController.java` | 구현 완료, Anthropic 크레딧 충전 후 테스트 필요 |
+| 이메일 인증 토큰 생성/발송/검증 | `AuthService.java:279` | 골격(TODO 주석)만 존재. 회원가입은 현재 1단계 직접 가입 |
+| 소셜 로그인 (Google/Kakao) | `LoginPage.vue:40`, `application.yml:29` | UI 버튼 존재, `socialLogin()`에서 alert('준비중') 반환. OAuth2 설정 주석처리됨 |
 
-### 인증
+### 학생 — 리포트 — 필수
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 이메일 인증 토큰 생성/발송/검증 | `AuthService.java:229` | 골격만 존재 |
-| 소셜 로그인 실제 연동 (Google/Kakao) | `build.gradle:32` | OAuth2 의존성 주석처리됨 |
+| 등급 변화 타임라인 | `ReportPage.vue` | 학습 달력·정답률 추이는 있음. 등급(A/B/C) 변화 차트 없음 |
+| 단원별 취약 분석 | `ReportPage.vue` | 단원별 정답률·취약점 분석 섹션 없음 |
+
+### 학생 — 홈 — 필수
+| 기능 | 위치 | 비고 |
+|------|------|------|
+| 공지사항 배너 (인라인) | `StudentHomePage.vue` | 최신 공지 1~2개 홈에 표시. 현재는 별도 `/announcements` 페이지만 존재 |
 
 ### 학생 — 문제풀이
 | 기능 | 위치 | 비고 |
 |------|------|------|
 | '이해했어요 / 아직 모르겠어요' 피드백 버튼 | - | 학습 데이터 수집용 |
-| 문제 데이터 품질 개선 | - | 실제 기출 데이터 입력 시 해결 예정 |
 
-### 학생 — 기타
+### 교사 — 과제 — 필수
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 과제 완료율 100% 초과 버그 | `StudentMapper.xml`, `TeacherService.java` | ✅ 수정 완료 (2026-04-01) — JOIN 조건 누락 및 세션 수 기준 분모 오류 수정 |
+| 등급별 자동 분리 배정 | `AssignmentCreatePage.vue:410`, `TeacherService.java` | `targetLevel: 'ALL'` 하드코딩. A문제→A학생 자동 분리 로직 미구현 |
+| 미완료 학생 개별 독려 알림 | `AssignmentDetailPage.vue` | 미완료 학생 목록 표시는 됨. 개별 알림 발송 버튼 없음 |
+| 과제 복사(재사용) 버튼 | `AssignmentListPage.vue` | 과제 목록/상세에 복사 기능 없음 |
 
-### 교사 — 과제
+### 교사 — 리포트 — 필수
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 등급별 자동 분리 배정 | `TeacherService.java` | A문제→A학생 자동 분리 로직 |
-| 배정 완료 시 학생 인앱 알림 | `TeacherService.java` | ✅ 구현 완료 (2026-04-01) — 과제 생성 시 배정 학생에게 ASSIGNMENT 타입 알림 INSERT |
-| 과제 복사(재사용) 버튼 | - | 신규 |
-| 미완료 학생 개별 독려 알림 | - | 과제 상세 화면 |
+| 취약 단원별 학생 분석 | `TeacherAnalyticsPage.vue` | 과목별 정답률만 있음. 단원별 취약 학생 목록 없음 |
+| 학급별 리포트 조회 | `TeacherAnalyticsPage.vue` | 학급 선택 드롭다운 없음. 전체 학생 기준 통계만 표시 |
 
-### 교사 — 학급 관리
-| 기능 | 비고 |
-|------|------|
-| 학급별 과제 일괄 배정 | 학급 단위 과제 배정 |
-| 학급별 리포트 조회 | 학급 단위 성적 현황 |
-| 학생 초대 (초대코드 / 이메일 / CSV) | 매칭 방식 클라이언트 확정 후 착수 |
-| 매칭 해제 및 재배정 | 기존 학습 데이터 보관 |
-
-### 교사 — 리포트
-| 기능 | 비고 |
-|------|------|
-| CSV 내보내기 | 학급 전체 성적 테이블 |
-| 등급별 분포 차트 | A/B/C 파이+바차트, 월별 비교 |
-| 취약 단원별 학생 분석 | 하위 학생 리스트 + 보충 배정 연결 |
-
-### 어드민
+### 교사 — 학급 관리 — 필수
 | 기능 | 위치 | 비고 |
 |------|------|------|
-| 교사 DB 기여 리워드 관리 | - | 법적 검토 후 착수 |
-| 비밀번호 초기화 이메일 발송 | `AdminService.java:109` | 미발송 |
+| 매칭 해제 및 재배정 | `ClassManagePage.vue` | 학급에서 학생 제거만 가능. "재배정" 흐름 없음 |
 
-### 설정 / 기타
+### 어드민 — 문제 관리 — 필수
+| 기능 | 위치 | 비고 |
+|------|------|------|
+| 문제 직접 입력 에디터 | `ProblemDBPage.vue` 또는 신규 | PDF 파싱만 가능. 텍스트 직접 입력/등록 폼 없음 |
+| PDF AI 재검증 실제 테스트 | `ProblemUploadPage.vue` | 기능 제거됨 (2026-04-03). Anthropic 크레딧 충전 시 재검토 |
+
+### 어드민 — 기타
+| 기능 | 위치 | 비고 |
+|------|------|------|
+| 교사 DB 기여 리워드 관리 | - | 협의 항목. 법적 검토(김영란법) 후 착수 |
+
+### 공통 / 기술 — 필수
 | 기능 | 비고 |
 |------|------|
-| 회원 탈퇴 | 사유 선택 + 확인 모달 |
-| 구독/이용권 현황 확인 | 플랜명·결제일·만료일 표시 |
-| 동영상 풀이 요청 | `VideoController.java:61` 서비스 미구현 |
-| 영상 시청 이력 조회 | 조회수 카운트는 있으나 이력 미구현 |
-| 구독/결제 PG 연동 | `subscriptions` 테이블 존재, PG 미연동 |
+| SSO 연동 (라이브 강의 시스템) | 프로젝트 전체에 관련 코드 없음. 요건정의서 필수 항목 |
+
+### 설정 / 결제 — 협의
+| 기능 | 위치 | 비고 |
+|------|------|------|
+| 구독/이용권 현황 확인 (학생용) | `SettingsPage.vue` | 플랜명·결제일·만료일 학생 마이페이지 노출 미구현 |
+| 구독/결제 PG 연동 | `subscriptions` 테이블 존재 | PG 미연동 |
+| 동영상 풀이 요청 | `VideoController.java:61` | 서비스 미구현 |
 
 ---
 

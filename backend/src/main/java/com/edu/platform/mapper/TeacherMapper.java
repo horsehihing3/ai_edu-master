@@ -16,4 +16,6 @@ public interface TeacherMapper {
     List<Map<String, Object>> getSubjectStats(@Param("schoolId") Long schoolId);
     List<Map<String, Object>> getWeeklyParticipation(@Param("schoolId") Long schoolId);
     List<Map<String, Object>> getStudentStats(@Param("schoolId") Long schoolId);
+    // [2026-04-03] 단원별 취약 학생 분석
+    List<Map<String, Object>> getUnitWeakStats(@Param("schoolId") Long schoolId);
 }

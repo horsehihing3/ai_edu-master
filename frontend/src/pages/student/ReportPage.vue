@@ -209,22 +209,65 @@
     </div>
     <!-- ──────────────────────────────────── -->
 
-    <!-- 취약 단원 TOP 5 -->
+    <!-- [2026-04-03] 등급 변화 타임라인 -->
     <div class="card" style="margin-top: 24px;">
-      <h3 style="margin-bottom: 20px;">취약 단원 TOP 5</h3>
-      <AppEmpty v-if="!weakUnits.length" message="데이터가 없습니다." description="문제를 풀면 취약 단원이 분석됩니다." />
-      <div v-else class="weak-list">
-        <div v-for="(w, i) in weakUnits" :key="w.unit" class="weak-item">
-          <span class="rank">{{ i + 1 }}</span>
-          <div class="weak-info">
-            <p>{{ w.unit }}</p>
-            <span>{{ w.subject }}</span>
-          </div>
-          <div class="weak-progress">
-            <div class="progress-bar">
-              <div class="progress-bar__fill progress-danger" :style="{ width: w.accuracy + '%' }" />
+      <h3 style="margin-bottom: 20px;">등급 변화 타임라인</h3>
+      <div v-if="!levelHistory.length" class="chart-empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <p>진단 테스트를 완료하면 등급 변화가 기록됩니다.</p>
+      </div>
+      <div v-else class="level-timeline">
+        <div v-for="(h, i) in levelHistory" :key="i" class="tl-item">
+          <div class="tl-line-wrap">
+            <div class="tl-dot" :style="{ background: LEVEL_COLORS[h.level] || '#9CA3AF' }">
+              {{ h.level }}
             </div>
-            <span>{{ w.accuracy }}%</span>
+            <div v-if="i < levelHistory.length - 1" class="tl-connector" />
+          </div>
+          <div class="tl-info">
+            <p class="tl-date">{{ h.date }}</p>
+            <p class="tl-detail">
+              정답률 <strong>{{ h.scoreRate }}%</strong>
+              <span v-if="i > 0" :class="['tl-change', levelHistory[i].level < levelHistory[i-1].level ? 'up' : levelHistory[i].level > levelHistory[i-1].level ? 'down' : 'same']">
+                {{ levelHistory[i].level < levelHistory[i-1].level ? '▲ 등급 상승' : levelHistory[i].level > levelHistory[i-1].level ? '▼ 등급 하락' : '— 유지' }}
+              </span>
+            </p>
+          </div>
+        </div>
+        <div class="tl-item tl-item--current">
+          <div class="tl-line-wrap">
+            <div class="tl-dot tl-dot--current" :style="{ background: LEVEL_COLORS[currentLevel] || '#9CA3AF' }">
+              {{ currentLevel }}
+            </div>
+          </div>
+          <div class="tl-info">
+            <p class="tl-date">현재</p>
+            <p class="tl-detail"><strong>{{ currentLevel }}레벨</strong> 학습 중</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- [2026-04-03] 단원별 취약 분석 -->
+    <div class="card" style="margin-top: 24px;">
+      <h3 style="margin-bottom: 20px;">단원별 취약 분석</h3>
+      <AppEmpty v-if="!weakUnits.length" message="데이터가 없습니다." description="3문제 이상 풀면 단원별 분석이 표시됩니다." />
+      <div v-else class="unit-weak-list">
+        <div v-for="(w, i) in weakUnits" :key="w.unitName" class="unit-weak-item">
+          <div class="unit-weak-header">
+            <div>
+              <span class="rank">{{ i + 1 }}</span>
+              <span class="unit-name">{{ w.unitName }}</span>
+              <span class="unit-subject">{{ w.subject }}</span>
+            </div>
+            <span :class="['unit-accuracy', w.accuracy < 50 ? 'danger' : 'warning']">{{ w.accuracy }}%</span>
+          </div>
+          <div class="unit-bar-wrap">
+            <div class="unit-bar-track">
+              <div class="unit-bar-fill"
+                :style="{ width: w.accuracy + '%', background: w.accuracy < 50 ? '#EF4444' : '#F59E0B' }" />
+            </div>
+            <span class="unit-bar-label">{{ w.totalAttempts }}문제 시도</span>
           </div>
         </div>
       </div>
@@ -287,6 +330,9 @@ const aiComment = ref('')
 const aiTags = ref([])
 // [2026-03-21] 학습 이력 차트용 데이터
 const historyData = ref([])
+// [2026-04-03] 등급 변화 타임라인
+const levelHistory = ref([])
+const currentLevel = ref('N/A')
 
 const LEVEL_COLORS = { A: '#3B82F6', B: '#10B981', C: '#F59E0B' }
 
@@ -308,8 +354,10 @@ onMounted(async () => {
       level: l.level, count: l.count, pct: l.pct, color: LEVEL_COLORS[l.level] || '#3B82F6'
     }))
     weakUnits.value = (d.weakUnits || []).map(w => ({
-      unit: w.unitName || w.unit, subject: w.subject, accuracy: w.accuracy
+      unitName: w.unitName || w.unit, subject: w.subject, accuracy: w.accuracy, totalAttempts: w.totalAttempts || 0
     }))
+    levelHistory.value = d.levelHistory || []
+    currentLevel.value = d.studentLevel || 'N/A'
     const ai = aiRes.data || {}
     aiComment.value = ai.comment || ''
     aiTags.value = ai.tags || []
@@ -665,7 +713,154 @@ function nextMonth() {
   &.down { color: #EF4444; }
 }
 
-// ── 취약 단원 ──────────────────────────────────────
+// ── 등급 변화 타임라인 ─────────────────────────────
+.level-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: $spacing-2 0;
+}
+
+.tl-item {
+  display: flex;
+  gap: $spacing-4;
+  align-items: flex-start;
+
+  &--current .tl-dot {
+    box-shadow: 0 0 0 4px rgba(59,130,246,.2);
+  }
+}
+
+.tl-line-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 32px;
+}
+
+.tl-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: white;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.tl-connector {
+  width: 2px;
+  height: 32px;
+  background: $border;
+  margin: 2px 0;
+}
+
+.tl-info {
+  padding: 4px 0 28px;
+}
+
+.tl-date {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-bottom: 2px;
+}
+
+.tl-detail {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+
+  strong { color: $text-primary; }
+}
+
+.tl-change {
+  font-size: $font-size-xs;
+  font-weight: 600;
+  margin-left: $spacing-2;
+
+  &.up   { color: #10B981; }
+  &.down { color: #EF4444; }
+  &.same { color: $text-muted; }
+}
+
+// ── 단원별 취약 분석 ───────────────────────────────
+.unit-weak-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-5;
+}
+
+.unit-weak-item {
+  border-bottom: 1px solid $border;
+  padding-bottom: $spacing-4;
+
+  &:last-child { border-bottom: none; padding-bottom: 0; }
+}
+
+.unit-weak-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-2;
+
+  .rank {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+    margin-right: $spacing-2;
+  }
+}
+
+.unit-name {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.unit-subject {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-left: $spacing-2;
+}
+
+.unit-accuracy {
+  font-size: $font-size-sm;
+  font-weight: 700;
+
+  &.danger  { color: #EF4444; }
+  &.warning { color: #F59E0B; }
+}
+
+.unit-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.unit-bar-track {
+  flex: 1;
+  height: 8px;
+  background: $border;
+  border-radius: $radius-full;
+  overflow: hidden;
+}
+
+.unit-bar-fill {
+  height: 100%;
+  border-radius: $radius-full;
+  transition: width .4s ease;
+}
+
+.unit-bar-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+// ── 취약 단원 (구 TOP 5, 하위 호환) ──────────────────────────────────────
 .weak-list {
   display: flex;
   flex-direction: column;
