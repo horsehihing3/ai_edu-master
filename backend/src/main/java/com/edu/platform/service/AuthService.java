@@ -13,6 +13,8 @@ import com.edu.platform.dto.auth.TokenRefreshRequest;
 import com.edu.platform.dto.common.UserInfo;
 import com.edu.platform.exception.BusinessException;
 import com.edu.platform.exception.ErrorCode;
+import com.edu.platform.domain.EmailVerification;
+import com.edu.platform.mapper.EmailVerificationMapper;
 import com.edu.platform.mapper.PasswordResetTokenMapper;
 import com.edu.platform.mapper.SchoolMapper;
 import com.edu.platform.mapper.StudentMapper;
@@ -46,6 +48,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
     private final PasswordResetTokenMapper passwordResetTokenMapper;
+    private final EmailVerificationMapper emailVerificationMapper;
     private final EmailService emailService;
 
     @Value("${app.mail.reset-token-expiry-minutes:30}")
@@ -58,6 +61,10 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         if (user.getIsActive() != null && !user.getIsActive()) {
             throw new BusinessException(ErrorCode.USER_INACTIVE);
+        }
+        // [2026-04-04] 이메일 미인증 계정 로그인 차단
+        if (user.getIsEmailVerified() != null && !user.getIsEmailVerified()) {
+            throw new BusinessException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
 
         authenticationManager.authenticate(
@@ -146,6 +153,13 @@ public class AuthService {
         }
 
         log.info("New user registered: {}", request.getEmail());
+
+        // [2026-04-04] 회원가입 후 이메일 인증 토큰 자동 발송 — 발송 실패해도 가입은 유지
+        try {
+            sendVerificationEmail(request.getEmail());
+        } catch (Exception e) {
+            log.warn("Verification email failed for {}: {}", request.getEmail(), e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -267,23 +281,49 @@ public class AuthService {
         log.info("Password reset completed for userId: {}", resetToken.getUserId());
     }
 
+    // [2026-04-04] 이메일 인증 토큰 생성 및 발송
     @Transactional
     public void sendVerificationEmail(String email) {
         User user = userMapper.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getIsEmailVerified()) {
+        if (Boolean.TRUE.equals(user.getIsEmailVerified())) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "이미 인증된 이메일입니다.");
         }
 
-        // TODO: 실제 이메일 인증 토큰 생성 및 발송
+        // 기존 미사용 토큰 삭제 후 새 토큰 생성
+        emailVerificationMapper.deleteUnusedByEmail(email);
+
+        String token = UUID.randomUUID().toString();
+        EmailVerification ev = new EmailVerification();
+        ev.setUserId(user.getUserId());
+        ev.setEmail(email);
+        ev.setToken(token);
+        ev.setPurpose("SIGNUP");
+        ev.setExpiresAt(LocalDateTime.now().plusHours(24));
+        emailVerificationMapper.insert(ev);
+
+        emailService.sendVerificationEmail(email, token, user.getName());
         log.info("Verification email sent to: {}", email);
     }
 
+    // [2026-04-04] 토큰 검증 후 이메일 인증 처리
     @Transactional
     public void verifyEmail(String token) {
-        // TODO: 실제 토큰 검증 후 이메일 인증 처리
-        log.info("Email verified with token");
+        EmailVerification ev = emailVerificationMapper.findByToken(token);
+        if (ev == null) {
+            throw new BusinessException(ErrorCode.VERIFICATION_TOKEN_INVALID);
+        }
+        if (ev.getUsedAt() != null) {
+            throw new BusinessException(ErrorCode.VERIFICATION_TOKEN_INVALID);
+        }
+        if (ev.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.VERIFICATION_TOKEN_EXPIRED);
+        }
+
+        userMapper.setEmailVerified(ev.getUserId());
+        emailVerificationMapper.markUsed(token);
+        log.info("Email verified for userId: {}", ev.getUserId());
     }
 
     public void logout(String userId) {

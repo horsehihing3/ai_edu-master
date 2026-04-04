@@ -379,13 +379,19 @@ public class TeacherService {
         return result;
     }
 
+    // [2026-04-04] classId — null이면 학교 전체, 값이 있으면 해당 학급만 집계
     @Transactional(readOnly = true)
-    public Map<String, Object> getTeacherAnalytics(Long teacherId) {
+    public Map<String, Object> getTeacherAnalytics(Long teacherId, Long classId) {
         Teacher teacher = teacherMapper.findById(teacherId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TEACHER_NOT_FOUND));
         Long schoolId = teacher.getSchoolId();
 
         List<Student> students = studentMapper.findBySchoolIdAll(schoolId);
+        if (classId != null) {
+            List<Long> classStudentIds = classMapper.findStudentIdsByClassId(classId);
+            Set<Long> idSet = new HashSet<>(classStudentIds);
+            students = students.stream().filter(s -> idSet.contains(s.getStudentId())).collect(Collectors.toList());
+        }
         long totalStudents = students.size();
 
         // 레벨별 분포
@@ -401,10 +407,10 @@ public class TeacherService {
         Map<String, Object> lc = new HashMap<>(); lc.put("level", "C"); lc.put("count", levelC); lc.put("pct", pctC); levelDist.add(lc);
 
         // 과목별 정답률 / 주간 참여율 / 학생별 통계 / 단원별 취약 분석
-        List<Map<String, Object>> subjectStats   = teacherMapper.getSubjectStats(schoolId);
-        List<Map<String, Object>> weeklyData     = teacherMapper.getWeeklyParticipation(schoolId);
-        List<Map<String, Object>> studentStats   = teacherMapper.getStudentStats(schoolId);
-        List<Map<String, Object>> unitWeakStats  = teacherMapper.getUnitWeakStats(schoolId);
+        List<Map<String, Object>> subjectStats   = teacherMapper.getSubjectStats(schoolId, classId);
+        List<Map<String, Object>> weeklyData     = teacherMapper.getWeeklyParticipation(schoolId, classId);
+        List<Map<String, Object>> studentStats   = teacherMapper.getStudentStats(schoolId, classId);
+        List<Map<String, Object>> unitWeakStats  = teacherMapper.getUnitWeakStats(schoolId, classId);
 
         // KPI 집계
         double avgWeekStudy = studentStats.stream()

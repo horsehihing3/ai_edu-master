@@ -24,3 +24,6 @@ frontend/.env.local
 Thumbs.db
 backend/bin/
 backend/'2026*
+
+# Claude Code
+.claudeignore

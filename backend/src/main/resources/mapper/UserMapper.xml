@@ -107,6 +107,11 @@
         WHERE user_id = #{userId}
     </update>
 
+    <update id="setEmailVerified">
+        UPDATE users SET is_email_verified = 1, updated_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
     <update id="updateNotificationSettings" parameterType="com.edu.platform.domain.User">
         UPDATE users
         SET noti_assignment    = #{notiAssignment},

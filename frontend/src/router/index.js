@@ -11,6 +11,7 @@ const LoginPage = () => import('@/pages/auth/LoginPage.vue')
 const RegisterPage = () => import('@/pages/auth/RegisterPage.vue')
 const ForgotPasswordPage = () => import('@/pages/auth/ForgotPasswordPage.vue')
 const ResetPasswordPage = () => import('@/pages/auth/ResetPasswordPage.vue')
+const VerifyEmailPage = () => import('@/pages/auth/VerifyEmailPage.vue')
 
 // Student
 const StudentHomePage = () => import('@/pages/student/StudentHomePage.vue')
@@ -95,6 +96,12 @@ const routes = [
     component: AuthLayout,
     meta: { public: true },
     children: [{ path: '', component: ResetPasswordPage }]
+  },
+  {
+    path: '/verify-email',
+    component: AuthLayout,
+    meta: { public: true },
+    children: [{ path: '', component: VerifyEmailPage }]
   },
   {
     path: '/student',

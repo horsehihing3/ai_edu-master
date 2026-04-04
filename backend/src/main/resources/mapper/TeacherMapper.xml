@@ -34,6 +34,7 @@
         WHERE teacher_id = #{teacherId}
     </update>
 
+    <!-- [2026-04-04] classId 파라미터 추가 — null이면 학교 전체, 있으면 학급 필터 -->
     <select id="getSubjectStats" resultType="map">
         SELECT COALESCE(sc.code_name, '기타') AS subject,
                ROUND(
@@ -45,6 +46,9 @@
         LEFT JOIN system_codes sc ON p.subject_code_id = sc.code_id
         JOIN students s ON pa.student_id = s.student_id
         WHERE s.school_id = #{schoolId}
+        <if test="classId != null">
+          AND s.student_id IN (SELECT student_id FROM class_members WHERE class_id = #{classId})
+        </if>
         GROUP BY p.subject_code_id, sc.code_name
         ORDER BY rate DESC
     </select>
@@ -53,17 +57,29 @@
         SELECT DATE_FORMAT(MIN(ls.started_at), '%m/%d') AS week,
                ROUND(
                    COUNT(DISTINCT ls.student_id) * 100.0
-                   / NULLIF((SELECT COUNT(*) FROM students WHERE school_id = #{schoolId}), 0)
+                   / NULLIF(
+                       <choose>
+                         <when test="classId != null">
+                           (SELECT COUNT(*) FROM class_members WHERE class_id = #{classId})
+                         </when>
+                         <otherwise>
+                           (SELECT COUNT(*) FROM students WHERE school_id = #{schoolId})
+                         </otherwise>
+                       </choose>
+                   , 0)
                ) AS rate
         FROM learning_sessions ls
         JOIN students s ON ls.student_id = s.student_id
         WHERE s.school_id = #{schoolId}
+        <if test="classId != null">
+          AND s.student_id IN (SELECT student_id FROM class_members WHERE class_id = #{classId})
+        </if>
           AND ls.started_at >= DATE_SUB(CURDATE(), INTERVAL 6 WEEK)
         GROUP BY YEARWEEK(ls.started_at)
         ORDER BY MIN(ls.started_at) ASC
     </select>
 
-    <!-- [2026-04-03] 단원별 취약 분석 (교사 소속 학교 전체) -->
+    <!-- [2026-04-03] 단원별 취약 분석 / [2026-04-04] classId 파라미터 추가 -->
     <select id="getUnitWeakStats" resultType="map">
         SELECT COALESCE(sc.code_name, '기타')  AS unitName,
                COALESCE(sub.code_name, '기타') AS subject,
@@ -79,6 +95,9 @@
         JOIN students s   ON pa.student_id   = s.student_id
         WHERE s.school_id = #{schoolId}
           AND p.unit_code_id IS NOT NULL
+        <if test="classId != null">
+          AND s.student_id IN (SELECT student_id FROM class_members WHERE class_id = #{classId})
+        </if>
         GROUP BY p.unit_code_id, sc.code_name, p.subject_code_id, sub.code_name
         HAVING COUNT(*) >= 5
         ORDER BY avgAccuracy ASC
@@ -103,6 +122,9 @@
         JOIN users u ON st.user_id = u.user_id
         LEFT JOIN learning_sessions ls ON st.student_id = ls.student_id
         WHERE st.school_id = #{schoolId}
+        <if test="classId != null">
+          AND st.student_id IN (SELECT student_id FROM class_members WHERE class_id = #{classId})
+        </if>
         GROUP BY st.student_id, u.name, st.student_level
         ORDER BY u.name ASC
     </select>

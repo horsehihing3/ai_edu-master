@@ -57,12 +57,14 @@ public class TeacherController {
         return ResponseEntity.ok(ApiResponse.success(teacherService.getTeacherDashboardStats(teacher.getTeacherId())));
     }
 
+    // [2026-04-04] classId 추가 — 학급별 리포트 지원 (null이면 학교 전체)
     @GetMapping("/analytics")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) Long classId) {
         Long userId = getUserId(userDetails);
         Teacher teacher = getTeacher(userId);
-        return ResponseEntity.ok(ApiResponse.success(teacherService.getTeacherAnalytics(teacher.getTeacherId())));
+        return ResponseEntity.ok(ApiResponse.success(teacherService.getTeacherAnalytics(teacher.getTeacherId(), classId)));
     }
 
     @GetMapping("/students/incomplete")

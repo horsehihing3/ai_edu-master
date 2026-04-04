@@ -91,7 +91,7 @@ function validate() {
   return ok
 }
 
-// [2026-04-02] 2단계 이메일 인증 → 1단계 직접 가입으로 변경 (백엔드 미지원)
+// [2026-04-04] 가입 후 이메일 인증 페이지로 이동
 async function handleRegister() {
   if (!validate()) return
   submitting.value = true
@@ -102,8 +102,7 @@ async function handleRegister() {
       password: form.password,
       role: role.value
     })
-    success('회원가입이 완료되었습니다! 로그인해주세요.')
-    router.push('/login')
+    router.push({ path: '/verify-email', query: { email: form.email } })
   } catch (e) {
     error(e.message || '회원가입에 실패했습니다.')
   } finally {

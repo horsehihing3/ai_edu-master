@@ -1,8 +1,17 @@
 <template>
   <div class="teacher-analytics">
     <div class="page-header">
-      <h1>학습 현황</h1>
-      <p>{{ today }} 기준</p>
+      <div class="page-header__left">
+        <h1>학습 현황</h1>
+        <p>{{ today }} 기준</p>
+      </div>
+      <!-- [2026-04-04] 학급 선택 드롭다운 -->
+      <div class="class-filter">
+        <select v-model="selectedClassId" @change="loadAnalytics" class="class-select">
+          <option :value="null">전체 학교</option>
+          <option v-for="c in classes" :key="c.classId" :value="c.classId">{{ c.className }}</option>
+        </select>
+      </div>
     </div>
 
     <!-- KPI -->
@@ -74,7 +83,9 @@
         <div class="week-chart">
           <div v-for="w in weeklyData" :key="w.week" class="week-col">
             <div class="week-bar-wrap">
-              <div class="week-bar" :style="{ height: w.rate + '%' }" />
+              <div class="week-bar" :style="{ height: w.rate + '%' }">
+                <span class="week-bar-label">{{ w.rate }}%</span>
+              </div>
             </div>
             <span class="week-label">{{ w.week }}</span>
           </div>
@@ -190,9 +201,14 @@ const studentStats = ref([])
 // [2026-04-03] 단원별 취약 분석
 const unitWeakStats = ref([])
 
-onMounted(async () => {
+// [2026-04-04] 학급 필터
+const classes = ref([])
+const selectedClassId = ref(null)
+
+async function loadAnalytics() {
   try {
-    const res = await api.get('/teacher/analytics')
+    const params = selectedClassId.value != null ? { classId: selectedClassId.value } : {}
+    const res = await api.get('/teacher/analytics', { params })
     const d = res.data || {}
     if (d.kpis) {
       d.kpis.forEach((k, i) => {
@@ -214,18 +230,49 @@ onMounted(async () => {
     }))
     unitWeakStats.value = d.unitWeakStats || []
   } catch {}
+}
+
+onMounted(async () => {
+  try {
+    const res = await api.get('/teacher/classes')
+    classes.value = res.data || []
+  } catch {}
+  loadAnalytics()
 })
 </script>
 
 <style scoped lang="scss">
 .page-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: $spacing-3;
   margin-bottom: $spacing-6;
 
+  &__left {
+    display: flex;
+    align-items: baseline;
+    gap: $spacing-3;
+  }
+
   h1 { font-size: $font-size-2xl; font-weight: 700; }
   p  { font-size: $font-size-sm; color: $text-muted; }
+}
+
+// [2026-04-04] 학급 필터 드롭다운
+.class-filter { flex-shrink: 0; }
+
+.class-select {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  background: white;
+  color: $text-primary;
+  cursor: pointer;
+  min-width: 140px;
+
+  &:focus { outline: none; border-color: $primary; }
 }
 
 .kpi-grid {
@@ -361,9 +408,10 @@ onMounted(async () => {
 }
 
 // 주간 차트
+// [2026-04-04] align-items: stretch — 컬럼이 140px 전체를 채워야 week-bar의 height:%가 계산됨
 .week-chart {
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   gap: $spacing-4;
   height: 140px;
   padding: $spacing-2 0;
@@ -390,6 +438,18 @@ onMounted(async () => {
   border-radius: $radius-sm $radius-sm 0 0;
   min-height: 4px;
   transition: height 0.6s ease;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: visible;
+}
+
+.week-bar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: $primary;
+  margin-top: -18px;
+  white-space: nowrap;
 }
 
 .week-label {

@@ -13,9 +13,10 @@ public interface TeacherMapper {
     Optional<Teacher> findByUserId(@Param("userId") Long userId);
     void insert(Teacher teacher);
     void update(Teacher teacher);
-    List<Map<String, Object>> getSubjectStats(@Param("schoolId") Long schoolId);
-    List<Map<String, Object>> getWeeklyParticipation(@Param("schoolId") Long schoolId);
-    List<Map<String, Object>> getStudentStats(@Param("schoolId") Long schoolId);
+    List<Map<String, Object>> getSubjectStats(@Param("schoolId") Long schoolId, @Param("classId") Long classId);
+    List<Map<String, Object>> getWeeklyParticipation(@Param("schoolId") Long schoolId, @Param("classId") Long classId);
+    List<Map<String, Object>> getStudentStats(@Param("schoolId") Long schoolId, @Param("classId") Long classId);
     // [2026-04-03] 단원별 취약 학생 분석
-    List<Map<String, Object>> getUnitWeakStats(@Param("schoolId") Long schoolId);
+    // [2026-04-04] classId 파라미터 추가 — 학급별 필터링 지원
+    List<Map<String, Object>> getUnitWeakStats(@Param("schoolId") Long schoolId, @Param("classId") Long classId);
 }
