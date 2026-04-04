@@ -1,6 +1,118 @@
 <template>
   <div class="problem-upload-page">
-    <div class="page-header"><h1>문제 파일 업로드</h1></div>
+    <div class="page-header">
+      <h1>문제 등록</h1>
+      <div class="tab-switcher">
+        <button :class="['tab-btn', { active: activeTab === 'upload' }]" @click="activeTab = 'upload'">파일 업로드</button>
+        <button :class="['tab-btn', { active: activeTab === 'direct' }]" @click="activeTab = 'direct'">직접 입력</button>
+      </div>
+    </div>
+
+    <!-- ─────────────────── 직접 입력 탭 ─────────────────── -->
+    <div v-if="activeTab === 'direct'">
+      <!-- 저장 완료 화면 -->
+      <div v-if="directSaved" class="done-section card">
+        <div class="done-icon">✓</div>
+        <h3>문제가 저장되었습니다</h3>
+        <p>검수 대기 상태로 등록되었습니다. 문제은행에서 승인 후 활성화됩니다.</p>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="btn btn-secondary btn-md" @click="resetDirect">다른 문제 입력</button>
+          <AppButton @click="router.push('/admin/problems')">문제은행 확인</AppButton>
+        </div>
+      </div>
+
+      <!-- 직접 입력 폼 -->
+      <div v-else class="direct-form card">
+        <div class="form-row">
+          <div class="form-group">
+            <label>과목 <span class="required">*</span></label>
+            <select v-model="directForm.subject" class="form-control">
+              <option value="">선택</option>
+              <option v-for="s in subjectOptions" :key="s" :value="s">{{ s }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>레벨 <span class="required">*</span></label>
+            <select v-model="directForm.level" class="form-control">
+              <option value="">선택</option>
+              <option value="A">A (상)</option>
+              <option value="B">B (중)</option>
+              <option value="C">C (하)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>학년</label>
+            <select v-model="directForm.grade" class="form-control">
+              <option value="">선택</option>
+              <option value="GRADE_1">중1</option>
+              <option value="GRADE_2">중2</option>
+              <option value="GRADE_3">중3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>유형 <span class="required">*</span></label>
+            <select v-model="directForm.problemType" class="form-control">
+              <option value="MULTIPLE_CHOICE">객관식</option>
+              <option value="SHORT_ANSWER">주관식</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>단원</label>
+            <input v-model="directForm.unitName" class="form-control" placeholder="예: 일차방정식" />
+          </div>
+          <div class="form-group">
+            <label>정답 <span class="required">*</span></label>
+            <input v-model="directForm.answer" class="form-control" placeholder="예: 3 또는 12" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>보기 (참고 지문) <span class="label-hint">테두리 박스 안 내용 — 없으면 비워두세요</span></label>
+          <textarea v-model="directForm.passage" class="form-control" rows="3" placeholder="예: [조건] ㄱ. a > 0 ㄴ. b < 0" />
+        </div>
+
+        <div class="form-group">
+          <label>문제 내용 <span class="required">*</span></label>
+          <textarea v-model="directForm.questionText" class="form-control" rows="5" placeholder="문제 내용을 입력하세요. 수식은 그대로 입력하세요 (예: x² + 3x - 4 = 0)" />
+        </div>
+
+        <!-- 객관식 선지 -->
+        <div v-if="directForm.problemType === 'MULTIPLE_CHOICE'" class="form-group">
+          <div class="options-header">
+            <label>선지</label>
+            <button class="btn btn-ghost btn-sm" type="button" @click="addDirectOption">+ 선지 추가</button>
+          </div>
+          <div v-for="(opt, i) in directForm.options" :key="i" class="option-row">
+            <span class="option-no">{{ '①②③④⑤'[i] || (i+1) }}</span>
+            <input v-model="directForm.options[i].optionText" class="form-control" :placeholder="`${i+1}번 선지`" />
+            <button v-if="directForm.options.length > 2" class="btn btn-ghost btn-sm option-del" type="button" @click="removeDirectOption(i)">✕</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>해설 <span class="label-hint">선택 입력</span></label>
+          <textarea v-model="directForm.explanation" class="form-control" rows="3" placeholder="풀이 과정 및 해설" />
+        </div>
+
+        <div class="form-group">
+          <label>문제 이미지 URL <span class="label-hint">선택 입력</span></label>
+          <input v-model="directForm.questionImgUrl" class="form-control" placeholder="https://..." />
+          <img v-if="directForm.questionImgUrl" :src="directForm.questionImgUrl" alt="미리보기" class="img-preview" />
+        </div>
+
+        <div v-if="directError" class="direct-error">{{ directError }}</div>
+
+        <div class="direct-actions">
+          <AppButton :loading="directSaving" @click="submitDirect">문제 저장</AppButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────── 파일 업로드 탭 ─────────────────── -->
+    <template v-if="activeTab === 'upload'">
 
     <!-- 드래그앤드롭 업로드 -->
     <div
@@ -223,11 +335,13 @@
         <AppButton @click="router.push('/admin/problems')">문제은행 확인</AppButton>
       </div>
     </div>
+
+    </template><!-- /upload tab -->
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, reactive, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppButton from '@/components/common/AppButton.vue'
 import { useToast } from '@/composables/useToast'
@@ -236,6 +350,84 @@ import api from '@/utils/api'
 const router = useRouter()
 const { success, error } = useToast()
 
+// ─────────────────── 탭 전환 ───────────────────
+const activeTab = ref('upload')
+
+// ─────────────────── 직접 입력 ───────────────────
+const subjectOptions = ['수학', '영어', '국어', '과학', '사회']
+
+const defaultDirectForm = () => ({
+  subject: '수학',
+  level: '',
+  grade: '',
+  problemType: 'MULTIPLE_CHOICE',
+  unitName: '',
+  answer: '',
+  passage: '',
+  questionText: '',
+  explanation: '',
+  questionImgUrl: '',
+  options: [
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+    { optionText: '', optionImgUrl: '' },
+  ]
+})
+
+const directForm = reactive(defaultDirectForm())
+const directSaving = ref(false)
+const directSaved = ref(false)
+const directError = ref('')
+
+function addDirectOption() {
+  directForm.options.push({ optionText: '', optionImgUrl: '' })
+}
+function removeDirectOption(i) {
+  directForm.options.splice(i, 1)
+}
+
+function resetDirect() {
+  Object.assign(directForm, defaultDirectForm())
+  directSaved.value = false
+  directError.value = ''
+}
+
+async function submitDirect() {
+  directError.value = ''
+  if (!directForm.level) { directError.value = '레벨을 선택하세요.'; return }
+  if (!directForm.questionText.trim()) { directError.value = '문제 내용을 입력하세요.'; return }
+  if (!directForm.answer.trim()) { directError.value = '정답을 입력하세요.'; return }
+
+  directSaving.value = true
+  try {
+    const payload = {
+      subject: directForm.subject,
+      level: directForm.level,
+      grade: directForm.grade || null,
+      problemType: directForm.problemType,
+      unitName: directForm.unitName,
+      questionText: directForm.questionText,
+      answer: directForm.answer,
+      passage: directForm.passage || '',
+      explanation: directForm.explanation || '',
+      questionImgUrl: directForm.questionImgUrl || '',
+      options: directForm.problemType === 'MULTIPLE_CHOICE'
+        ? directForm.options.filter(o => o.optionText.trim())
+        : []
+    }
+    await api.post('/admin/problems', payload)
+    directSaved.value = true
+    success('문제가 저장되었습니다.')
+  } catch (e) {
+    directError.value = e.response?.data?.message || '저장에 실패했습니다.'
+  } finally {
+    directSaving.value = false
+  }
+}
+
+// ─────────────────── 파일 업로드 ───────────────────
 const step = ref('upload')
 const dragover = ref(false)
 const selectedFile = ref(null)
@@ -936,5 +1128,137 @@ async function confirmUpload() {
 
 .text-success { color: $success !important; }
 .text-danger { color: $danger !important; }
+
+// ─────────────────── 탭 스위처 ───────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-6;
+  margin-bottom: $spacing-6;
+
+  h1 { margin: 0; }
+}
+
+.tab-switcher {
+  display: flex;
+  background: $bg-light;
+  border-radius: $radius-md;
+  padding: 3px;
+  gap: 2px;
+}
+
+.tab-btn {
+  padding: 7px 20px;
+  border-radius: $radius-sm;
+  border: none;
+  background: transparent;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &.active {
+    background: white;
+    color: $primary;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  &:hover:not(.active) {
+    color: $text-primary;
+  }
+}
+
+// ─────────────────── 직접 입력 폼 ───────────────────
+.direct-form {
+  padding: $spacing-8;
+
+  .form-row {
+    display: flex;
+    gap: $spacing-4;
+    flex-wrap: wrap;
+    margin-bottom: $spacing-4;
+
+    .form-group {
+      flex: 1;
+      min-width: 140px;
+    }
+  }
+
+  .form-group {
+    margin-bottom: $spacing-5;
+
+    label {
+      display: block;
+      font-size: $font-size-sm;
+      font-weight: 600;
+      color: $text-primary;
+      margin-bottom: 6px;
+    }
+  }
+}
+
+.required { color: $danger; margin-left: 2px; }
+
+.label-hint {
+  font-size: $font-size-xs;
+  font-weight: 400;
+  color: $text-muted;
+  margin-left: 6px;
+}
+
+.options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  margin-bottom: $spacing-2;
+}
+
+.option-no {
+  font-size: $font-size-lg;
+  color: $text-secondary;
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.option-del {
+  flex-shrink: 0;
+  color: $text-muted;
+  &:hover { color: $danger; }
+}
+
+.img-preview {
+  max-width: 100%;
+  max-height: 200px;
+  margin-top: 8px;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+}
+
+.direct-error {
+  color: $danger;
+  font-size: $font-size-sm;
+  padding: 10px 14px;
+  background: #FFF5F5;
+  border: 1px solid lighten($danger, 30%);
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-4;
+}
+
+.direct-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: $spacing-4;
+  border-top: 1px solid $border;
+}
 
 </style>
