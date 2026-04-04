@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     host: '::',
     port: 7001,
-    allowedHosts: ['edu.com4in.com'],
+    allowedHosts: ['edu.com4in.com', 'dev.edu-platform.com'],
     proxy: {
       '/api': {
         target: 'http://localhost:7000',

@@ -12,6 +12,7 @@ const RegisterPage = () => import('@/pages/auth/RegisterPage.vue')
 const ForgotPasswordPage = () => import('@/pages/auth/ForgotPasswordPage.vue')
 const ResetPasswordPage = () => import('@/pages/auth/ResetPasswordPage.vue')
 const VerifyEmailPage = () => import('@/pages/auth/VerifyEmailPage.vue')
+const OAuth2CallbackPage = () => import('@/pages/auth/OAuth2CallbackPage.vue')
 
 // Student
 const StudentHomePage = () => import('@/pages/student/StudentHomePage.vue')
@@ -102,6 +103,12 @@ const routes = [
     component: AuthLayout,
     meta: { public: true },
     children: [{ path: '', component: VerifyEmailPage }]
+  },
+  {
+    path: '/oauth2/callback',
+    component: AuthLayout,
+    meta: { public: true },
+    children: [{ path: '', component: OAuth2CallbackPage }]
   },
   {
     path: '/student',

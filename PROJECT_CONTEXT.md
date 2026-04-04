@@ -12,7 +12,7 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 ### 🔴 필수 (Mandatory) — 미구현
 - [x] **학급별 리포트 조회** — 교사 분석 화면 학급 드롭다운 + classId 파라미터 필터링. 주간 참여율 바차트 CSS 버그(align-items) 수정 (2026-04-04)
 - [x] **이메일 인증** — 회원가입 후 토큰 자동 발송, /verify-email 페이지, 로그인 시 미인증 차단. SES 미설정 시 발송 실패해도 가입 유지 (2026-04-04)
-- [ ] **소셜 로그인 (Google/Kakao)** — `LoginPage.vue` UI 완성, OAuth2 백엔드 연동 (`application.yml` 주석 해제)
+- [~] **소셜 로그인 (Google/Kakao)** — Google 로그인 동작 확인 완료(자동 로그인 동작). `prompt=select_account` 계정 선택 화면 강제 여부 미결. 카카오는 이메일 권한(사업자등록 필요)으로 보류.
 - [ ] **문제 직접 입력 에디터** — 어드민 문제 DB에서 PDF 없이 텍스트 직접 입력/등록
 - [ ] **매칭 해제 및 재배정** — 교사-학생 연결 해제 + 다른 교사에게 재배정 (현재 학급 제거만 가능)
 - [ ] **SSO 연동** — 라이브 강의 시스템과 Single Sign-On 연동
@@ -28,6 +28,7 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 ## ✅ 이번 세션 완료
 - [x] **학급별 리포트 조회** — TeacherAnalyticsPage 학급 드롭다운, classId 쿼리 파라미터, TeacherMapper 4개 쿼리 학급 필터 추가. 주간 참여율 바차트 CSS height:% 미동작 버그(align-items:flex-end→stretch) 수정, 바 위 숫자% 표시 (2026-04-04)
 - [x] **이메일 인증** — EmailVerification 도메인/Mapper/XML 신규, UserMapper.setEmailVerified(), EmailService.sendVerificationEmail() SES 발송, AuthService TODO 구현(토큰 생성·검증·24h 만료), 로그인 시 미인증 403 차단, VerifyEmailPage.vue(pending/verifying/success/error), RegisterPage 가입 후 /verify-email 리다이렉트. SES 실패 시 가입 롤백 방지 (2026-04-04)
+- [x] **Google OAuth2 로그인 동작 완료** — SecurityConfig OAuth2 설정, CustomOAuth2UserService, SuccessHandler/FailureHandler, CookieRepo, OAuth2CallbackPage.vue 구현. 버그 수정: LoginPage socialLogin URL(dev.edu-platform.com→localhost), auth.js setTokens export 누락 수정. Google 로그인 정상 동작 확인 (2026-04-04)
 
 
 - [x] **공지사항 배너 (학생 홈)** — `StudentHomePage.vue` 환영 배너 아래 최신 공지 2개 인라인 배너 표시. 중요 공지 노란색 강조, `GET /announcements?size=2` 병렬 호출 (2026-04-03)
