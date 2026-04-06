@@ -53,7 +53,8 @@ const studentMenu = [
   { label: '문제 풀기', to: '/student/learn', icon: icons.book },
   { label: '동영상 풀이', to: '/student/videos', icon: icons.video },
   { label: '오답노트', to: '/student/wrong-notes', icon: icons.bookmark },
-  { label: '학습 리포트', to: '/student/report', icon: icons.chart }
+  { label: '학습 리포트', to: '/student/report', icon: icons.chart },
+  { label: '마이페이지', to: '/student/mypage', icon: icons.dollar }
 ]
 
 const teacherMenu = [

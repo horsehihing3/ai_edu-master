@@ -517,7 +517,7 @@
               <li class="off"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 학습 리포트</li>
               <li class="off"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> AI 힌트</li>
             </ul>
-            <RouterLink to="/register" class="price-card__btn">시작하기</RouterLink>
+            <button class="price-card__btn" @click="handlePlanClick">시작하기</button>
           </div>
 
           <!-- 스탠다드 (추천) -->
@@ -539,7 +539,7 @@
               <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 학습 리포트</li>
               <li class="off"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> AI 힌트</li>
             </ul>
-            <RouterLink to="/register" class="price-card__btn price-card__btn--featured">시작하기</RouterLink>
+            <button class="price-card__btn price-card__btn--featured" @click="handlePlanClick">시작하기</button>
           </div>
 
           <!-- 프리미엄 -->
@@ -560,7 +560,7 @@
               <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 학습 리포트</li>
               <li class="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> AI 힌트</li>
             </ul>
-            <RouterLink to="/register" class="price-card__btn">시작하기</RouterLink>
+            <button class="price-card__btn" @click="handlePlanClick">시작하기</button>
           </div>
 
         </div>
@@ -595,9 +595,24 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/auth'
+import { useToast } from '@/composables/useToast'
 import PublicHeader from '@/components/layout/PublicHeader.vue'
 import PublicFooter from '@/components/layout/PublicFooter.vue'
+
+const authStore = useAuthStore()
+const router = useRouter()
+const { info } = useToast()
+
+// [2026-04-06] 요금 플랜 시작하기 — 로그인 상태면 준비 중 안내, 비로그인이면 회원가입
+function handlePlanClick() {
+  if (authStore.isAuthenticated) {
+    info('결제 기능은 준비 중입니다. 곧 서비스될 예정입니다.')
+  } else {
+    router.push('/register')
+  }
+}
 
 const trustSection = ref(null)
 const videoRef = ref(null)

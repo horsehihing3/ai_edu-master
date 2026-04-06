@@ -14,18 +14,20 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 - [x] **이메일 인증** — 회원가입 후 토큰 자동 발송, /verify-email 페이지, 로그인 시 미인증 차단. SES 미설정 시 발송 실패해도 가입 유지 (2026-04-04)
 - [~] **소셜 로그인 (Google/Kakao)** — Google 로그인 동작 확인 완료(자동 로그인 동작). `prompt=select_account` 계정 선택 화면 강제 여부 미결. 카카오는 이메일 권한(사업자등록 필요)으로 보류.
 - [x] **문제 직접 입력 에디터** — ProblemUploadPage에 "직접 입력" 탭 추가, 과목/레벨/학년/유형/단원/보기/문제내용/선지/정답/해설/이미지URL 폼, POST /admin/problems 저장, 저장 완료 화면 (2026-04-04)
-- [ ] **매칭 해제 및 재배정** — 교사-학생 연결 해제 + 다른 교사에게 재배정 (현재 학급 제거만 가능)
+- [x] **매칭 해제 및 재배정** — 교사: ClassManagePage 학생 이동 모달(본인 다른 학급으로). 어드민: MemberListPage 재배정 모달(전체 학급). 백엔드 POST /teacher/classes/{id}/members/{id}/move, GET|POST /admin/classes|/admin/users/{id}/reassign. 소속 학급 없으면 "배정된 학급이 없습니다" 안내 (2026-04-06)
 - [ ] **SSO 연동** — 라이브 강의 시스템과 Single Sign-On 연동
 
 ### 🟡 협의(Optional) — 미구현
-- [ ] **PG 연동 / 구독** — 결제 게이트웨이 연동, 구독 플랜 결제 흐름
-- [ ] **구독/이용권 현황 (학생용)** — 학생 마이페이지에서 현재 플랜·결제일·만료일 표시
+- [ ] **PG 연동 / 구독** — 결제 게이트웨이 연동, 구독 플랜 결제 흐름. 로그인 상태 "시작하기" 클릭 시 "준비 중" 토스트 처리 완료 (2026-04-06)
+- [x] **구독/이용권 현황 (학생용)** — 학생 마이페이지(StudentMyPage.vue) 신규. GET /student/mypage, SubscriptionMapper(findActiveByUserId/findRecentPayments). 사이드바 "마이페이지" 메뉴 추가. 구독 없으면 "이용권 없음" UI (2026-04-06)
 - [ ] **DRM / 콘텐츠 보안** — 화면캡처 방지, Signed URL 기반 보안 강화
 
 ### 🔵 지속 개선
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
 
 ## ✅ 이번 세션 완료
+- [x] **구독/이용권 현황 (학생 마이페이지)** — StudentMyPage.vue 신규 생성. SubscriptionMapper + XML(findActiveByUserId, findRecentPaymentsByUserId). GET /student/mypage API. 사이드바 "마이페이지" 메뉴(달러 아이콘) 추가. 구독 없음/만료임박/결제이력 UI. 랜딩 요금 "시작하기" 로그인 상태 토스트 처리 (2026-04-06)
+- [x] **매칭 해제 및 재배정** — 교사용: ClassManagePage 학생 행 "이동" 버튼 + 이동 모달(본인 다른 학급 드롭다운). POST /teacher/classes/{classId}/members/{studentId}/move. 어드민용: MemberListPage STUDENT 행 "재배정" 버튼 + 재배정 모달. GET /admin/classes, GET /admin/users/{userId}/classes, POST /admin/users/{userId}/reassign. 소속 학급 없으면 "배정된 학급이 없습니다" 안내 (2026-04-06)
 - [x] **문제 직접 입력 에디터** — ProblemUploadPage "파일 업로드"|"직접 입력" 탭 분리. 직접 입력 탭: 과목/레벨/학년/유형/단원/보기/문제내용/객관식 선지(동적 추가·삭제)/정답/해설/이미지URL 폼. 유효성 검사 후 POST /admin/problems 저장. 저장 완료 화면(재입력/문제은행 이동). 백엔드 변경 없음 (2026-04-04)
 - [x] **학급별 리포트 조회** — TeacherAnalyticsPage 학급 드롭다운, classId 쿼리 파라미터, TeacherMapper 4개 쿼리 학급 필터 추가. 주간 참여율 바차트 CSS height:% 미동작 버그(align-items:flex-end→stretch) 수정, 바 위 숫자% 표시 (2026-04-04)
 - [x] **이메일 인증** — EmailVerification 도메인/Mapper/XML 신규, UserMapper.setEmailVerified(), EmailService.sendVerificationEmail() SES 발송, AuthService TODO 구현(토큰 생성·검증·24h 만료), 로그인 시 미인증 403 차단, VerifyEmailPage.vue(pending/verifying/success/error), RegisterPage 가입 후 /verify-email 리다이렉트. SES 실패 시 가입 롤백 방지 (2026-04-04)

@@ -80,6 +80,7 @@ public final class ResponseMessage {
     public static final String CLASS_DELETED             = "학급이 삭제되었습니다.";
     public static final String CLASS_MEMBER_ADDED        = "학생이 추가되었습니다.";
     public static final String CLASS_MEMBER_REMOVED      = "학생이 제거되었습니다.";
+    public static final String CLASS_MEMBER_MOVED        = "학생이 이동되었습니다.";
 
     // ── System Code ───────────────────────────────────────
     public static final String CODE_CREATED              = "코드가 등록되었습니다.";

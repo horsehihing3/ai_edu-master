@@ -100,6 +100,18 @@ public class ClassController {
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.CLASS_MEMBER_REMOVED));
     }
 
+    // [2026-04-06] POST /teacher/classes/{classId}/members/{studentId}/move — 학생을 다른 학급으로 이동
+    @PostMapping("/{classId}/members/{studentId}/move")
+    public ResponseEntity<ApiResponse<Void>> moveMember(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long classId,
+            @PathVariable Long studentId,
+            @RequestBody ClassDto.MoveRequest request) {
+        Teacher teacher = getTeacher(userDetails);
+        classService.moveStudent(teacher.getTeacherId(), classId, studentId, request.getTargetClassId());
+        return ResponseEntity.ok(ApiResponse.success(ResponseMessage.CLASS_MEMBER_MOVED));
+    }
+
     private Teacher getTeacher(UserDetails userDetails) {
         Long userId = userMapper.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))

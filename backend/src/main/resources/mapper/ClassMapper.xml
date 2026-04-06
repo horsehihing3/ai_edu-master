@@ -90,6 +90,23 @@
         SELECT student_id FROM class_members WHERE class_id = #{classId}
     </select>
 
+    <!-- [2026-04-06] 어드민용 전체 활성 학급 목록 (교사명 포함) -->
+    <select id="findAllActive" resultType="map">
+        SELECT
+            c.class_id    AS classId,
+            c.class_name  AS className,
+            c.grade       AS grade,
+            c.level_filter AS levelFilter,
+            u.name        AS teacherName,
+            t.teacher_id  AS teacherId,
+            (SELECT COUNT(*) FROM class_members cm WHERE cm.class_id = c.class_id) AS studentCount
+        FROM classes c
+        JOIN teachers t ON c.teacher_id = t.teacher_id
+        JOIN users u    ON t.user_id = u.user_id
+        WHERE c.is_active = 1
+        ORDER BY u.name ASC, c.class_name ASC
+    </select>
+
     <!-- [2026-04-03] 학생이 소속된 학급 목록 -->
     <select id="findClassesByStudentId" resultType="map">
         SELECT

@@ -143,6 +143,27 @@ public class ClassService {
         classMapper.removeMember(classId, studentId);
     }
 
+    // [2026-04-06] 교사가 학생을 본인의 다른 학급으로 이동
+    @Transactional
+    public void moveStudent(Long teacherId, Long fromClassId, Long studentId, Long targetClassId) {
+        getClassOwnedByTeacher(fromClassId, teacherId);
+        getClassOwnedByTeacher(targetClassId, teacherId);
+        classMapper.removeMember(fromClassId, studentId);
+        classMapper.addMember(targetClassId, studentId);
+    }
+
+    // [2026-04-06] 어드민용 전체 활성 학급 목록
+    public List<Map<String, Object>> getAllActiveClasses() {
+        return classMapper.findAllActive();
+    }
+
+    // [2026-04-06] 어드민이 학생을 임의 학급으로 재배정
+    @Transactional
+    public void reassignStudent(Long studentId, Long fromClassId, Long toClassId) {
+        classMapper.removeMember(fromClassId, studentId);
+        classMapper.addMember(toClassId, studentId);
+    }
+
     private SchoolClass getClassOwnedByTeacher(Long classId, Long teacherId) {
         SchoolClass schoolClass = classMapper.findById(classId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REQUEST));

@@ -13,6 +13,7 @@ import com.edu.platform.service.ClassService;
 import com.edu.platform.exception.BusinessException;
 import com.edu.platform.exception.ErrorCode;
 import com.edu.platform.mapper.StudentMapper;
+import com.edu.platform.mapper.SubscriptionMapper;
 import com.edu.platform.mapper.UserMapper;
 import com.edu.platform.service.FeedbackService;
 import com.edu.platform.service.StudentService;
@@ -36,6 +37,7 @@ public class StudentController {
     private final FeedbackService feedbackService;
     private final UserMapper userMapper;
     private final StudentMapper studentMapper;
+    private final SubscriptionMapper subscriptionMapper;
 
     @GetMapping("/home")
     public ResponseEntity<ApiResponse<StudentHomeDto>> getHome(
@@ -238,6 +240,17 @@ public class StudentController {
         Student student = getStudent(userId);
         return ResponseEntity.ok(ApiResponse.success(
                 classService.getMyClasses(student.getStudentId())));
+    }
+
+    // [2026-04-06] 학생 마이페이지 — 구독/이용권 현황 + 최근 결제 이력
+    @GetMapping("/mypage")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyPage(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getUserId(userDetails);
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("subscription", subscriptionMapper.findActiveByUserId(userId).orElse(null));
+        result.put("recentPayments", subscriptionMapper.findRecentPaymentsByUserId(userId, 5));
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     // [2026-04-03] 초대코드로 학급 가입

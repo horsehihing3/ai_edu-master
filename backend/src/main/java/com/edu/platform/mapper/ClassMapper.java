@@ -26,4 +26,7 @@ public interface ClassMapper {
 
     // [2026-04-03] 학급 배정 시 소속 학생 ID 목록 조회
     List<Long> findStudentIdsByClassId(@Param("classId") Long classId);
+
+    // [2026-04-06] 어드민용 전체 활성 학급 목록 (교사명 포함)
+    List<Map<String, Object>> findAllActive();
 }

@@ -14,7 +14,9 @@ import com.edu.platform.mapper.PaymentMapper;
 import com.edu.platform.mapper.SchoolMapper;
 import com.edu.platform.mapper.UserMapper;
 import com.edu.platform.mapper.VideoMapper;
+import com.edu.platform.dto.teacher.ClassDto;
 import com.edu.platform.service.AdminService;
+import com.edu.platform.service.ClassService;
 import com.edu.platform.service.ProblemService;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
@@ -42,11 +44,13 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    private final ClassService classService;
     private final SchoolMapper schoolMapper;
     private final ProblemService problemService;
     private final VideoMapper videoMapper;
     private final PaymentMapper paymentMapper;
     private final UserMapper userMapper;
+    private final com.edu.platform.mapper.StudentMapper studentMapper;
 
     @Value("${app.upload.path:uploads}")
     private String uploadPath;
@@ -336,5 +340,32 @@ public class AdminController {
                 .orElseThrow(() -> new BusinessException(ErrorCode.VIDEO_NOT_FOUND));
         videoMapper.delete(videoId);
         return ResponseEntity.ok(ApiResponse.success(ResponseMessage.VIDEO_DELETED));
+    }
+
+    // [2026-04-06] GET /admin/classes — 전체 활성 학급 목록 (어드민용 재배정 시 사용)
+    @GetMapping("/classes")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getAllClasses() {
+        return ResponseEntity.ok(ApiResponse.success(classService.getAllActiveClasses()));
+    }
+
+    // [2026-04-06] GET /admin/users/{userId}/classes — 특정 학생의 소속 학급 목록
+    @GetMapping("/users/{userId}/classes")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getStudentClasses(@PathVariable Long userId) {
+        Long studentId = studentMapper.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STUDENT_NOT_FOUND))
+                .getStudentId();
+        return ResponseEntity.ok(ApiResponse.success(classService.getMyClasses(studentId)));
+    }
+
+    // [2026-04-06] POST /admin/users/{userId}/reassign — 어드민이 학생을 다른 학급으로 재배정
+    @PostMapping("/users/{userId}/reassign")
+    public ResponseEntity<ApiResponse<Void>> reassignStudent(
+            @PathVariable Long userId,
+            @RequestBody ClassDto.ReassignRequest request) {
+        Long studentId = studentMapper.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STUDENT_NOT_FOUND))
+                .getStudentId();
+        classService.reassignStudent(studentId, request.getFromClassId(), request.getToClassId());
+        return ResponseEntity.ok(ApiResponse.success(ResponseMessage.CLASS_MEMBER_MOVED));
     }
 }

@@ -25,6 +25,7 @@ const BookmarkPage = () => import('@/pages/student/BookmarkPage.vue')
 const WrongNotesPage = () => import('@/pages/student/WrongNotesPage.vue')
 const ReportPage = () => import('@/pages/student/ReportPage.vue')
 const AssignmentFeedbackPage = () => import('@/pages/student/AssignmentFeedbackPage.vue')
+const StudentMyPage = () => import('@/pages/student/StudentMyPage.vue')
 
 // Teacher
 const TeacherHomePage = () => import('@/pages/teacher/TeacherHomePage.vue')
@@ -124,7 +125,8 @@ const routes = [
       { path: 'bookmarks', component: BookmarkPage, meta: { title: '즐겨찾기' } },
       { path: 'wrong-notes', component: WrongNotesPage, meta: { title: '오답노트' } },
       { path: 'report', component: ReportPage, meta: { title: '학습 리포트' } },
-      { path: 'assignments/:id/feedback', component: AssignmentFeedbackPage, meta: { title: '과제 피드백' } }
+      { path: 'assignments/:id/feedback', component: AssignmentFeedbackPage, meta: { title: '과제 피드백' } },
+      { path: 'mypage', component: StudentMyPage, meta: { title: '마이페이지' } }
     ]
   },
   {

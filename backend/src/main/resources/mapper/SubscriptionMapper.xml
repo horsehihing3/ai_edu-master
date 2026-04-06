@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.platform.mapper.SubscriptionMapper">
+
+    <!-- [2026-04-06] 학생 현재 활성 구독 조회 (플랜 정보 JOIN) -->
+    <select id="findActiveByUserId" resultType="map">
+        SELECT
+            s.subscription_id  AS subscriptionId,
+            s.status           AS status,
+            s.start_date       AS startDate,
+            s.end_date         AS endDate,
+            s.auto_renew       AS autoRenew,
+            p.plan_name        AS planName,
+            p.plan_type        AS planType,
+            p.price            AS price,
+            p.features         AS features,
+            DATEDIFF(s.end_date, CURDATE()) AS daysLeft
+        FROM subscriptions s
+        JOIN subscription_plans p ON s.plan_id = p.plan_id
+        WHERE s.user_id = #{userId}
+          AND s.status = 'ACTIVE'
+          AND s.end_date >= CURDATE()
+        ORDER BY s.end_date DESC
+        LIMIT 1
+    </select>
+
+    <!-- [2026-04-06] 학생 최근 결제 이력 -->
+    <select id="findRecentPaymentsByUserId" resultType="map">
+        SELECT
+            py.payment_id   AS paymentId,
+            py.amount       AS amount,
+            py.status       AS status,
+            py.paid_at      AS paidAt,
+            py.created_at   AS createdAt,
+            p.plan_name     AS planName,
+            p.plan_type     AS planType
+        FROM payments py
+        LEFT JOIN subscriptions s  ON py.subscription_id = s.subscription_id
+        LEFT JOIN subscription_plans p ON s.plan_id = p.plan_id
+        WHERE py.user_id = #{userId}
+        ORDER BY py.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

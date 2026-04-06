@@ -101,6 +101,38 @@
       </div>
     </Teleport>
 
+    <!-- [2026-04-06] 학생 학급 이동 모달 -->
+    <Teleport to="body">
+      <div v-if="moveModal.open" class="modal-backdrop modal-backdrop--top" @click.self="closeMoveModal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <h2>학급 이동</h2>
+            <button class="modal-close" @click="closeMoveModal">✕</button>
+          </div>
+          <div class="modal-body">
+            <p class="move-info">
+              <strong>{{ moveModal.studentName }}</strong> 학생을 다른 학급으로 이동합니다.
+            </p>
+            <div class="form-group">
+              <label class="form-label">이동할 학급 <span class="required">*</span></label>
+              <select v-model="moveModal.targetClassId" class="form-select">
+                <option value="">학급 선택</option>
+                <option
+                  v-for="cls in otherClasses"
+                  :key="cls.classId"
+                  :value="cls.classId"
+                >{{ cls.className }}{{ cls.grade ? ' · ' + gradeLabel(cls.grade) : '' }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary btn-md" @click="closeMoveModal">취소</button>
+            <button class="btn btn-primary btn-md" :disabled="!moveModal.targetClassId" @click="submitMove">이동</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- 학생 목록 모달 -->
     <Teleport to="body">
       <div v-if="membersModal.open" class="modal-backdrop" @click.self="closeMembersModal">
@@ -155,7 +187,8 @@
                   <td>{{ gradeLabel(m.grade) }}</td>
                   <td><span :class="['level-badge', 'level-' + m.studentLevel]">{{ m.studentLevel }}</span></td>
                   <td class="text-muted">{{ m.joinedAt?.slice(0, 10) }}</td>
-                  <td>
+                  <td class="action-cell">
+                    <button class="btn btn-ghost btn-sm" @click="openMoveModal(m)">이동</button>
                     <button class="btn btn-ghost btn-sm danger" @click="removeMember(m.studentId)">제거</button>
                   </td>
                 </tr>
@@ -173,7 +206,7 @@
 
 <script setup>
 // [2026-03-21] 교사 학급 관리 페이지
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import api from '@/utils/api'
 import { useToast } from '@/composables/useToast'
 import { useDialog } from '@/composables/useDialog'
@@ -321,6 +354,40 @@ async function removeMember(studentId) {
     await loadMembers()
     loadClasses()
   } catch { error('제거에 실패했습니다.') }
+}
+
+// ── [2026-04-06] 학생 학급 이동 ──────────────────────
+const moveModal = reactive({
+  open: false, studentId: null, studentName: '', targetClassId: ''
+})
+
+// 현재 열린 학급 제외한 본인의 다른 학급
+const otherClasses = computed(() =>
+  classes.value.filter(c => c.classId !== membersModal.classId)
+)
+
+function openMoveModal(member) {
+  Object.assign(moveModal, { open: true, studentId: member.studentId, studentName: member.studentName, targetClassId: '' })
+}
+function closeMoveModal() { moveModal.open = false }
+
+async function submitMove() {
+  if (!moveModal.targetClassId) return
+  const targetClass = classes.value.find(c => c.classId === moveModal.targetClassId)
+  const ok = await dialog.confirm(
+    `${moveModal.studentName} 학생을 '${targetClass?.className}'으로 이동하시겠습니까?`,
+    { confirmText: '이동' }
+  )
+  if (!ok) return
+  try {
+    await api.post(`/teacher/classes/${membersModal.classId}/members/${moveModal.studentId}/move`, {
+      targetClassId: moveModal.targetClassId
+    })
+    success(`${moveModal.studentName} 학생이 이동되었습니다.`)
+    closeMoveModal()
+    await loadMembers()
+    loadClasses()
+  } catch { error('이동에 실패했습니다.') }
 }
 
 loadClasses()
@@ -492,6 +559,8 @@ loadClasses()
   justify-content: center;
   z-index: 1000;
   padding: $spacing-4;
+
+  &--top { z-index: 1100; }
 }
 
 .modal-box {
@@ -677,4 +746,12 @@ loadClasses()
 }
 
 .btn.danger { color: $danger; &:hover { background: #FEE2E2; } }
+
+.action-cell { display: flex; gap: $spacing-1; }
+
+.move-info {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  padding: $spacing-2 0;
+}
 </style>

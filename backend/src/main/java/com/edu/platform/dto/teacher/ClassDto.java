@@ -43,4 +43,17 @@ public class ClassDto {
     public static class AddMembersRequest {
         private java.util.List<Long> studentIds;
     }
+
+    // [2026-04-06] 학생 학급 이동 요청
+    @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class MoveRequest {
+        private Long targetClassId;
+    }
+
+    // [2026-04-06] 어드민용 학생 재배정 요청
+    @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class ReassignRequest {
+        private Long fromClassId;
+        private Long toClassId;
+    }
 }
