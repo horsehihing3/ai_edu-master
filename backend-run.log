@@ -1,7 +1,7 @@
-> Task :compileJava
+> Task :compileJava UP-TO-DATE
 > Task :processResources UP-TO-DATE
-> Task :classes
-> Task :resolveMainClassName
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName UP-TO-DATE
 
 > Task :bootRun
 Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
@@ -14,16 +14,585 @@ Standard Commons Logging discovery in action with spring-jcl: please remove comm
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.3)
 
-2026-04-04T12:04:29.656+09:00  INFO 18556 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : Starting EduPlatformApplication using Java 17.0.18 with PID 18556 (C:\claude\ai_edu-master\backend\build\classes\java\main started by user in C:\claude\ai_edu-master\backend)
-2026-04-04T12:04:29.658+09:00 DEBUG 18556 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : Running with Spring Boot v3.2.3, Spring v6.1.4
-2026-04-04T12:04:29.658+09:00  INFO 18556 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : No active profile set, falling back to 1 default profile: "default"
-2026-04-04T12:04:30.654+09:00  INFO 18556 --- [edu-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 7000 (http)
-2026-04-04T12:04:30.662+09:00  INFO 18556 --- [edu-platform] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-04-04T12:04:30.663+09:00  INFO 18556 --- [edu-platform] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.19]
-2026-04-04T12:04:30.717+09:00  INFO 18556 --- [edu-platform] [           main] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
-2026-04-04T12:04:30.717+09:00  INFO 18556 --- [edu-platform] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1022 ms
+2026-04-06T14:49:36.269+09:00  INFO 16128 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : Starting EduPlatformApplication using Java 17.0.18 with PID 16128 (C:\claude\ai_edu-master\backend\build\classes\java\main started by user in C:\claude\ai_edu-master\backend)
+2026-04-06T14:49:36.271+09:00 DEBUG 16128 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : Running with Spring Boot v3.2.3, Spring v6.1.4
+2026-04-06T14:49:36.271+09:00  INFO 16128 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-04-06T14:49:37.323+09:00  INFO 16128 --- [edu-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 7000 (http)
+2026-04-06T14:49:37.331+09:00  INFO 16128 --- [edu-platform] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-06T14:49:37.332+09:00  INFO 16128 --- [edu-platform] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.19]
+2026-04-06T14:49:37.390+09:00  INFO 16128 --- [edu-platform] [           main] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
+2026-04-06T14:49:37.391+09:00  INFO 16128 --- [edu-platform] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1084 ms
 Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
-2026-04-04T12:04:31.103+09:00 DEBUG 18556 --- [edu-platform] [           main] c.e.p.security.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
-2026-04-04T12:04:32.135+09:00  INFO 18556 --- [edu-platform] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@523ade68, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@b529d7e, org.springframework.security.web.context.SecurityContextHolderFilter@5383bf08, org.springframework.security.web.header.HeaderWriterFilter@425f94d7, org.springframework.web.filter.CorsFilter@3664c596, org.springframework.security.web.authentication.logout.LogoutFilter@70700b8a, com.edu.platform.security.JwtAuthenticationFilter@4bf03fee, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@7b7cf475, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@404dc999, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@40aad17d, org.springframework.security.web.session.SessionManagementFilter@44864ebe, org.springframework.security.web.access.ExceptionTranslationFilter@5a57cf90, org.springframework.security.web.access.intercept.AuthorizationFilter@58b03029]
-2026-04-04T12:04:32.323+09:00  INFO 18556 --- [edu-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 7000 (http) with context path '/api'
-2026-04-04T12:04:32.330+09:00  INFO 18556 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : Started EduPlatformApplication in 3.031 seconds (process running for 3.318)
+2026-04-06T14:49:37.793+09:00 DEBUG 16128 --- [edu-platform] [           main] c.e.p.security.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2026-04-06T14:49:38.873+09:00  INFO 16128 --- [edu-platform] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@5d4a34ff, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7cbede2b, org.springframework.security.web.context.SecurityContextHolderFilter@79b4cff, org.springframework.security.web.header.HeaderWriterFilter@4790b897, org.springframework.web.filter.CorsFilter@1ef04613, org.springframework.security.web.authentication.logout.LogoutFilter@2f39b534, org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter@5ee0cf64, org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter@1eb7ec59, com.edu.platform.security.JwtAuthenticationFilter@3f857e08, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@2d705998, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@28a3fc34, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@2d3d4a54, org.springframework.security.web.session.SessionManagementFilter@3a4cb483, org.springframework.security.web.access.ExceptionTranslationFilter@6821c63c, org.springframework.security.web.access.intercept.AuthorizationFilter@51b59d58]
+2026-04-06T14:49:39.085+09:00  INFO 16128 --- [edu-platform] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 7000 (http) with context path '/api'
+2026-04-06T14:49:39.092+09:00  INFO 16128 --- [edu-platform] [           main] c.edu.platform.EduPlatformApplication    : Started EduPlatformApplication in 3.199 seconds (process running for 3.5)
+2026-04-06T14:51:31.979+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-06T14:51:31.979+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-06T14:51:31.980+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-04-06T14:51:32.086+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-06T14:51:32.236+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-1] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@61f518ff
+2026-04-06T14:51:32.238+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-06T14:51:32.264+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:32.287+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:32.310+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:32.343+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-1] com.edu.platform.service.AuthService     : User logged out: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzdHVkZW50X2FAdGVzdC5jb20iLCJ0eXBlIjoiYWNjZXNzIiwicm9sZXMiOlsiUk9MRV9TVFVERU5UIl0sImlhdCI6MTc3NTQ1Mzc5MSwiZXhwIjoxNzc1NDU3MzkxfQ.85HExjqUyRAI5p-_ExY5ACuRMWfQwlyIWEGK3mREHm_vv-iJ9rglaoD_YPdppms-
+2026-04-06T14:51:35.233+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.233+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.239+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.554+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.updateLastLogin  : ==>  Preparing: UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE user_id = ?
+2026-04-06T14:51:35.554+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.updateLastLogin  : ==> Parameters: 6(Long)
+2026-04-06T14:51:35.565+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.updateLastLogin  : <==    Updates: 1
+2026-04-06T14:51:35.565+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.565+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.571+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.590+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.SchoolMapper.findById       : ==>  Preparing: SELECT * FROM schools WHERE school_id = ?
+2026-04-06T14:51:35.590+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.SchoolMapper.findById       : ==> Parameters: 1(Long)
+2026-04-06T14:51:35.602+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.SchoolMapper.findById       : <==      Total: 1
+2026-04-06T14:51:35.603+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:51:35.603+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:51:35.608+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:51:35.659+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.659+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.664+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.664+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.664+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.665+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.665+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.665+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.665+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.666+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.667+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.669+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.669+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.669+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.671+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.679+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.679+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.680+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.680+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.680+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.680+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.683+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.683+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.683+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.683+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.684+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:51:35.688+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.688+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:51:35.688+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:51:35.689+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:51:35.690+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.690+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:51:35.690+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:51:35.693+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:51:35.697+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:51:35.698+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:51:35.698+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:51:35.698+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:51:35.698+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:51:35.698+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:51:35.698+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.findActive    : ==>  Preparing: SELECT * FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW()) ORDER BY is_important DESC, created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:51:35.698+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.findActive    : ==> Parameters: 2(Integer), 0(Integer)
+2026-04-06T14:51:35.701+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:51:35.701+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:51:35.701+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:51:35.701+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.L.findAllByStudentId             : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC
+2026-04-06T14:51:35.702+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.L.findAllByStudentId             : ==> Parameters: 1(Long)
+2026-04-06T14:51:35.702+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.702+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.702+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:51:35.702+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:51:35.703+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:51:35.703+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 16(Long)
+2026-04-06T14:51:35.704+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.findActive    : <==      Total: 2
+2026-04-06T14:51:35.704+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.countActive   : ==>  Preparing: SELECT COUNT(*) FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW())
+2026-04-06T14:51:35.704+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.countActive   : ==> Parameters: 
+2026-04-06T14:51:35.705+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:51:35.705+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.A.findByStudentId                : ==>  Preparing: SELECT DISTINCT a.* FROM assignments a INNER JOIN assignment_targets at ON a.assignment_id = at.assignment_id WHERE at.student_id = ? AND a.is_deleted = 0 ORDER BY a.created_at DESC
+2026-04-06T14:51:35.706+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.A.findByStudentId                : ==> Parameters: 1(Long)
+2026-04-06T14:51:35.707+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.707+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:51:35.708+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:51:35.708+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:51:35.708+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:51:35.708+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 14(Long)
+2026-04-06T14:51:35.709+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.L.findAllByStudentId             : <==      Total: 42
+2026-04-06T14:51:35.710+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.A.findByStudentId                : <==      Total: 9
+2026-04-06T14:51:35.712+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.countActive   : <==      Total: 1
+2026-04-06T14:51:35.713+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:51:35.713+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:51:35.713+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:51:35.713+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:51:35.714+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.C.findClassesByStudentId         : ==>  Preparing: SELECT c.class_id AS classId, c.class_name AS className, c.grade AS grade, c.level_filter AS levelFilter, u.name AS teacherName, cm.joined_at AS joinedAt, (SELECT COUNT(*) FROM class_members WHERE class_id = c.class_id) AS studentCount FROM class_members cm JOIN classes c ON cm.class_id = c.class_id JOIN teachers t ON c.teacher_id = t.teacher_id JOIN users u ON t.user_id = u.user_id WHERE cm.student_id = ? AND c.is_active = 1 ORDER BY cm.joined_at DESC
+2026-04-06T14:51:35.714+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 16(Long)
+2026-04-06T14:51:35.714+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 12(Long)
+2026-04-06T14:51:35.714+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.C.findClassesByStudentId         : ==> Parameters: 1(Long)
+2026-04-06T14:51:35.720+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:51:35.721+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:51:35.721+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : <==      Total: 4
+2026-04-06T14:51:35.721+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.C.findClassesByStudentId         : <==      Total: 1
+2026-04-06T14:51:35.721+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 1(Long)
+2026-04-06T14:51:35.721+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:51:35.721+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 16(Long)
+2026-04-06T14:51:35.726+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:51:35.726+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:51:35.727+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:51:35.727+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:51:35.727+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 9(Long)
+2026-04-06T14:51:35.727+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 15(Long)
+2026-04-06T14:51:35.731+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.731+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:51:35.731+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : <==      Total: 1
+2026-04-06T14:51:35.731+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.731+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:51:35.731+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 15(Long)
+2026-04-06T14:51:35.734+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 0
+2026-04-06T14:51:35.734+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:51:35.734+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.734+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 14(Long)
+2026-04-06T14:51:35.739+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : <==      Total: 3
+2026-04-06T14:51:35.740+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:51:35.740+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 14(Long)
+2026-04-06T14:51:35.744+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:51:35.746+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:35.747+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:35.754+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:35.754+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.NotificationMapper.findByUserId  : ==>  Preparing: SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:51:35.754+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.NotificationMapper.findByUserId  : ==> Parameters: 6(Long), 20(Integer), 0(Integer)
+2026-04-06T14:51:35.759+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.NotificationMapper.findByUserId  : <==      Total: 3
+2026-04-06T14:51:40.453+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:40.453+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:40.458+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:40.473+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:40.473+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:40.479+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:40.480+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.S.findActiveByUserId             : ==>  Preparing: SELECT s.subscription_id AS subscriptionId, s.status AS status, s.start_date AS startDate, s.end_date AS endDate, s.auto_renew AS autoRenew, p.plan_name AS planName, p.plan_type AS planType, p.price AS price, p.features AS features, DATEDIFF(s.end_date, CURDATE()) AS daysLeft FROM subscriptions s JOIN subscription_plans p ON s.plan_id = p.plan_id WHERE s.user_id = ? AND s.status = 'ACTIVE' AND s.end_date >= CURDATE() ORDER BY s.end_date DESC LIMIT 1
+2026-04-06T14:51:40.480+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.S.findActiveByUserId             : ==> Parameters: 6(Long)
+2026-04-06T14:51:40.486+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.S.findActiveByUserId             : <==      Total: 0
+2026-04-06T14:51:40.486+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.S.findRecentPaymentsByUserId     : ==>  Preparing: SELECT py.payment_id AS paymentId, py.amount AS amount, py.status AS status, py.paid_at AS paidAt, py.created_at AS createdAt, p.plan_name AS planName, p.plan_type AS planType FROM payments py LEFT JOIN subscriptions s ON py.subscription_id = s.subscription_id LEFT JOIN subscription_plans p ON s.plan_id = p.plan_id WHERE py.user_id = ? ORDER BY py.created_at DESC LIMIT ?
+2026-04-06T14:51:40.486+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.S.findRecentPaymentsByUserId     : ==> Parameters: 6(Long), 5(Integer)
+2026-04-06T14:51:40.491+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.S.findRecentPaymentsByUserId     : <==      Total: 2
+2026-04-06T14:51:57.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:57.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:57.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:57.594+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:51:57.594+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:51:57.599+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:51:57.599+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.SchoolMapper.findById       : ==>  Preparing: SELECT * FROM schools WHERE school_id = ?
+2026-04-06T14:51:57.599+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.SchoolMapper.findById       : ==> Parameters: 1(Long)
+2026-04-06T14:51:57.604+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.SchoolMapper.findById       : <==      Total: 1
+2026-04-06T14:51:57.604+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:51:57.604+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:51:57.609+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:52:51.274+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.275+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.280+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.280+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.280+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.280+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.280+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.281+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.AnnouncementMapper.findActive    : ==>  Preparing: SELECT * FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW()) ORDER BY is_important DESC, created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.291+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.AnnouncementMapper.findActive    : ==> Parameters: 2(Integer), 0(Integer)
+2026-04-06T14:52:51.296+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.296+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.296+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.296+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:52:51.296+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.AnnouncementMapper.findActive    : <==      Total: 2
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.AnnouncementMapper.countActive   : ==>  Preparing: SELECT COUNT(*) FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW())
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.AnnouncementMapper.countActive   : ==> Parameters: 
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:52:51.297+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:52:51.300+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:52:51.300+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.C.findClassesByStudentId         : ==>  Preparing: SELECT c.class_id AS classId, c.class_name AS className, c.grade AS grade, c.level_filter AS levelFilter, u.name AS teacherName, cm.joined_at AS joinedAt, (SELECT COUNT(*) FROM class_members WHERE class_id = c.class_id) AS studentCount FROM class_members cm JOIN classes c ON cm.class_id = c.class_id JOIN teachers t ON c.teacher_id = t.teacher_id JOIN users u ON t.user_id = u.user_id WHERE cm.student_id = ? AND c.is_active = 1 ORDER BY cm.joined_at DESC
+2026-04-06T14:52:51.300+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.C.findClassesByStudentId         : ==> Parameters: 1(Long)
+2026-04-06T14:52:51.300+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.300+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:52:51.301+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:52:51.302+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.AnnouncementMapper.countActive   : <==      Total: 1
+2026-04-06T14:52:51.302+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:52:51.302+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:52:51.302+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:52:51.304+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.C.findClassesByStudentId         : <==      Total: 1
+2026-04-06T14:52:51.306+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:52:51.310+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:52:51.310+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:52:51.310+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:52:51.310+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:52:51.310+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:52:51.310+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:52:51.314+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.314+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.315+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:52:51.315+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.A.findByStudentId                : ==>  Preparing: SELECT DISTINCT a.* FROM assignments a INNER JOIN assignment_targets at ON a.assignment_id = at.assignment_id WHERE at.student_id = ? AND a.is_deleted = 0 ORDER BY a.created_at DESC
+2026-04-06T14:52:51.315+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:52:51.315+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.A.findByStudentId                : ==> Parameters: 1(Long)
+2026-04-06T14:52:51.315+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:52:51.315+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:52:51.315+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:52:51.316+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.L.findAllByStudentId             : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC
+2026-04-06T14:52:51.316+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.L.findAllByStudentId             : ==> Parameters: 1(Long)
+2026-04-06T14:52:51.318+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.319+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:52:51.319+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:52:51.319+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 16(Long)
+2026-04-06T14:52:51.321+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.L.findAllByStudentId             : <==      Total: 42
+2026-04-06T14:52:51.322+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.A.findByStudentId                : <==      Total: 9
+2026-04-06T14:52:51.322+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:52:51.322+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 16(Long)
+2026-04-06T14:52:51.325+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:52:51.325+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:52:51.325+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 14(Long)
+2026-04-06T14:52:51.327+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : <==      Total: 4
+2026-04-06T14:52:51.328+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:52:51.328+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 16(Long)
+2026-04-06T14:52:51.331+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:52:51.331+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:51.331+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:52:51.331+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:51.331+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 12(Long)
+2026-04-06T14:52:51.332+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:52:51.333+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:52:51.333+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 15(Long)
+2026-04-06T14:52:51.335+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:51.335+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:52:51.336+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.NotificationMapper.findByUserId  : ==>  Preparing: SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:52:51.336+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:52:51.336+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 1(Long)
+2026-04-06T14:52:51.336+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.NotificationMapper.findByUserId  : ==> Parameters: 6(Long), 20(Integer), 0(Integer)
+2026-04-06T14:52:51.338+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : <==      Total: 1
+2026-04-06T14:52:51.338+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:52:51.338+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 15(Long)
+2026-04-06T14:52:51.340+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.NotificationMapper.findByUserId  : <==      Total: 3
+2026-04-06T14:52:51.340+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:52:51.340+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:52:51.340+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 9(Long)
+2026-04-06T14:52:51.342+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 0
+2026-04-06T14:52:51.342+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:52:51.343+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 14(Long)
+2026-04-06T14:52:51.346+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:52:51.350+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.P.findByAssignmentId             : <==      Total: 3
+2026-04-06T14:52:51.350+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:52:51.350+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 14(Long)
+2026-04-06T14:52:51.354+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:52:58.121+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:58.121+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:58.125+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:58.140+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:58.141+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:58.146+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:58.146+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.S.findActiveByUserId             : ==>  Preparing: SELECT s.subscription_id AS subscriptionId, s.status AS status, s.start_date AS startDate, s.end_date AS endDate, s.auto_renew AS autoRenew, p.plan_name AS planName, p.plan_type AS planType, p.price AS price, p.features AS features, DATEDIFF(s.end_date, CURDATE()) AS daysLeft FROM subscriptions s JOIN subscription_plans p ON s.plan_id = p.plan_id WHERE s.user_id = ? AND s.status = 'ACTIVE' AND s.end_date >= CURDATE() ORDER BY s.end_date DESC LIMIT 1
+2026-04-06T14:52:58.146+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.S.findActiveByUserId             : ==> Parameters: 6(Long)
+2026-04-06T14:52:58.153+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.S.findActiveByUserId             : <==      Total: 0
+2026-04-06T14:52:58.153+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.S.findRecentPaymentsByUserId     : ==>  Preparing: SELECT py.payment_id AS paymentId, py.amount AS amount, py.status AS status, py.paid_at AS paidAt, py.created_at AS createdAt, p.plan_name AS planName, p.plan_type AS planType FROM payments py LEFT JOIN subscriptions s ON py.subscription_id = s.subscription_id LEFT JOIN subscription_plans p ON s.plan_id = p.plan_id WHERE py.user_id = ? ORDER BY py.created_at DESC LIMIT ?
+2026-04-06T14:52:58.153+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.S.findRecentPaymentsByUserId     : ==> Parameters: 6(Long), 5(Integer)
+2026-04-06T14:52:58.159+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.m.S.findRecentPaymentsByUserId     : <==      Total: 2
+2026-04-06T14:52:59.214+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:59.215+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:59.219+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:59.243+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:52:59.243+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:52:59.248+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:52:59.249+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.SchoolMapper.findById       : ==>  Preparing: SELECT * FROM schools WHERE school_id = ?
+2026-04-06T14:52:59.249+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.SchoolMapper.findById       : ==> Parameters: 1(Long)
+2026-04-06T14:52:59.253+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.SchoolMapper.findById       : <==      Total: 1
+2026-04-06T14:52:59.254+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:52:59.254+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:52:59.258+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:53:14.910+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.910+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.910+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.910+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.912+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.912+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.913+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.913+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.913+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.913+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.913+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.913+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.915+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.915+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.916+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.916+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.916+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.916+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.927+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.AnnouncementMapper.findActive    : ==>  Preparing: SELECT * FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW()) ORDER BY is_important DESC, created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.AnnouncementMapper.findActive    : ==> Parameters: 2(Integer), 0(Integer)
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.928+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.AnnouncementMapper.findActive    : <==      Total: 2
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.AnnouncementMapper.countActive   : ==>  Preparing: SELECT COUNT(*) FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW())
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.AnnouncementMapper.countActive   : ==> Parameters: 
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:53:14.933+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:53:14.937+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:53:14.937+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.AnnouncementMapper.countActive   : <==      Total: 1
+2026-04-06T14:53:14.937+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:53:14.937+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:53:14.937+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:53:14.937+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:53:14.937+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.C.findClassesByStudentId         : ==>  Preparing: SELECT c.class_id AS classId, c.class_name AS className, c.grade AS grade, c.level_filter AS levelFilter, u.name AS teacherName, cm.joined_at AS joinedAt, (SELECT COUNT(*) FROM class_members WHERE class_id = c.class_id) AS studentCount FROM class_members cm JOIN classes c ON cm.class_id = c.class_id JOIN teachers t ON c.teacher_id = t.teacher_id JOIN users u ON t.user_id = u.user_id WHERE cm.student_id = ? AND c.is_active = 1 ORDER BY cm.joined_at DESC
+2026-04-06T14:53:14.938+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.C.findClassesByStudentId         : ==> Parameters: 1(Long)
+2026-04-06T14:53:14.942+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.C.findClassesByStudentId         : <==      Total: 1
+2026-04-06T14:53:14.946+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:53:14.946+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:53:14.946+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:53:14.946+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:53:14.947+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:53:14.947+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:53:14.947+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:53:14.947+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:53:14.949+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.949+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.A.findByStudentId                : ==>  Preparing: SELECT DISTINCT a.* FROM assignments a INNER JOIN assignment_targets at ON a.assignment_id = at.assignment_id WHERE at.student_id = ? AND a.is_deleted = 0 ORDER BY a.created_at DESC
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 16(Long)
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.A.findByStudentId                : ==> Parameters: 1(Long)
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.m.L.findAllByStudentId             : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:53:14.952+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.m.L.findAllByStudentId             : ==> Parameters: 1(Long)
+2026-04-06T14:53:14.954+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.955+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:53:14.955+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:53:14.955+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 14(Long)
+2026-04-06T14:53:14.956+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.A.findByStudentId                : <==      Total: 9
+2026-04-06T14:53:14.956+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:53:14.956+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 16(Long)
+2026-04-06T14:53:14.957+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.m.L.findAllByStudentId             : <==      Total: 42
+2026-04-06T14:53:14.959+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:53:14.959+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:53:14.960+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 12(Long)
+2026-04-06T14:53:14.962+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : <==      Total: 4
+2026-04-06T14:53:14.962+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:53:14.962+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 16(Long)
+2026-04-06T14:53:14.963+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:53:14.963+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:53:14.963+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 1(Long)
+2026-04-06T14:53:14.965+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:53:14.965+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:53:14.966+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:53:14.966+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:53:14.966+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 9(Long)
+2026-04-06T14:53:14.966+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:53:14.966+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:53:14.966+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 15(Long)
+2026-04-06T14:53:14.970+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:53:14.970+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:53:14.971+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.NotificationMapper.findByUserId  : ==>  Preparing: SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:53:14.971+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : <==      Total: 1
+2026-04-06T14:53:14.971+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.NotificationMapper.findByUserId  : ==> Parameters: 6(Long), 20(Integer), 0(Integer)
+2026-04-06T14:53:14.971+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:53:14.971+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 15(Long)
+2026-04-06T14:53:14.974+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.NotificationMapper.findByUserId  : <==      Total: 3
+2026-04-06T14:53:14.974+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 0
+2026-04-06T14:53:14.974+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:53:14.975+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 14(Long)
+2026-04-06T14:53:14.978+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.m.P.findByAssignmentId             : <==      Total: 3
+2026-04-06T14:53:14.978+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:53:14.979+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 14(Long)
+2026-04-06T14:53:14.984+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:56:08.812+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:08.812+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:08.816+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:08.831+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:08.831+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:08.836+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:08.837+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.S.findActiveByUserId             : ==>  Preparing: SELECT s.subscription_id AS subscriptionId, s.status AS status, s.start_date AS startDate, s.end_date AS endDate, s.auto_renew AS autoRenew, p.plan_name AS planName, p.plan_type AS planType, p.price AS price, p.features AS features, DATEDIFF(s.end_date, CURDATE()) AS daysLeft FROM subscriptions s JOIN subscription_plans p ON s.plan_id = p.plan_id WHERE s.user_id = ? AND s.status = 'ACTIVE' AND s.end_date >= CURDATE() ORDER BY s.end_date DESC LIMIT 1
+2026-04-06T14:56:08.837+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.S.findActiveByUserId             : ==> Parameters: 6(Long)
+2026-04-06T14:56:08.842+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.S.findActiveByUserId             : <==      Total: 0
+2026-04-06T14:56:08.843+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.S.findRecentPaymentsByUserId     : ==>  Preparing: SELECT py.payment_id AS paymentId, py.amount AS amount, py.status AS status, py.paid_at AS paidAt, py.created_at AS createdAt, p.plan_name AS planName, p.plan_type AS planType FROM payments py LEFT JOIN subscriptions s ON py.subscription_id = s.subscription_id LEFT JOIN subscription_plans p ON s.plan_id = p.plan_id WHERE py.user_id = ? ORDER BY py.created_at DESC LIMIT ?
+2026-04-06T14:56:08.843+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.S.findRecentPaymentsByUserId     : ==> Parameters: 6(Long), 5(Integer)
+2026-04-06T14:56:08.848+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-6] c.e.p.m.S.findRecentPaymentsByUserId     : <==      Total: 2
+2026-04-06T14:56:09.771+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:09.771+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:09.776+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:09.798+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:09.798+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:09.804+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:09.804+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.SchoolMapper.findById       : ==>  Preparing: SELECT * FROM schools WHERE school_id = ?
+2026-04-06T14:56:09.804+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.SchoolMapper.findById       : ==> Parameters: 1(Long)
+2026-04-06T14:56:09.809+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.SchoolMapper.findById       : <==      Total: 1
+2026-04-06T14:56:09.809+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:56:09.809+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:56:09.814+09:00 DEBUG 16128 --- [edu-platform] [io-7000-exec-10] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.530+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.531+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.536+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.536+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.536+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.536+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.536+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.536+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.findActive    : ==>  Preparing: SELECT * FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW()) ORDER BY is_important DESC, created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.findActive    : ==> Parameters: 2(Integer), 0(Integer)
+2026-04-06T14:56:34.548+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.findActive    : <==      Total: 2
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.countActive   : ==>  Preparing: SELECT COUNT(*) FROM announcements WHERE is_active = 1 AND (start_at IS NULL OR start_at <= NOW()) AND (end_at IS NULL OR end_at >= NOW())
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.countActive   : ==> Parameters: 
+2026-04-06T14:56:34.552+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==>  Preparing: SELECT * FROM students WHERE user_id = ?
+2026-04-06T14:56:34.553+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : ==> Parameters: 6(Long)
+2026-04-06T14:56:34.555+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:56:34.555+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:56:34.555+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.m.C.findClassesByStudentId         : ==>  Preparing: SELECT c.class_id AS classId, c.class_name AS className, c.grade AS grade, c.level_filter AS levelFilter, u.name AS teacherName, cm.joined_at AS joinedAt, (SELECT COUNT(*) FROM class_members WHERE class_id = c.class_id) AS studentCount FROM class_members cm JOIN classes c ON cm.class_id = c.class_id JOIN teachers t ON c.teacher_id = t.teacher_id JOIN users u ON t.user_id = u.user_id WHERE cm.student_id = ? AND c.is_active = 1 ORDER BY cm.joined_at DESC
+2026-04-06T14:56:34.555+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:56:34.555+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.m.C.findClassesByStudentId         : ==> Parameters: 1(Long)
+2026-04-06T14:56:34.556+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:56:34.556+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-4] c.e.p.m.AnnouncementMapper.countActive   : <==      Total: 1
+2026-04-06T14:56:34.556+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.StudentMapper.findByUserId  : <==      Total: 1
+2026-04-06T14:56:34.560+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-1] c.e.p.m.C.findClassesByStudentId         : <==      Total: 1
+2026-04-06T14:56:34.563+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:56:34.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:56:34.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:56:34.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findById      : ==>  Preparing: SELECT * FROM students WHERE student_id = ?
+2026-04-06T14:56:34.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:56:34.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findById      : ==> Parameters: 1(Long)
+2026-04-06T14:56:34.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.L.findLatestByStudentId          : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:56:34.564+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.L.findLatestByStudentId          : ==> Parameters: 1(Long), 5(Integer), 0(Integer)
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-7] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.A.findByStudentId                : ==>  Preparing: SELECT DISTINCT a.* FROM assignments a INNER JOIN assignment_targets at ON a.assignment_id = at.assignment_id WHERE at.student_id = ? AND a.is_deleted = 0 ORDER BY a.created_at DESC
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.mapper.StudentMapper.findById      : <==      Total: 1
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.A.findByStudentId                : ==> Parameters: 1(Long)
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.m.L.findLatestByStudentId          : <==      Total: 5
+2026-04-06T14:56:34.568+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.L.findAllByStudentId             : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? ORDER BY started_at DESC
+2026-04-06T14:56:34.569+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:56:34.569+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.L.findAllByStudentId             : ==> Parameters: 1(Long)
+2026-04-06T14:56:34.569+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 16(Long)
+2026-04-06T14:56:34.573+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:56:34.573+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.573+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.A.findByStudentId                : <==      Total: 9
+2026-04-06T14:56:34.573+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:56:34.573+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 14(Long)
+2026-04-06T14:56:34.573+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:56:34.574+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 16(Long)
+2026-04-06T14:56:34.574+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-9] c.e.p.m.L.findAllByStudentId             : <==      Total: 42
+2026-04-06T14:56:34.578+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : <==      Total: 4
+2026-04-06T14:56:34.578+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:56:34.578+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:56:34.578+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:56:34.578+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 16(Long)
+2026-04-06T14:56:34.578+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 12(Long)
+2026-04-06T14:56:34.582+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:56:34.583+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:56:34.583+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:56:34.583+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:56:34.583+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 1(Long)
+2026-04-06T14:56:34.583+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 15(Long)
+2026-04-06T14:56:34.585+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:34.585+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:34.587+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : <==      Total: 1
+2026-04-06T14:56:34.587+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:56:34.588+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:56:34.588+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==>  Preparing: SELECT * FROM assignments WHERE assignment_id = ? AND is_deleted = 0
+2026-04-06T14:56:34.588+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : ==> Parameters: 9(Long)
+2026-04-06T14:56:34.588+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 15(Long)
+2026-04-06T14:56:34.588+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:34.588+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.NotificationMapper.findByUserId  : ==>  Preparing: SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?
+2026-04-06T14:56:34.589+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.NotificationMapper.findByUserId  : ==> Parameters: 6(Long), 20(Integer), 0(Integer)
+2026-04-06T14:56:34.593+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 0
+2026-04-06T14:56:34.593+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==>  Preparing: SELECT p.*, sc_subj.code_name AS subject_name, pu.code_name AS unit_code_name, CASE WHEN pu.parent_code_id IS NULL THEN pu.code_name WHEN pu2.parent_code_id IS NULL THEN CONCAT(pu2.code_name, ' > ', pu.code_name) ELSE CONCAT(pu3.code_name, ' > ', pu2.code_name, ' > ', pu.code_name) END AS unit_path FROM problems p INNER JOIN assignment_problems ap ON p.problem_id = ap.problem_id LEFT JOIN system_codes sc_subj ON p.subject_code_id = sc_subj.code_id LEFT JOIN system_codes pu ON p.unit_code_id = pu.code_id LEFT JOIN system_codes pu2 ON pu.parent_code_id = pu2.code_id LEFT JOIN system_codes pu3 ON pu2.parent_code_id = pu3.code_id WHERE ap.assignment_id = ? ORDER BY ap.order_no
+2026-04-06T14:56:34.593+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : ==> Parameters: 14(Long)
+2026-04-06T14:56:34.593+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-2] c.e.p.mapper.AssignmentMapper.findById   : <==      Total: 1
+2026-04-06T14:56:34.593+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-5] c.e.p.m.NotificationMapper.findByUserId  : <==      Total: 3
+2026-04-06T14:56:34.597+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] c.e.p.m.P.findByAssignmentId             : <==      Total: 3
+2026-04-06T14:56:34.597+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==>  Preparing: SELECT * FROM learning_sessions WHERE student_id = ? AND assignment_id = ? ORDER BY started_at DESC LIMIT 1
+2026-04-06T14:56:34.597+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : ==> Parameters: 1(Long), 14(Long)
+2026-04-06T14:56:34.603+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-8] e.p.m.L.findLatestByStudentAndAssignment : <==      Total: 1
+2026-04-06T14:56:36.474+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==>  Preparing: SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+2026-04-06T14:56:36.475+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : ==> Parameters: student_a@test.com(String)
+2026-04-06T14:56:36.480+09:00 DEBUG 16128 --- [edu-platform] [nio-7000-exec-3] c.e.p.mapper.UserMapper.findByEmail      : <==      Total: 1
+2026-04-06T14:56:36.491+09:00  INFO 16128 --- [edu-platform] [nio-7000-exec-3] com.edu.platform.service.AuthService     : User logged out: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzdHVkZW50X2FAdGVzdC5jb20iLCJ0eXBlIjoiYWNjZXNzIiwicm9sZXMiOlsiUk9MRV9TVFVERU5UIl0sImlhdCI6MTc3NTQ1NDY5NSwiZXhwIjoxNzc1NDU4Mjk1fQ.WvY92rXch7Uc3LKB-q1rRNBGWInHaGYBs6ZzrYliGF4MdDWJg3vI9v8A5gVY9Ogk

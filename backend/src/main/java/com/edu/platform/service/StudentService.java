@@ -464,7 +464,12 @@ public class StudentService {
             entry.put("level", p.getLevel() != null ? p.getLevel() : "");
             entry.put("unitName", p.getUnitName() != null ? p.getUnitName() : "");
             entry.put("questionText", p.getQuestionText());
+            entry.put("imageUrl", p.getQuestionImgUrl() != null ? p.getQuestionImgUrl() : "");
+            entry.put("passage", p.getPassage() != null ? p.getPassage() : "");
             entry.put("explanation", p.getExplanation() != null ? p.getExplanation() : "");
+            // [2026-04-07] 힌트 — hint(수동), aiHintText(AI 생성) 중 있는 것 반환
+            entry.put("hint", p.getHint() != null ? p.getHint() : "");
+            entry.put("aiHintText", p.getAiHintText() != null ? p.getAiHintText() : "");
             // 문제 유형: MULTIPLE_CHOICE | SHORT_ANSWER
             entry.put("problemType", p.getProblemType() != null ? p.getProblemType() : "MULTIPLE_CHOICE");
             // 단답형 정답 문자열 (SHORT_ANSWER 전용 — 객관식은 options[i].isCorrect로 판별)

@@ -240,6 +240,7 @@ public class ProblemService {
         Map<String, Object> detail = new java.util.LinkedHashMap<>();
         detail.put("problemId", p.getProblemId());
         detail.put("subject", p.getSubject() != null ? p.getSubject() : "");
+        detail.put("subjectCodeId", p.getSubjectCodeId());
         detail.put("questionText", p.getQuestionText() != null ? p.getQuestionText() : "");
         detail.put("questionImgUrl", p.getQuestionImgUrl() != null ? p.getQuestionImgUrl() : "");
         detail.put("level", p.getLevel() != null ? p.getLevel() : "");

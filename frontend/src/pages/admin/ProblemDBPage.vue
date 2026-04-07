@@ -130,6 +130,11 @@
           <label>해설</label>
           <textarea v-model="form.explanation" class="form-control" rows="3" placeholder="풀이 해설 (선택)" />
         </div>
+        <!-- [2026-04-07] 힌트 필드 -->
+        <div class="form-group">
+          <label>힌트 <span style="font-size:12px;color:#9CA3AF;">(학생이 정답 제출 전 요청 시 표시)</span></label>
+          <textarea v-model="form.hint" class="form-control" rows="2" placeholder="풀이 힌트 (선택)" />
+        </div>
         <!-- [2026-03-27] 보기(passage) 필드 -->
         <div class="form-group">
           <label>보기 (참고 지문)</label>
@@ -199,6 +204,8 @@ const defaultForm = () => ({
   problemType: 'MULTIPLE_CHOICE',
   answer: '',
   explanation: '',
+  hint: '',
+  subjectCodeId: null,
   questionImgUrl: '',
   passage: '',
   options: [
@@ -417,6 +424,8 @@ async function editProblem(p) {
       problemType: detail.problemType || 'MULTIPLE_CHOICE',
       answer: detail.answer || '',
       explanation: detail.explanation || '',
+      hint: detail.hint || '',
+      subjectCodeId: detail.subjectCodeId || null,
       questionImgUrl: detail.questionImgUrl || '',
       passage: detail.passage || '',
       options: detail.options?.length
@@ -447,6 +456,8 @@ async function saveProblem() {
       problemType: form.problemType,
       answer: form.answer,
       explanation: form.explanation,
+      hint: form.hint || '',
+      subjectCodeId: form.subjectCodeId || null,
       questionImgUrl: form.questionImgUrl || '',
       passage: form.passage || '',
       options: form.problemType === 'MULTIPLE_CHOICE'

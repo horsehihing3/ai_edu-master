@@ -20,12 +20,14 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 ### 🟡 협의(Optional) — 미구현
 - [ ] **PG 연동 / 구독** — 결제 게이트웨이 연동, 구독 플랜 결제 흐름. 로그인 상태 "시작하기" 클릭 시 "준비 중" 토스트 처리 완료 (2026-04-06)
 - [x] **구독/이용권 현황 (학생용)** — 학생 마이페이지(StudentMyPage.vue) 신규. GET /student/mypage, SubscriptionMapper(findActiveByUserId/findRecentPayments). 사이드바 "마이페이지" 메뉴 추가. 구독 없으면 "이용권 없음" UI (2026-04-06)
-- [ ] **DRM / 콘텐츠 보안** — 화면캡처 방지, Signed URL 기반 보안 강화
+- [x] **DRM / 콘텐츠 보안** — S3 Presigned URL(15분), MediaController GET /media/presign, 문제 풀이 화면 우클릭·드래그·텍스트선택 방지 (2026-04-07)
 
 ### 🔵 지속 개선
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
 
 ## ✅ 이번 세션 완료
+- [x] **문제 힌트 버튼** — 학생 풀이 화면 "힌트 보기" 버튼 추가(노란 박스, 다음 문제 이동 시 자동 닫힘). 백엔드 getSessionProblems() hint/aiHintText 필드 추가. 어드민 문제 수정 모달 힌트 입력 필드 추가. subjectCodeId 저장 버그(저장 시 NULL 덮어쓰기) 수정 (2026-04-07)
+- [x] **DRM / 콘텐츠 보안** — S3Presigner 빈 등록, S3Service.generatePresignedUrl(), MediaController GET /media/presign(인증 필수), ProblemSolvePage 이미지 presigned URL 동적 조회, 우클릭·드래그·텍스트선택 방지 CSS. getSessionProblems() imageUrl/passage 필드 누락 버그 수정 (2026-04-07)
 - [x] **구독/이용권 현황 (학생 마이페이지)** — StudentMyPage.vue 신규 생성. SubscriptionMapper + XML(findActiveByUserId, findRecentPaymentsByUserId). GET /student/mypage API. 사이드바 "마이페이지" 메뉴(달러 아이콘) 추가. 구독 없음/만료임박/결제이력 UI. 랜딩 요금 "시작하기" 로그인 상태 토스트 처리 (2026-04-06)
 - [x] **매칭 해제 및 재배정** — 교사용: ClassManagePage 학생 행 "이동" 버튼 + 이동 모달(본인 다른 학급 드롭다운). POST /teacher/classes/{classId}/members/{studentId}/move. 어드민용: MemberListPage STUDENT 행 "재배정" 버튼 + 재배정 모달. GET /admin/classes, GET /admin/users/{userId}/classes, POST /admin/users/{userId}/reassign. 소속 학급 없으면 "배정된 학급이 없습니다" 안내 (2026-04-06)
 - [x] **문제 직접 입력 에디터** — ProblemUploadPage "파일 업로드"|"직접 입력" 탭 분리. 직접 입력 탭: 과목/레벨/학년/유형/단원/보기/문제내용/객관식 선지(동적 추가·삭제)/정답/해설/이미지URL 폼. 유효성 검사 후 POST /admin/problems 저장. 저장 완료 화면(재입력/문제은행 이동). 백엔드 변경 없음 (2026-04-04)

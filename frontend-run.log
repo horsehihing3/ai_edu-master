@@ -1,0 +1,319 @@
+
+> edu-platform-frontend@1.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m1042[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m7001[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.123.100:[1m7001[22m/[39m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+    ╷
+107 │       background: darken(#EF4444, 8%);
+    │                   ^^^^^^^^^^^^^^^^^^^
+    ╵
+    src\assets\styles\buttons.scss 107:19  @use
+    src\assets\styles\main.scss 4:1        root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -13.2899022801%)
+color.adjust($color, $lightness: -8%)
+
+More info: https://sass-lang.com/d/color-functions
+
+    ╷
+107 │       background: darken(#EF4444, 8%);
+    │                   ^^^^^^^^^^^^^^^^^^^
+    ╵
+    src\assets\styles\buttons.scss 107:19  @use
+    src\assets\styles\main.scss 4:1        root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+    ╷
+108 │       border-color: darken(#EF4444, 8%);
+    │                     ^^^^^^^^^^^^^^^^^^^
+    ╵
+    src\assets\styles\buttons.scss 108:21  @use
+    src\assets\styles\main.scss 4:1        root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -13.2899022801%)
+color.adjust($color, $lightness: -8%)
+
+More info: https://sass-lang.com/d/color-functions
+
+    ╷
+108 │       border-color: darken(#EF4444, 8%);
+    │                     ^^^^^^^^^^^^^^^^^^^
+    ╵
+    src\assets\styles\buttons.scss 108:21  @use
+    src\assets\styles\main.scss 4:1        root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+    ╷
+129 │       background: darken(#F0F4FF, 5%);
+    │                   ^^^^^^^^^^^^^^^^^^^
+    ╵
+    src\assets\styles\buttons.scss 129:19  @use
+    src\assets\styles\main.scss 4:1        root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -5.1515151515%)
+color.adjust($color, $lightness: -5%)
+
+More info: https://sass-lang.com/d/color-functions
+
+    ╷
+129 │       background: darken(#F0F4FF, 5%);
+    │                   ^^^^^^^^^^^^^^^^^^^
+    ╵
+    src\assets\styles\buttons.scss 129:19  @use
+    src\assets\styles\main.scss 4:1        root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+65 │     background: darken(#EF4444, 8%);
+   │                 ^^^^^^^^^^^^^^^^^^^
+   ╵
+    src\components\common\AppDialog.vue 65:17  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -13.2899022801%)
+color.adjust($color, $lightness: -8%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+65 │     background: darken(#EF4444, 8%);
+   │                 ^^^^^^^^^^^^^^^^^^^
+   ╵
+    src\components\common\AppDialog.vue 65:17  root stylesheet
+
+DEPRECATION WARNING [global-builtin]: Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.adjust instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+   ╷
+66 │     border-color: darken(#EF4444, 8%);
+   │                   ^^^^^^^^^^^^^^^^^^^
+   ╵
+    src\components\common\AppDialog.vue 66:19  root stylesheet
+
+DEPRECATION WARNING [color-functions]: darken() is deprecated. Suggestions:
+
+color.scale($color, $lightness: -13.2899022801%)
+color.adjust($color, $lightness: -8%)
+
+More info: https://sass-lang.com/d/color-functions
+
+   ╷
+66 │     border-color: darken(#EF4444, 8%);
+   │                   ^^^^^^^^^^^^^^^^^^^
+   ╵
+    src\components\common\AppDialog.vue 66:19  root stylesheet
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:19:54[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/teacher/ClassManagePage.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:19:58[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/teacher/ClassManagePage.vue?vue&type=style&index=0&scoped=b978f8e0&lang.scss[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:28:19[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/admin/MemberListPage.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:28:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/admin/MemberListPage.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:28:29[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/admin/MemberListPage.vue?vue&type=style&index=0&scoped=0f5fc428&lang.scss[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:42:56[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/index.js[22m
+[2m오후 2:43:00[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/index.js[22m
+[2m오후 2:43:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/AppSidebar.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:54:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:54:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:54:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+[2m오후 2:54:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.vue[22m
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+

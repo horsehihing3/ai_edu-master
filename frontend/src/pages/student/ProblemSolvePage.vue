@@ -23,7 +23,8 @@
 
     <div v-else class="solve-body">
       <!-- 문제 본문 -->
-      <div class="question-card card">
+      <!-- [2026-04-07] DRM — 우클릭·드래그·텍스트선택 방지 -->
+      <div class="question-card card" @contextmenu.prevent>
         <div class="question-card__meta">
           <span class="subject-tag">{{ currentP.subject }}</span>
           <AppBadge :type="currentP.level" />
@@ -33,10 +34,23 @@
         <div class="question-text">
           <!-- [2026-03-21] KaTeX 수식 렌더링 적용 -->
           <p v-if="currentP.questionText"><MathText :text="currentP.questionText" /></p>
-          <img v-if="currentP.imageUrl" :src="currentP.imageUrl" class="question-img" alt="문제 이미지" />
+          <!-- [2026-04-07] DRM — 이미지 우클릭·드래그 방지, presigned URL 사용 -->
+          <img v-if="currentP.imageUrl" :src="presignedImageUrl" class="question-img" alt="문제 이미지"
+               @contextmenu.prevent @dragstart.prevent />
           <!-- [2026-03-27] 보기(passage) 표시 -->
           <div v-if="currentP.passage" class="passage-box">
             <MathText :text="currentP.passage" />
+          </div>
+        </div>
+
+        <!-- [2026-04-07] 힌트 버튼 — 제출 전, 힌트 있는 문제만 표시 -->
+        <div v-if="!submitted && currentP.hint" class="hint-wrap">
+          <button class="hint-btn" @click="showHint = !showHint">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            {{ showHint ? '힌트 닫기' : '힌트 보기' }}
+          </button>
+          <div v-if="showHint" class="hint-box">
+            <MathText :text="currentP.hint" />
           </div>
         </div>
 
@@ -227,7 +241,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBadge from '@/components/common/AppBadge.vue'
 import AppButton from '@/components/common/AppButton.vue'
@@ -259,6 +273,8 @@ const relatedVideo = ref(undefined)   // undefined: 미조회, null: 없음, obj
 const showVideoModal = ref(false)
 // [2026-04-01] 이해도 피드백 (EASY=이해했어요, HARD=아직모르겠어요)
 const feedbackLike = ref(null)
+// [2026-04-07] 힌트
+const showHint = ref(false)
 let timer = null
 // [2026-03-21] 문제별 소요 시간 측정
 let problemStartTime = Date.now()
@@ -266,6 +282,23 @@ let problemStartTime = Date.now()
 const problems = ref([])
 
 const currentP = computed(() => problems.value[currentIdx.value])
+
+// [2026-04-07] DRM — 문제 이미지 Presigned URL (15분 유효)
+const presignedImageUrl = ref(null)
+watch(currentP, async (p) => {
+  if (!p?.imageUrl) { presignedImageUrl.value = null; return }
+  // S3 URL인 경우만 presign 요청
+  if (p.imageUrl.includes('.amazonaws.com/') || p.imageUrl.includes('cloudfront.net')) {
+    try {
+      const res = await api.get('/media/presign', { params: { url: p.imageUrl } })
+      presignedImageUrl.value = res.data?.url || p.imageUrl
+    } catch {
+      presignedImageUrl.value = p.imageUrl
+    }
+  } else {
+    presignedImageUrl.value = p.imageUrl
+  }
+}, { immediate: true })
 
 
 const isCorrect = computed(() => {
@@ -349,6 +382,7 @@ function nextProblem() {
   relatedVideo.value = undefined
   showVideoModal.value = false
   feedbackLike.value = null
+  showHint.value = false
   saveProgress()
 }
 
@@ -409,7 +443,9 @@ onMounted(async () => {
       answer: p.problemType === 'SHORT_ANSWER'
         ? (p.correctAnswer || '')
         : (p.options?.findIndex(o => o.isCorrect) ?? 0),
-      explanation: p.explanation || ''
+      explanation: p.explanation || '',
+      // [2026-04-07] 힌트 — 수동 힌트 우선, 없으면 AI 힌트
+      hint: p.hint || p.aiHintText || ''
     }))
   } catch {}
 })
@@ -473,7 +509,11 @@ onBeforeUnmount(async () => {
   }
 }
 
+/* [2026-04-07] DRM — 문제 카드 텍스트 선택·드래그 방지 */
 .question-card {
+  user-select: none;
+  -webkit-user-select: none;
+
   .question-card__meta {
     display: flex;
     align-items: center;
@@ -501,6 +541,9 @@ onBeforeUnmount(async () => {
       max-width: 100%;
       border-radius: $radius-md;
       margin: $spacing-4 0;
+      /* [2026-04-07] DRM — 이미지 드래그 방지 */
+      -webkit-user-drag: none;
+      pointer-events: none;
     }
 
     /* [2026-03-27] 보기 박스 스타일 */
@@ -789,6 +832,39 @@ onBeforeUnmount(async () => {
 }
 .video-modal-body {
   padding: 16px;
+}
+
+// [2026-04-07] 힌트
+.hint-wrap {
+  margin-bottom: $spacing-4;
+}
+
+.hint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid #FCD34D;
+  background: #FFFBEB;
+  color: #92400E;
+  transition: all $transition-fast;
+
+  &:hover { background: #FEF3C7; }
+}
+
+.hint-box {
+  margin-top: $spacing-3;
+  padding: $spacing-4 $spacing-5;
+  background: #FFFBEB;
+  border: 1.5px solid #FCD34D;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: #78350F;
+  line-height: 1.7;
 }
 
 // [2026-04-01] 이해도 피드백
