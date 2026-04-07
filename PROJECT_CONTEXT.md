@@ -26,6 +26,7 @@ AI 기반 수학 교육 플랫폼 — 구현 현황 및 프로젝트 컨텍스�
 - [ ] passage(보기) 미세 조정 — 테두리 박스 감지 AI 인식률 지속 개선
 
 ## ✅ 이번 세션 완료
+- [x] **오답노트 필터 강화** — 해결 상태 필터(전체/미해결/해결됨) 버튼, 정렬(최신순/오래된순) 드롭다운, 필터 결과 건수 표시(`N개 / 전체 M개`), 데이터 로드 한도 50→200개 확장 (2026-04-07)
 - [x] **문제 힌트 버튼** — 학생 풀이 화면 "힌트 보기" 버튼 추가(노란 박스, 다음 문제 이동 시 자동 닫힘). 백엔드 getSessionProblems() hint/aiHintText 필드 추가. 어드민 문제 수정 모달 힌트 입력 필드 추가. subjectCodeId 저장 버그(저장 시 NULL 덮어쓰기) 수정 (2026-04-07)
 - [x] **DRM / 콘텐츠 보안** — S3Presigner 빈 등록, S3Service.generatePresignedUrl(), MediaController GET /media/presign(인증 필수), ProblemSolvePage 이미지 presigned URL 동적 조회, 우클릭·드래그·텍스트선택 방지 CSS. getSessionProblems() imageUrl/passage 필드 누락 버그 수정 (2026-04-07)
 - [x] **구독/이용권 현황 (학생 마이페이지)** — StudentMyPage.vue 신규 생성. SubscriptionMapper + XML(findActiveByUserId, findRecentPaymentsByUserId). GET /student/mypage API. 사이드바 "마이페이지" 메뉴(달러 아이콘) 추가. 구독 없음/만료임박/결제이력 UI. 랜딩 요금 "시작하기" 로그인 상태 토스트 처리 (2026-04-06)

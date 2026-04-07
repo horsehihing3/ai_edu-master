@@ -5,6 +5,7 @@
       <p>틀린 문제를 다시 확인하고 복습하세요</p>
     </div>
 
+    <!-- [2026-04-07] 필터 바 — 과목·단원·등급·해결상태·정렬 -->
     <div class="filter-bar">
       <select v-model="filterSubject" class="filter-select">
         <option value="">전체 과목</option>
@@ -22,7 +23,26 @@
           @click="filterLevel = lv === 'ALL' ? '' : lv; currentPage = 1"
         >{{ lv }}</button>
       </div>
+      <!-- [2026-04-07] 해결 상태 필터 -->
+      <div class="resolve-btns">
+        <button
+          v-for="rs in resolveOptions" :key="rs.value"
+          :class="['resolve-btn', { active: filterResolved === rs.value }]"
+          @click="filterResolved = rs.value; currentPage = 1"
+        >{{ rs.label }}</button>
+      </div>
+      <!-- [2026-04-07] 정렬 -->
+      <select v-model="sortOrder" class="filter-select" style="width:120px;">
+        <option value="newest">최신순</option>
+        <option value="oldest">오래된순</option>
+      </select>
       <button class="btn btn-danger btn-sm delete-all-btn" @click="deleteAll">전체 삭제</button>
+    </div>
+
+    <!-- [2026-04-07] 필터 결과 건수 -->
+    <div class="result-count" v-if="items.length">
+      <span>{{ filteredItems.length }}개</span>
+      <span v-if="filteredItems.length !== items.length" class="count-total"> / 전체 {{ items.length }}개</span>
     </div>
 
     <div v-if="pagedItems.length" class="wrong-note-list">
@@ -86,6 +106,14 @@ const items = ref([])
 const filterSubject = ref('')
 const filterUnit = ref('')
 const filterLevel = ref('')
+// [2026-04-07] 해결 상태 필터 / 정렬
+const filterResolved = ref('all')
+const sortOrder = ref('newest')
+const resolveOptions = [
+  { value: 'all', label: '전체' },
+  { value: 'unresolved', label: '미해결' },
+  { value: 'resolved', label: '해결됨' },
+]
 const currentPage = ref(1)
 const pageSize = 10
 
@@ -98,12 +126,20 @@ const unitOptions = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  return items.value.filter(i => {
+  // [2026-04-07] 해결 상태·정렬 추가
+  let result = items.value.filter(i => {
     if (filterSubject.value && i.subject !== filterSubject.value) return false
     if (filterUnit.value && i.unitName !== filterUnit.value) return false
     if (filterLevel.value && i.level !== filterLevel.value) return false
+    if (filterResolved.value === 'unresolved' && i.isResolved) return false
+    if (filterResolved.value === 'resolved' && !i.isResolved) return false
     return true
   })
+  result = [...result].sort((a, b) => {
+    const da = new Date(a.createdAt), db = new Date(b.createdAt)
+    return sortOrder.value === 'newest' ? db - da : da - db
+  })
+  return result
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredItems.value.length / pageSize)))
@@ -113,12 +149,12 @@ const pagedItems = computed(() => {
   return filteredItems.value.slice(start, start + pageSize)
 })
 
-watch([filterSubject, filterUnit, filterLevel], () => { currentPage.value = 1 })
+watch([filterSubject, filterUnit, filterLevel, filterResolved, sortOrder], () => { currentPage.value = 1 })
 watch(filterSubject, () => { filterUnit.value = '' })
 
 async function fetchWrongNotes() {
   try {
-    const res = await api.get('/student/wrong-notes', { params: { page: 0, size: 50 } })
+    const res = await api.get('/student/wrong-notes', { params: { page: 0, size: 200 } })
     const rawItems = (res.data?.content || res.data || []).map(w => ({
       id: w.wrongNoteId ?? w.id,
       problemId: w.problemId,
@@ -253,6 +289,43 @@ onMounted(fetchWrongNotes)
   align-items: center;
   gap: $spacing-1;
   height: 38px;
+}
+
+// [2026-04-07] 해결 상태 필터 버튼
+.resolve-btns {
+  display: flex;
+  align-items: center;
+  gap: $spacing-1;
+  height: 38px;
+}
+
+.resolve-btn {
+  padding: 5px 14px;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  border: 1.5px solid $border;
+  background: $bg-light;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &.active {
+    background: $primary;
+    color: white;
+    border-color: $primary;
+  }
+  &:not(.active):hover { border-color: $primary-light; color: $primary; }
+}
+
+// [2026-04-07] 필터 결과 건수
+.result-count {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-bottom: $spacing-3;
+
+  span:first-child { font-weight: 700; color: $text-primary; }
+  .count-total { color: $text-muted; }
 }
 
 .level-btn {
